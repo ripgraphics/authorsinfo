@@ -52,6 +52,9 @@ export function BookCoverCarouselEnhanced({
   const [loading, setLoading] = useState(true)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const [thumbnailPage, setThumbnailPage] = useState(0)
 
   // Fetch book images using the database function
   useEffect(() => {
@@ -153,6 +156,18 @@ export function BookCoverCarouselEnhanced({
   const handleThumbnailClick = (index: number) => {
     setSelectedImageIndex(index)
     const image = images[index]
+    
+    // Update thumbnail page if clicking on a gallery image not on current page
+    if (image && image.image_type === 'book_gallery') {
+      const galleryIndex = galleryImages.indexOf(image)
+      if (galleryIndex >= 0) {
+        const newPage = Math.floor(galleryIndex / thumbnailsPerPage)
+        if (newPage !== thumbnailPage) {
+          setThumbnailPage(newPage)
+        }
+      }
+    }
+    
     if (image && onImageChange) {
       onImageChange(image.image_id, image.image_url)
     }
@@ -171,6 +186,73 @@ export function BookCoverCarouselEnhanced({
       setSelectedImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
     }
   }
+
+  // Touch/swipe handlers
+  const minSwipeDistance = 50
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe && images.length > 1) {
+      // Swipe left - go to next image
+      const newIndex = selectedImageIndex < images.length - 1 ? selectedImageIndex + 1 : 0
+      setSelectedImageIndex(newIndex)
+      
+      // Update thumbnail page if needed
+      const newImage = images[newIndex]
+      if (newImage && newImage.image_type === 'book_gallery') {
+        const galleryIndex = galleryImages.indexOf(newImage)
+        if (galleryIndex >= 0) {
+          const newPage = Math.floor(galleryIndex / thumbnailsPerPage)
+          if (newPage !== thumbnailPage) {
+            setThumbnailPage(newPage)
+          }
+        }
+      }
+    }
+    if (isRightSwipe && images.length > 1) {
+      // Swipe right - go to previous image
+      const newIndex = selectedImageIndex > 0 ? selectedImageIndex - 1 : images.length - 1
+      setSelectedImageIndex(newIndex)
+      
+      // Update thumbnail page if needed
+      const newImage = images[newIndex]
+      if (newImage && newImage.image_type === 'book_gallery') {
+        const galleryIndex = galleryImages.indexOf(newImage)
+        if (galleryIndex >= 0) {
+          const newPage = Math.floor(galleryIndex / thumbnailsPerPage)
+          if (newPage !== thumbnailPage) {
+            setThumbnailPage(newPage)
+          }
+        }
+      }
+    }
+  }
+
+  // Calculate thumbnail pagination
+  // Always show front cover, back cover, then paginate gallery images
+  const fixedThumbnailsCount = (frontCover ? 1 : 0) + (backCover ? 1 : 0)
+  const thumbnailsPerPage = 5
+  // Only paginate gallery images (add button is always visible if canEdit)
+  const totalThumbnailPages = Math.ceil(galleryImages.length / thumbnailsPerPage) || 1
+  
+  // Calculate which gallery images to show on current page
+  const galleryStartIndex = thumbnailPage * thumbnailsPerPage
+  const galleryEndIndex = galleryStartIndex + thumbnailsPerPage
+  const visibleGalleryImages = galleryImages.slice(galleryStartIndex, galleryEndIndex)
 
   if (loading) {
     return (
@@ -215,18 +297,37 @@ export function BookCoverCarouselEnhanced({
       <Card
         className="book-page__cover-card overflow-hidden relative cursor-pointer"
         onClick={handleMainImageClick}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
         {currentImage && (
-          <div className="book-page__cover-image w-full h-full relative aspect-[2/3]">
-            <Image
-              src={currentImage.large_url || currentImage.image_url}
-              alt={currentImage.alt_text || getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
-              title={currentImage.alt_text || getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
-              width={400}
-              height={600}
-              className="w-full aspect-[2/3] object-cover"
-              priority={currentImage.image_type === 'book_cover_front'}
-            />
+          <div className={`book-page__cover-image w-full relative ${
+            currentImage.image_type === 'book_gallery' 
+              ? 'flex items-center justify-center min-h-[400px]' 
+              : 'aspect-[2/3]'
+          }`}>
+            {currentImage.image_type === 'book_gallery' ? (
+              <Image
+                src={currentImage.large_url || currentImage.image_url}
+                alt={currentImage.alt_text || getBookGalleryAltText(bookTitle, currentImage.caption || undefined)}
+                title={currentImage.alt_text || getBookGalleryAltText(bookTitle, currentImage.caption || undefined)}
+                width={800}
+                height={600}
+                className="max-w-full max-h-[600px] w-auto h-auto object-contain"
+                priority={false}
+              />
+            ) : (
+              <Image
+                src={currentImage.large_url || currentImage.image_url}
+                alt={currentImage.alt_text || getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
+                title={currentImage.alt_text || getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
+                width={400}
+                height={600}
+                className="w-full aspect-[2/3] object-cover"
+                priority={currentImage.image_type === 'book_cover_front'}
+              />
+            )}
             {images.length > 1 && (
               <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
                 {selectedImageIndex + 1} / {images.length}
@@ -237,85 +338,27 @@ export function BookCoverCarouselEnhanced({
       </Card>
 
       {/* Thumbnail Row */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-        {/* Front Cover Thumbnail (always first) */}
-        {frontCover && (
-          <button
-            onClick={() => handleThumbnailClick(images.indexOf(frontCover))}
-            className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
-              selectedImageIndex === images.indexOf(frontCover)
-                ? 'shadow-lg'
-                : 'shadow-sm hover:shadow-md'
-            }`}
-          >
-            <Image
-              src={frontCover.thumbnail_url || frontCover.image_url}
-              alt={getBookCoverAltText(bookTitle, 'front')}
-              title={getBookCoverAltText(bookTitle, 'front')}
-              fill
-              className="object-cover"
-              sizes="60px"
-            />
-            {selectedImageIndex === images.indexOf(frontCover) && (
-              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                <div className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">
-                  Viewing
-                </div>
-              </div>
-            )}
-          </button>
-        )}
-
-        {/* Back Cover Thumbnail (if exists) */}
-        {backCover && (
-          <button
-            onClick={() => handleThumbnailClick(images.indexOf(backCover))}
-            className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden border-2 transition-all ${
-              selectedImageIndex === images.indexOf(backCover)
-                ? 'border-primary ring-2 ring-primary ring-offset-2'
-                : 'border-transparent hover:border-muted-foreground/50'
-            }`}
-          >
-            <Image
-              src={backCover.thumbnail_url || backCover.image_url}
-              alt={getBookCoverAltText(bookTitle, 'back')}
-              title={getBookCoverAltText(bookTitle, 'back')}
-              fill
-              className="object-cover"
-              sizes="60px"
-            />
-            {selectedImageIndex === images.indexOf(backCover) && (
-              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                <div className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">
-                  Viewing
-                </div>
-              </div>
-            )}
-          </button>
-        )}
-
-        {/* Gallery Image Thumbnails */}
-        {galleryImages.map((galleryImage) => {
-          const index = images.indexOf(galleryImage)
-          return (
+      <div className="space-y-2">
+        <div className="flex gap-2 overflow-hidden">
+          {/* Front Cover Thumbnail (always first) */}
+          {frontCover && (
             <button
-              key={galleryImage.id}
-              onClick={() => handleThumbnailClick(index)}
+              onClick={() => handleThumbnailClick(images.indexOf(frontCover))}
               className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
-                selectedImageIndex === index
+                selectedImageIndex === images.indexOf(frontCover)
                   ? 'shadow-lg'
                   : 'shadow-sm hover:shadow-md'
               }`}
             >
               <Image
-                src={galleryImage.thumbnail_url || galleryImage.image_url}
-                alt={galleryImage.alt_text || getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
-                title={galleryImage.alt_text || getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
+                src={frontCover.thumbnail_url || frontCover.image_url}
+                alt={getBookCoverAltText(bookTitle, 'front')}
+                title={getBookCoverAltText(bookTitle, 'front')}
                 fill
                 className="object-cover"
                 sizes="60px"
               />
-              {selectedImageIndex === index && (
+              {selectedImageIndex === images.indexOf(frontCover) && (
                 <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                   <div className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">
                     Viewing
@@ -323,17 +366,95 @@ export function BookCoverCarouselEnhanced({
                 </div>
               )}
             </button>
-          )
-        })}
+          )}
 
-        {/* Add Image Button (if can edit) */}
-        {canEdit && (
-          <button
-            onClick={onUploadClick}
-            className="flex-shrink-0 w-[60px] h-[90px] rounded-md border-2 border-dashed border-muted-foreground/50 hover:border-primary transition-colors flex items-center justify-center bg-muted/30"
-          >
-            <Plus className="h-3 w-3 text-muted-foreground" />
-          </button>
+          {/* Back Cover Thumbnail (if exists) */}
+          {backCover && (
+            <button
+              onClick={() => handleThumbnailClick(images.indexOf(backCover))}
+              className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
+                selectedImageIndex === images.indexOf(backCover)
+                  ? 'shadow-lg'
+                  : 'shadow-sm hover:shadow-md'
+              }`}
+            >
+              <Image
+                src={backCover.thumbnail_url || backCover.image_url}
+                alt={getBookCoverAltText(bookTitle, 'back')}
+                title={getBookCoverAltText(bookTitle, 'back')}
+                fill
+                className="object-cover"
+                sizes="60px"
+              />
+              {selectedImageIndex === images.indexOf(backCover) && (
+                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                  <div className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">
+                    Viewing
+                  </div>
+                </div>
+              )}
+            </button>
+          )}
+
+          {/* Gallery Image Thumbnails (visible page) */}
+          {visibleGalleryImages.map((galleryImage) => {
+            const index = images.indexOf(galleryImage)
+            return (
+              <button
+                key={galleryImage.id}
+                onClick={() => handleThumbnailClick(index)}
+                className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
+                  selectedImageIndex === index
+                    ? 'shadow-lg'
+                    : 'shadow-sm hover:shadow-md'
+                }`}
+              >
+                <Image
+                  src={galleryImage.thumbnail_url || galleryImage.image_url}
+                  alt={galleryImage.alt_text || getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
+                  title={galleryImage.alt_text || getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
+                  fill
+                  className="object-cover"
+                  sizes="60px"
+                />
+                {selectedImageIndex === index && (
+                  <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                    <div className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">
+                      Viewing
+                    </div>
+                  </div>
+                )}
+              </button>
+            )
+          })}
+
+          {/* Add Image Button (if can edit) */}
+          {canEdit && (
+            <button
+              onClick={onUploadClick}
+              className="flex-shrink-0 w-[60px] h-[90px] rounded-md border-2 border-dashed border-muted-foreground/50 hover:border-primary transition-colors flex items-center justify-center bg-muted/30"
+            >
+              <Plus className="h-3 w-3 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+
+        {/* Pagination Dots */}
+        {galleryImages.length > thumbnailsPerPage && (
+          <div className="flex justify-center gap-1.5">
+            {Array.from({ length: totalThumbnailPages }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setThumbnailPage(index)}
+                className={`h-2 rounded-full transition-all ${
+                  thumbnailPage === index
+                    ? 'bg-primary w-6'
+                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50 w-2'
+                }`}
+                aria-label={`Go to thumbnail page ${index + 1}`}
+              />
+            ))}
+          </div>
         )}
       </div>
 

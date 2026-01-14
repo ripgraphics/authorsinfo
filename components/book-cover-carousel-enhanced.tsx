@@ -178,7 +178,7 @@ export function BookCoverCarouselEnhanced({
         <Card className="w-full aspect-[2/3] animate-pulse bg-muted" />
         <div className="flex gap-2">
           {[...Array(3)].map((_, i) => (
-            <Card key={i} className="w-10 h-[60px] animate-pulse bg-muted" />
+            <Card key={i} className="w-[60px] h-[90px] animate-pulse bg-muted" />
           ))}
         </div>
       </div>
@@ -242,7 +242,7 @@ export function BookCoverCarouselEnhanced({
         {frontCover && (
           <button
             onClick={() => handleThumbnailClick(images.indexOf(frontCover))}
-            className={`flex-shrink-0 relative w-20 h-30 rounded-md overflow-hidden border-2 transition-all ${
+            className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden border-2 transition-all ${
               selectedImageIndex === images.indexOf(frontCover)
                 ? 'border-primary ring-2 ring-primary ring-offset-2'
                 : 'border-transparent hover:border-muted-foreground/50'
@@ -254,7 +254,7 @@ export function BookCoverCarouselEnhanced({
               title={getBookCoverAltText(bookTitle, 'front')}
               fill
               className="object-cover"
-              sizes="80px"
+              sizes="60px"
             />
             {selectedImageIndex === images.indexOf(frontCover) && (
               <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
@@ -270,7 +270,7 @@ export function BookCoverCarouselEnhanced({
         {backCover && (
           <button
             onClick={() => handleThumbnailClick(images.indexOf(backCover))}
-            className={`flex-shrink-0 relative w-10 h-[60px] rounded-md overflow-hidden border-2 transition-all ${
+            className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden border-2 transition-all ${
               selectedImageIndex === images.indexOf(backCover)
                 ? 'border-primary ring-2 ring-primary ring-offset-2'
                 : 'border-transparent hover:border-muted-foreground/50'
@@ -282,7 +282,7 @@ export function BookCoverCarouselEnhanced({
               title={getBookCoverAltText(bookTitle, 'back')}
               fill
               className="object-cover"
-              sizes="40px"
+              sizes="60px"
             />
             {selectedImageIndex === images.indexOf(backCover) && (
               <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
@@ -301,7 +301,7 @@ export function BookCoverCarouselEnhanced({
             <button
               key={galleryImage.id}
               onClick={() => handleThumbnailClick(index)}
-              className={`flex-shrink-0 relative w-20 h-30 rounded-md overflow-hidden border-2 transition-all ${
+              className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden border-2 transition-all ${
                 selectedImageIndex === index
                   ? 'border-primary ring-2 ring-primary ring-offset-2'
                   : 'border-transparent hover:border-muted-foreground/50'
@@ -313,7 +313,7 @@ export function BookCoverCarouselEnhanced({
                 title={galleryImage.alt_text || getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
                 fill
                 className="object-cover"
-                sizes="80px"
+                sizes="60px"
               />
               {selectedImageIndex === index && (
                 <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
@@ -330,7 +330,7 @@ export function BookCoverCarouselEnhanced({
         {canEdit && (
           <button
             onClick={onUploadClick}
-            className="flex-shrink-0 w-10 h-[60px] rounded-md border-2 border-dashed border-muted-foreground/50 hover:border-primary transition-colors flex items-center justify-center bg-muted/30"
+            className="flex-shrink-0 w-[60px] h-[90px] rounded-md border-2 border-dashed border-muted-foreground/50 hover:border-primary transition-colors flex items-center justify-center bg-muted/30"
           >
             <Plus className="h-3 w-3 text-muted-foreground" />
           </button>

@@ -908,14 +908,13 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
                 const { createActivityWithValidation } = await import(
                   '@/app/actions/create-activity-with-validation'
                 )
-                const { ActivityTypes } = await import('@/app/actions/activities')
 
                 // Get image URL
-                const { data: imageData } = await supabase
+                const { data: imageData } = await (supabase
                   .from('images')
                   .select('url, alt_text')
                   .eq('id', coverImageId)
-                  .single()
+                  .single() as any)
 
                 // Get first admin user for activity attribution (or system user)
                 const { data: adminUser } = await supabase
@@ -924,17 +923,17 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
                   .limit(1)
                   .single()
 
-                if (imageData?.url && adminUser?.id) {
+                if (imageData && (imageData as { url?: string }).url && adminUser?.id) {
                   await createActivityWithValidation({
                     user_id: adminUser.id,
-                    activity_type: ActivityTypes.PHOTO_ADDED,
+                    activity_type: 'photo_added',
                     content_type: 'image',
-                    image_url: imageData.url,
+                    image_url: (imageData as { url: string }).url,
                     entity_type: 'book',
                     entity_id: newBookId,
                     metadata: {
                       image_type: 'book_cover_front',
-                      alt_text: imageData.alt_text || book.title,
+                      alt_text: (imageData as { alt_text?: string }).alt_text || book.title,
                       source: 'isbndb_import',
                     },
                     publish_status: 'published',

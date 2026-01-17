@@ -207,7 +207,6 @@ export async function bulkAddBooksFromSearch(bookObjects: any[]): Promise<BulkAd
                     const { createActivityWithValidation } = await import(
                       '@/app/actions/create-activity-with-validation'
                     )
-                    const { ActivityTypes } = await import('@/app/actions/activities')
                     
                     // Get user ID for activity - use system user or first admin if available
                     const { data: adminUser } = await supabaseAdmin
@@ -219,7 +218,7 @@ export async function bulkAddBooksFromSearch(bookObjects: any[]): Promise<BulkAd
                     if (existingImage?.url && adminUser?.id) {
                       await createActivityWithValidation({
                         user_id: adminUser.id,
-                        activity_type: ActivityTypes.PHOTO_ADDED,
+                        activity_type: 'photo_added',
                         content_type: 'image',
                         image_url: existingImage.url,
                         entity_type: 'book',

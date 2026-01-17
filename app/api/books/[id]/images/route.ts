@@ -3,7 +3,6 @@ import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { isUserAdmin, isUserSuperAdmin } from '@/lib/auth-utils'
 import { createActivityWithValidation } from '@/app/actions/create-activity-with-validation'
-import { ActivityTypes } from '@/app/actions/activities'
 
 /**
  * GET /api/books/[id]/images
@@ -110,23 +109,23 @@ export async function POST(
 
       // Create timeline activity for cover image upload (non-blocking)
       try {
-        const { data: imageData } = await supabaseAdmin
+        const { data: imageData, error: imageError } = await (supabaseAdmin
           .from('images')
           .select('url, alt_text')
           .eq('id', imageId)
-          .single()
+          .single() as any)
 
-        if (imageData?.url) {
+        if (imageData && !imageError && (imageData as { url?: string }).url) {
           await createActivityWithValidation({
             user_id: user.id,
-            activity_type: ActivityTypes.PHOTO_ADDED,
+            activity_type: 'photo_added',
             content_type: 'image',
-            image_url: imageData.url,
+            image_url: (imageData as { url: string }).url,
             entity_type: 'book',
             entity_id: bookId,
             metadata: {
               image_type: imageType,
-              alt_text: imageData.alt_text,
+              alt_text: (imageData as { alt_text?: string }).alt_text,
             },
             publish_status: 'published',
             published_at: new Date().toISOString(),
@@ -163,23 +162,23 @@ export async function POST(
 
       // Create timeline activity for gallery image upload (non-blocking)
       try {
-        const { data: imageData } = await supabaseAdmin
+        const { data: imageData, error: imageError } = await (supabaseAdmin
           .from('images')
           .select('url, alt_text')
           .eq('id', imageId)
-          .single()
+          .single() as any)
 
-        if (imageData?.url) {
+        if (imageData && !imageError && (imageData as { url?: string }).url) {
           await createActivityWithValidation({
             user_id: user.id,
-            activity_type: ActivityTypes.PHOTO_ADDED,
+            activity_type: 'photo_added',
             content_type: 'image',
-            image_url: imageData.url,
+            image_url: (imageData as { url: string }).url,
             entity_type: 'book',
             entity_id: bookId,
             metadata: {
               image_type: imageType,
-              alt_text: imageData.alt_text || altText,
+              alt_text: (imageData as { alt_text?: string }).alt_text || altText,
             },
             publish_status: 'published',
             published_at: new Date().toISOString(),

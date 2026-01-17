@@ -14,6 +14,15 @@ import { EnterprisePhotoGrid } from './photo-gallery/enterprise-photo-grid'
 import { EnterpriseImageUpload } from '@/components/ui/enterprise-image-upload'
 import { addCacheBusting } from '@/lib/utils/image-url-validation'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog'
+import { CloseButton } from '@/components/ui/close-button'
+import {
   FolderPlus,
   Settings,
   Lock,
@@ -558,50 +567,44 @@ export function EntityPhotoAlbums({
       )}
 
       {/* Album Viewer Modal */}
-      {selectedAlbum && (
-        <div className="user-photo-album-modal-overlay fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="user-photo-album-modal-container bg-background rounded-lg w-full max-w-6xl h-full max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="user-photo-album-modal-header flex items-center justify-between p-4 border-b flex-shrink-0">
-              <div className="user-photo-album-modal-title-section">
-                <h2 className="user-photo-album-modal-title text-xl font-semibold">
-                  {selectedAlbum.name}
-                </h2>
-                {selectedAlbum.description && (
-                  <p className="user-photo-album-modal-description text-muted-foreground">
-                    {selectedAlbum.description}
-                  </p>
-                )}
-              </div>
-              <div className="user-photo-album-modal-actions flex items-center gap-2">
-                {isOwnEntity && (
-                  <EnterpriseImageUpload
-                    entityType={entityType}
-                    entityId={entityId}
-                    context="album"
-                    albumId={selectedAlbum.id}
-                    onUploadComplete={(imageIds: string[]) => {
-                      loadAlbums() // Refresh albums after upload
-                      toast({
-                        title: 'Success',
-                        description: `Added ${imageIds.length} photo${imageIds.length !== 1 ? 's' : ''} to album`,
-                      })
-                    }}
-                    variant="default"
-                    size="sm"
-                    buttonText="Add Photos"
-                  />
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSelectedAlbum(null)}
-                  className="user-photo-album-modal-close-button"
-                >
-                  ×
-                </Button>
-              </div>
+      <Dialog open={!!selectedAlbum} onOpenChange={(open) => !open && setSelectedAlbum(null)}>
+        <DialogContent className="max-w-6xl h-full max-h-[90vh] flex flex-col p-0 [&>button]:hidden">
+          <DialogHeader className="flex items-center justify-between p-4 border-b flex-shrink-0">
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-xl font-semibold">{selectedAlbum?.name}</DialogTitle>
+              {selectedAlbum?.description && (
+                <DialogDescription className="text-muted-foreground">
+                  {selectedAlbum.description}
+                </DialogDescription>
+              )}
             </div>
-            <div className="user-photo-album-modal-content flex-1 min-h-0 overflow-hidden">
+            <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+              {isOwnEntity && selectedAlbum && (
+                <EnterpriseImageUpload
+                  entityType={entityType}
+                  entityId={entityId}
+                  context="album"
+                  albumId={selectedAlbum.id}
+                  onUploadComplete={(imageIds: string[]) => {
+                    loadAlbums() // Refresh albums after upload
+                    toast({
+                      title: 'Success',
+                      description: `Added ${imageIds.length} photo${imageIds.length !== 1 ? 's' : ''} to album`,
+                    })
+                  }}
+                  variant="default"
+                  size="sm"
+                  buttonText="Add Photos"
+                />
+              )}
+              <DialogClose asChild>
+                {/* CloseButton onClick is handled by DialogClose, pass no-op to satisfy prop requirement */}
+                <CloseButton onClick={() => {}} className="relative top-0 right-0" />
+              </DialogClose>
+            </div>
+          </DialogHeader>
+          {selectedAlbum && (
+            <div className="flex-1 min-h-0 overflow-hidden">
               <EnterprisePhotoGrid
                 albumId={selectedAlbum.id}
                 entityId={entityId}
@@ -617,9 +620,9 @@ export function EntityPhotoAlbums({
                 entityDisplayInfo={entityDisplayInfo}
               />
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Album Settings Dialog */}
       {selectedAlbumForSettings && (

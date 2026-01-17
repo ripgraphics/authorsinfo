@@ -579,14 +579,9 @@ export function EnterprisePhotoGrid({
   }
 
   const handlePhotoClick = (photo: Photo, index: number) => {
-    // Enable selection mode if owner/admin/super admin, or if enableSelection is true
-    const canSelect = enableSelection || isOwner || isAdmin || isSuperAdmin
-    if (canSelect) {
-      handlePhotoSelect(photo.id, !selectedPhotos.includes(photo.id))
-    } else {
-      setCurrentPhotoIndex(index)
-      setViewerOpen(true)
-    }
+    // Always open the image viewer when clicking on a photo
+    setCurrentPhotoIndex(index)
+    setViewerOpen(true)
   }
 
   // Handle setting an image as cover

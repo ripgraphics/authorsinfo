@@ -1498,7 +1498,7 @@ export function ClientBookPage({
               <div className="book-page__details-content lg:col-span-2 space-y-6">
                 {/* Book Details at the top */}
                 <ContentSection
-                  title="Book Details"
+                  title={book.title}
                   headerRight={
                     canEdit ? (
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
@@ -1512,17 +1512,11 @@ export function ClientBookPage({
                   className="book-page__book-details-section"
                 >
                   <div className="book-details-layout space-y-6">
-                    {/* Title - Full Width */}
-                    <div className="book-details__title-section">
-                      <h3 className="font-medium text-lg">Title</h3>
-                      <p className="text-muted-foreground text-xl font-semibold">{book.title}</p>
-                    </div>
-
                     {/* Author(s) - Full Width */}
                     {authors && authors.length > 0 && (
                       <div className="book-details__authors-section">
-                        <h3 className="font-medium text-lg">Author(s)</h3>
                         <div className="text-muted-foreground">
+                          <span>by </span>
                           {authors.map((author, index) => (
                             <span key={author.id}>
                               <EntityHoverCard
@@ -1536,10 +1530,11 @@ export function ClientBookPage({
                                   mutualFriendsCount: authorMutualFriendsCounts[author.id],
                                 }}
                               >
-                                <span className="text-muted-foreground hover:text-primary transition-colors">
+                                <span className="text-black hover:text-primary transition-colors font-semibold">
                                   {author.name}
                                 </span>
                               </EntityHoverCard>
+                              <span> (Author)</span>
                               {index < authors.length - 1 && <span className="mx-2">•</span>}
                             </span>
                           ))}

@@ -12,6 +12,7 @@ import {
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
 import { PageBanner } from '@/components/page-banner'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 import { ClientBookPage } from './client'
 import { getFollowers, getFollowersCount, getMutualFriendsCount } from '@/lib/follows-server'
 import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
@@ -336,9 +337,13 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
     return (
       <>
         {/* Full width banner outside container constraints */}
-        <div className="w-full">
-          <PageBanner />
-        </div>
+        {/* Banner visibility controlled via feature flag (FEATURE_FLAGS.BOOK_PAGE_BANNER_ENABLED) */}
+        {/* Can be enabled later via admin settings */}
+        {isFeatureEnabled('BOOK_PAGE_BANNER_ENABLED') && (
+          <div className="w-full">
+            <PageBanner enabled={true} />
+          </div>
+        )}
 
         <ClientBookPage
           book={book}

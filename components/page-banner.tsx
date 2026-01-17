@@ -51,6 +51,12 @@ interface PageBannerProps {
   className?: string
   showControls?: boolean
   showIndicators?: boolean
+  /**
+   * Controls whether the banner is displayed
+   * Default: false (hidden)
+   * Set to true to enable the banner
+   */
+  enabled?: boolean
 }
 
 // Helper function to create Supabase client
@@ -110,7 +116,13 @@ export function PageBanner({
   className = '',
   showControls = true,
   showIndicators = true,
+  enabled = false,
 }: PageBannerProps) {
+  // Early return if banner is disabled
+  if (!enabled) {
+    return null
+  }
+
   const [currentSlide, setCurrentSlide] = useState(0)
   const [slides, setSlides] = useState<BannerSlide[]>([])
   const [touchStart, setTouchStart] = useState<number | null>(null)

@@ -201,6 +201,44 @@ export async function bulkAddBooksFromSearch(bookObjects: any[]): Promise<BulkAd
                   } else {
                     console.log(`✅ Image metadata updated with book ID`)
                   }
+
+                  // Create timeline activity for cover image upload (non-blocking)
+                  try {
+                    const { createActivityWithValidation } = await import(
+                      '@/app/actions/create-activity-with-validation'
+                    )
+                    const { ActivityTypes } = await import('@/app/actions/activities')
+                    
+                    // Get user ID for activity - use system user or first admin if available
+                    const { data: adminUser } = await supabaseAdmin
+                      .from('users')
+                      .select('id')
+                      .limit(1)
+                      .single()
+
+                    if (existingImage?.url && adminUser?.id) {
+                      await createActivityWithValidation({
+                        user_id: adminUser.id,
+                        activity_type: ActivityTypes.PHOTO_ADDED,
+                        content_type: 'image',
+                        image_url: existingImage.url,
+                        entity_type: 'book',
+                        entity_id: bookId,
+                        metadata: {
+                          image_type: 'book_cover_front',
+                          alt_text: bookData.title || 'Book cover',
+                          source: 'isbndb_import',
+                        },
+                        publish_status: 'published',
+                        published_at: new Date().toISOString(),
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                      })
+                    }
+                  } catch (activityError) {
+                    console.error('Failed to create photo upload activity:', activityError)
+                    // Don't throw - image linking was successful
+                  }
                 }
               }
             } catch (imageError) {

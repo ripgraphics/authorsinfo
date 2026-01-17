@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { isUserAdmin, isUserSuperAdmin } from '@/lib/auth-utils'
+import { createActivityWithValidation } from '@/app/actions/create-activity-with-validation'
+import { ActivityTypes } from '@/app/actions/activities'
 
 /**
  * GET /api/books/[id]/images
@@ -105,6 +107,37 @@ export async function POST(
       }
 
       result = data
+
+      // Create timeline activity for cover image upload (non-blocking)
+      try {
+        const { data: imageData } = await supabaseAdmin
+          .from('images')
+          .select('url, alt_text')
+          .eq('id', imageId)
+          .single()
+
+        if (imageData?.url) {
+          await createActivityWithValidation({
+            user_id: user.id,
+            activity_type: ActivityTypes.PHOTO_ADDED,
+            content_type: 'image',
+            image_url: imageData.url,
+            entity_type: 'book',
+            entity_id: bookId,
+            metadata: {
+              image_type: imageType,
+              alt_text: imageData.alt_text,
+            },
+            publish_status: 'published',
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+        }
+      } catch (activityError) {
+        console.error('Failed to create photo upload activity:', activityError)
+        // Don't throw - image upload was successful
+      }
     } else {
       // Use add_book_gallery_image function
       const { data, error } = await supabaseAdmin.rpc('add_book_gallery_image', {
@@ -126,6 +159,37 @@ export async function POST(
         await (supabaseAdmin.from('album_images') as any)
           .update({ alt_text: altText })
           .eq('id', result)
+      }
+
+      // Create timeline activity for gallery image upload (non-blocking)
+      try {
+        const { data: imageData } = await supabaseAdmin
+          .from('images')
+          .select('url, alt_text')
+          .eq('id', imageId)
+          .single()
+
+        if (imageData?.url) {
+          await createActivityWithValidation({
+            user_id: user.id,
+            activity_type: ActivityTypes.PHOTO_ADDED,
+            content_type: 'image',
+            image_url: imageData.url,
+            entity_type: 'book',
+            entity_id: bookId,
+            metadata: {
+              image_type: imageType,
+              alt_text: imageData.alt_text || altText,
+            },
+            publish_status: 'published',
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+        }
+      } catch (activityError) {
+        console.error('Failed to create photo upload activity:', activityError)
+        // Don't throw - image upload was successful
       }
     }
 

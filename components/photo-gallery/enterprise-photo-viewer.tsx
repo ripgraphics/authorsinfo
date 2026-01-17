@@ -882,14 +882,14 @@ export function EnterprisePhotoViewer({
           Photo viewer for {photo.alt_text || 'photo'} - Navigate through photos, zoom, rotate, and
           view details
         </div>
-        <div className="flex h-[95vh]">
+        <div className="flex flex-col md:flex-row h-[95vh] max-h-screen">
           {/* Main Image Area */}
-          <div className="flex-1 relative flex items-center justify-center">
+          <div className="flex-1 relative flex items-center justify-center min-h-0">
             {/* Navigation Buttons */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-4 z-10 bg-black/50 hover:bg-black/70 text-white"
+              className="absolute left-4 z-10 bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
               onClick={() => currentIndex > 0 && onIndexChange(currentIndex - 1)}
               disabled={currentIndex === 0}
             >
@@ -899,7 +899,7 @@ export function EnterprisePhotoViewer({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-4 z-10 bg-black/50 hover:bg-black/70 text-white"
+              className="absolute right-4 z-10 bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
               onClick={() => currentIndex < photos.length - 1 && onIndexChange(currentIndex + 1)}
               disabled={currentIndex === photos.length - 1}
             >
@@ -907,8 +907,8 @@ export function EnterprisePhotoViewer({
             </Button>
 
             {/* Top Controls */}
-            <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-              <div className="flex items-center gap-2">
+            <div className="absolute top-4 left-4 right-14 md:right-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 z-10">
+              <div className="flex items-center gap-2 order-2 sm:order-1">
                 <Badge variant="secondary" className="bg-black/50 text-white">
                   {currentIndex + 1} of {photos.length}
                 </Badge>
@@ -916,7 +916,7 @@ export function EnterprisePhotoViewer({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="bg-black/50 hover:bg-black/70 text-white"
+                    className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
                     onClick={() => setShowTags(!showTags)}
                   >
                     <Tag className="h-4 w-4 mr-2" />
@@ -925,11 +925,11 @@ export function EnterprisePhotoViewer({
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 order-1 sm:order-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="bg-black/50 hover:bg-black/70 text-white"
+                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
                   onClick={() => setZoom(zoom === 1 ? 2 : 1)}
                 >
                   {zoom === 1 ? <ZoomIn className="h-4 w-4" /> : <ZoomOut className="h-4 w-4" />}
@@ -938,7 +938,7 @@ export function EnterprisePhotoViewer({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="bg-black/50 hover:bg-black/70 text-white"
+                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
                   onClick={() => setRotation(rotation + 90)}
                 >
                   <RotateCw className="h-4 w-4" />
@@ -948,7 +948,7 @@ export function EnterprisePhotoViewer({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="photo-details-info-button bg-black/50 hover:bg-black/70 text-white"
+                  className="photo-details-info-button bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
                   onClick={async () => {
                     // Refresh photo data when opening info modal
                     if (photo && albumId) {
@@ -969,7 +969,7 @@ export function EnterprisePhotoViewer({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="bg-black/50 hover:bg-black/70 text-white"
+                      className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
                       onClick={() => {
                         // Initialize form with current photo data
                         if (photo) {
@@ -996,18 +996,13 @@ export function EnterprisePhotoViewer({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="bg-black/50 hover:bg-red-700 text-white"
+                      className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
                       onClick={handleDeletePhoto}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </>
                 )}
-
-                <CloseButton
-                  onClick={onClose}
-                  className="text-white hover:opacity-80 transition-opacity"
-                />
               </div>
             </div>
 
@@ -1059,63 +1054,67 @@ export function EnterprisePhotoViewer({
             </div>
 
             {/* Bottom Controls */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-10">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`bg-black/50 hover:bg-black/70 text-white ${isLiked ? 'text-red-500' : ''}`}
-                onClick={handleLike}
-              >
-                <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
-                {photo.likes?.length || 0}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="bg-black/50 hover:bg-black/70 text-white"
-                onClick={() => setShowComments(!showComments)}
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                {photo.comments?.length || 0}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="bg-black/50 hover:bg-black/70 text-white"
-                onClick={() => handleShare('copy')}
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="bg-black/50 hover:bg-black/70 text-white"
-                onClick={handleDownload}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
-
-              {isOwner && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row items-center gap-2 z-10">
+              <div className="flex items-center gap-2 order-1">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`bg-black/50 hover:bg-black/70 text-white ${isTagging ? 'bg-blue-600' : ''}`}
-                  onClick={() => setIsTagging(!isTagging)}
+                  className={`bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground ${isLiked ? 'text-red-500' : ''}`}
+                  onClick={handleLike}
                 >
-                  <Tag className="h-4 w-4 mr-2" />
-                  Tag
+                  <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+                  {photo.likes?.length || 0}
                 </Button>
-              )}
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                  onClick={() => setShowComments(!showComments)}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  {photo.comments?.length || 0}
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2 order-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                  onClick={() => handleShare('copy')}
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                  onClick={handleDownload}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground ${isTagging ? 'bg-blue-600' : ''}`}
+                    onClick={() => setIsTagging(!isTagging)}
+                  >
+                    <Tag className="h-4 w-4 mr-2" />
+                    Tag
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Right Sidebar - Fixed Width */}
-          <div className="w-96 bg-white border-l border-gray-200 flex flex-col pt-14">
+          {/* Right Sidebar - Responsive Width */}
+          <div className="w-full md:w-96 bg-white border-t md:border-l md:border-t-0 border-gray-200 flex flex-col pt-4 md:pt-14 max-h-[50vh] md:max-h-none overflow-y-auto">
             {/* Sidebar */}
             {isPhotoDataLoaded ? (
               <div className="p-4 text-left text-gray-500">

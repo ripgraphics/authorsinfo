@@ -901,6 +901,54 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
             console.log(
               `Successfully linked ${linkedCount}/${authorIds.length} authors to book "${book.title}"`
             )
+
+            // Create timeline activity for cover image upload if coverImageId exists (non-blocking)
+            if (coverImageId && newBookId) {
+              try {
+                const { createActivityWithValidation } = await import(
+                  '@/app/actions/create-activity-with-validation'
+                )
+                const { ActivityTypes } = await import('@/app/actions/activities')
+
+                // Get image URL
+                const { data: imageData } = await supabase
+                  .from('images')
+                  .select('url, alt_text')
+                  .eq('id', coverImageId)
+                  .single()
+
+                // Get first admin user for activity attribution (or system user)
+                const { data: adminUser } = await supabase
+                  .from('users')
+                  .select('id')
+                  .limit(1)
+                  .single()
+
+                if (imageData?.url && adminUser?.id) {
+                  await createActivityWithValidation({
+                    user_id: adminUser.id,
+                    activity_type: ActivityTypes.PHOTO_ADDED,
+                    content_type: 'image',
+                    image_url: imageData.url,
+                    entity_type: 'book',
+                    entity_id: newBookId,
+                    metadata: {
+                      image_type: 'book_cover_front',
+                      alt_text: imageData.alt_text || book.title,
+                      source: 'isbndb_import',
+                    },
+                    publish_status: 'published',
+                    published_at: new Date().toISOString(),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  })
+                }
+              } catch (activityError) {
+                console.error('Failed to create photo upload activity:', activityError)
+                // Don't throw - book was created successfully
+              }
+            }
+
             success = true
           }
         } catch (error) {

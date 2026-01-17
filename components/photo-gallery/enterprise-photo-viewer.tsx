@@ -1115,10 +1115,10 @@ export function EnterprisePhotoViewer({
           </div>
 
           {/* Right Sidebar - Fixed Width */}
-          <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
+          <div className="w-96 bg-white border-l border-gray-200 flex flex-col pt-14">
             {/* Sidebar */}
             {isPhotoDataLoaded ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-left text-gray-500">
                 Comments are now displayed inline with the post
               </div>
             ) : (

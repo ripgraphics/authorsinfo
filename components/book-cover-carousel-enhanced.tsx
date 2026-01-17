@@ -1,18 +1,13 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { X, ChevronLeft, ChevronRight, Plus, Camera } from 'lucide-react'
+import { Plus, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { getBookCoverAltText, getBookGalleryAltText } from '@/utils/bookUtils'
 import { supabase } from '@/lib/supabase/client'
+import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
 
 interface BookImage {
   id: string
@@ -163,18 +158,29 @@ export function BookCoverCarouselEnhanced({
   }
 
   const handleMainImageClick = () => {
-    if (images.length > 1) {
-      setIsModalOpen(true)
-    }
+    // Always open modal, even for single images (allows zoom/rotation)
+    setIsModalOpen(true)
   }
 
-  const handleModalNavigation = (direction: 'prev' | 'next') => {
-    if (direction === 'prev') {
-      setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
-    } else {
-      setSelectedImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
-    }
-  }
+  // Transform BookImage[] to Photo[] format for EnterprisePhotoViewer
+  const transformedPhotos = useMemo(() => {
+    return images.map((img) => ({
+      id: img.image_id,
+      url: img.large_url || img.image_url,
+      thumbnail_url: img.thumbnail_url || undefined,
+      alt_text: img.alt_text || getBookCoverAltText(bookTitle, img.image_type === 'book_cover_back' ? 'back' : 'front'),
+      description: img.caption || undefined,
+      created_at: img.created_at,
+      metadata: {
+        image_type: img.image_type,
+        display_order: img.display_order,
+        is_cover: img.is_cover,
+        is_featured: img.is_featured,
+      },
+      is_featured: img.is_featured,
+      is_cover: img.is_cover,
+    }))
+  }, [images, bookTitle])
 
   // Touch/swipe handlers
   const minSwipeDistance = 50
@@ -465,72 +471,19 @@ export function BookCoverCarouselEnhanced({
         )}
       </div>
 
-      {/* Full-Screen Carousel Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl w-full p-0 gap-0">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Book Images</DialogTitle>
-          </DialogHeader>
-          
-          {currentImage && (
-            <div className="relative w-full aspect-[2/3] bg-black">
-              <Image
-                src={currentImage.large_url || currentImage.image_url}
-                alt={currentImage.alt_text || getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 800px"
-              />
-              
-              {/* Navigation Buttons */}
-              {images.length > 1 && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
-                    onClick={() => handleModalNavigation('prev')}
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
-                    onClick={() => handleModalNavigation('next')}
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </Button>
-                </>
-              )}
-              
-              {/* Close Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white"
-                onClick={() => setIsModalOpen(false)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-              
-              {/* Image Counter */}
-              {images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-sm px-3 py-1.5 rounded-full">
-                  {selectedImageIndex + 1} of {images.length}
-                </div>
-              )}
-              
-              {/* Image Info */}
-              {currentImage.caption && (
-                <div className="absolute bottom-4 left-4 bg-black/50 text-white text-sm px-3 py-1.5 rounded max-w-md">
-                  {currentImage.caption}
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Photo Viewer Modal */}
+      {transformedPhotos.length > 0 && (
+        <EnterprisePhotoViewer
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          photos={transformedPhotos}
+          currentIndex={selectedImageIndex}
+          onIndexChange={setSelectedImageIndex}
+          entityId={bookId}
+          entityType="book"
+          isOwner={canEdit}
+        />
+      )}
     </div>
   )
 }

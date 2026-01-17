@@ -558,7 +558,7 @@ export function EntityImageUpload({
           maxHeight: '80vh',
         }}
       >
-        <DialogHeader className="flex-shrink-0">
+        <DialogHeader className="flex-shrink-0 pl-4 pt-4">
           <DialogTitle>
             Change {entityType}{' '}
             {type === 'bookCover'
@@ -578,7 +578,7 @@ export function EntityImageUpload({
           <div
             className={cn(
               type === 'bookCover' || type === 'bookCoverBack' || type === 'entityHeaderCover'
-                ? `w-full rounded-lg border-2 border-border bg-gray-50 flex items-center justify-center p-4`
+                ? `w-full max-h-full rounded-lg border-2 border-border bg-gray-50 flex items-center justify-center p-4 overflow-hidden`
                 : type === 'avatar' && (croppedImage || preview)
                   ? 'relative w-32 h-32 rounded-full overflow-hidden border-2 border-border'
                   : 'relative w-32 h-32 overflow-hidden',
@@ -594,10 +594,11 @@ export function EntityImageUpload({
                 )
             )}
             style={
-              type === 'bookCover' || type === 'entityHeaderCover'
+              type === 'bookCover' || type === 'bookCoverBack' || type === 'entityHeaderCover'
                 ? {
                     width: '100%',
                     maxWidth: '100%',
+                    height: '100%',
                     maxHeight: '100%',
                     display: 'flex',
                     alignItems: 'center',
@@ -648,7 +649,7 @@ export function EntityImageUpload({
         </div>
 
         {/* Footer with File Input and Action Buttons */}
-        <div className="flex-shrink-0 space-y-3 pt-4 border-t">
+        <div className="flex-shrink-0 space-y-3 px-4 pt-4 pb-4 border-t">
           {/* File Input - Hidden, triggered by preview area click */}
           <div className="w-full">
             <Input

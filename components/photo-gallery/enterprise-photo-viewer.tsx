@@ -836,10 +836,10 @@ export function EnterprisePhotoViewer({
           onClose()
           break
         case 'ArrowLeft':
-          if (currentIndex > 0) onIndexChange(currentIndex - 1)
+          onIndexChange((currentIndex - 1 + photos.length) % photos.length)
           break
         case 'ArrowRight':
-          if (currentIndex < photos.length - 1) onIndexChange(currentIndex + 1)
+          onIndexChange((currentIndex + 1) % photos.length)
           break
         case ' ':
           e.preventDefault()
@@ -862,10 +862,8 @@ export function EnterprisePhotoViewer({
       const y = ((e.clientY - rect.top) / rect.height) * 100
       setTagPosition({ x, y })
     } else {
-      // Navigate to next image when not tagging
-      if (currentIndex < photos.length - 1) {
-        onIndexChange(currentIndex + 1)
-      }
+      // Navigate to next image when not tagging (wraps to first photo when on last)
+      onIndexChange((currentIndex + 1) % photos.length)
     }
   }
 
@@ -890,8 +888,7 @@ export function EnterprisePhotoViewer({
               variant="ghost"
               size="icon"
               className="absolute left-4 z-10 bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-              onClick={() => currentIndex > 0 && onIndexChange(currentIndex - 1)}
-              disabled={currentIndex === 0}
+              onClick={() => onIndexChange((currentIndex - 1 + photos.length) % photos.length)}
             >
               <ChevronLeft className="h-6 w-6" />
             </Button>
@@ -900,8 +897,7 @@ export function EnterprisePhotoViewer({
               variant="ghost"
               size="icon"
               className="absolute right-4 z-10 bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-              onClick={() => currentIndex < photos.length - 1 && onIndexChange(currentIndex + 1)}
-              disabled={currentIndex === photos.length - 1}
+              onClick={() => onIndexChange((currentIndex + 1) % photos.length)}
             >
               <ChevronRight className="h-6 w-6" />
             </Button>
@@ -1013,9 +1009,7 @@ export function EnterprisePhotoViewer({
               title={
                 isTagging
                   ? 'Click to add tag'
-                  : currentIndex < photos.length - 1
-                    ? 'Click to go to next image'
-                    : 'Last image'
+                  : 'Click to go to next image'
               }
             >
               <img

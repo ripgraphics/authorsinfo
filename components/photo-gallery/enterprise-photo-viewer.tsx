@@ -874,7 +874,7 @@ export function EnterprisePhotoViewer({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95"
+        className="max-w-[95vw] max-h-[85vh] md:max-h-[95vh] p-0 overflow-hidden bg-black/95"
         aria-describedby="photo-viewer-description"
       >
         <DialogTitle className="sr-only">Photo Viewer</DialogTitle>
@@ -882,7 +882,7 @@ export function EnterprisePhotoViewer({
           Photo viewer for {photo.alt_text || 'photo'} - Navigate through photos, zoom, rotate, and
           view details
         </div>
-        <div className="flex flex-col md:flex-row h-[95vh] max-h-screen">
+        <div className="flex flex-col md:flex-row h-[85vh] md:h-[95vh] max-h-[85vh] md:max-h-[95vh]">
           {/* Main Image Area */}
           <div className="flex-1 relative flex items-center justify-center min-h-0">
             {/* Navigation Buttons */}

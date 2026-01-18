@@ -250,8 +250,12 @@ export function BookImageManager({
         description: 'Front cover uploaded and cropped successfully',
       })
 
-      // Trigger refresh
-      window.dispatchEvent(new CustomEvent('entityImageChanged'))
+      // Trigger refresh with detail so listeners can identify book cover uploads
+      window.dispatchEvent(
+        new CustomEvent('entityImageChanged', {
+          detail: { entityType: 'book', entityId: bookId, imageType: 'bookCover' },
+        })
+      )
       if (onImageAdded) {
         onImageAdded()
       }

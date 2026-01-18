@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { Camera, Crop, ImageIcon } from 'lucide-react'
+import { Camera, Crop, ImageIcon, X } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { clearCache } from '@/lib/request-utils'
 import { isValidCloudinaryUrl, validateAndSanitizeImageUrl } from '@/lib/utils/image-url-validation'
@@ -549,7 +549,7 @@ export function EntityImageUpload({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`${dialogMaxWidth} flex flex-col`}
+        className={`${dialogMaxWidth} flex flex-col [&>button]:hidden`}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -558,8 +558,8 @@ export function EntityImageUpload({
           maxHeight: '80vh',
         }}
       >
-        <DialogHeader className="flex-shrink-0 pl-4 pt-4">
-          <DialogTitle>
+        <DialogHeader className="flex-shrink-0 px-4 pt-4 flex items-center justify-between">
+          <DialogTitle className="flex-1 pr-4">
             Change {entityType}{' '}
             {type === 'bookCover'
               ? 'book cover'
@@ -569,6 +569,14 @@ export function EntityImageUpload({
                   ? 'header cover'
                   : type}
           </DialogTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground flex-shrink-0"
+            onClick={handleClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </DialogHeader>
 
         {/* Preview - Takes available space */}

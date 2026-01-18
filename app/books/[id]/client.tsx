@@ -305,6 +305,56 @@ export function ClientBookPage({
     setBookData(book)
   }, [book, justUpdatedCoverImage, bookData?.cover_image_id])
 
+  // Listen for entityImageChanged events and refresh bookData when cover images are uploaded
+  useEffect(() => {
+    const handleEntityImageChanged = async (event: Event) => {
+      const customEvent = event as CustomEvent
+      const detail = customEvent.detail || {}
+      // Only refresh if it's a book cover image change for this book
+      if (detail.entityType === 'book' && detail.entityId === bookData.id) {
+        if (detail.imageType === 'bookCover' || detail.imageType === 'bookCoverFront') {
+          console.log('🔄 Front cover uploaded, refreshing bookData...')
+          try {
+            // Fetch fresh book data from API
+            const { data: freshBook, error } = await supabase
+              .from('books')
+              .select(`
+                *,
+                cover_image:images!cover_image_id(id, url)
+              `)
+              .eq('id', bookData.id)
+              .single()
+
+            if (error) {
+              console.error('Error fetching updated book data:', error)
+              return
+            }
+
+            if (freshBook) {
+              console.log('✅ Book data refreshed with new cover:', {
+                cover_image_id: freshBook.cover_image_id,
+                cover_image_url: freshBook.cover_image?.url,
+              })
+              setBookData((prev) => ({
+                ...prev,
+                cover_image_id: freshBook.cover_image_id,
+                cover_image: freshBook.cover_image || prev.cover_image,
+                cover_image_url: freshBook.cover_image?.url || prev.cover_image_url,
+              }))
+            }
+          } catch (error) {
+            console.error('Error refreshing book data after cover upload:', error)
+          }
+        }
+      }
+    }
+
+    window.addEventListener('entityImageChanged', handleEntityImageChanged)
+    return () => {
+      window.removeEventListener('entityImageChanged', handleEntityImageChanged)
+    }
+  }, [bookData.id, supabase])
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {

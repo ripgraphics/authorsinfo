@@ -118,6 +118,22 @@ export function BookCoverCarouselEnhanced({
           const currentIndex = sortedImages.findIndex(img => img.image_id === currentImageId)
           if (currentIndex >= 0) {
             setSelectedImageIndex(currentIndex)
+          } else {
+            // If currentImageId doesn't match any image, select the front cover if available
+            const frontCoverIndex = sortedImages.findIndex(img => img.image_type === 'book_cover_front')
+            if (frontCoverIndex >= 0) {
+              setSelectedImageIndex(frontCoverIndex)
+            } else if (sortedImages.length > 0) {
+              setSelectedImageIndex(0)
+            }
+          }
+        } else {
+          // If no currentImageId, select the front cover if available, otherwise first image
+          const frontCoverIndex = sortedImages.findIndex(img => img.image_type === 'book_cover_front')
+          if (frontCoverIndex >= 0) {
+            setSelectedImageIndex(frontCoverIndex)
+          } else if (sortedImages.length > 0) {
+            setSelectedImageIndex(0)
           }
         }
       } catch (error) {

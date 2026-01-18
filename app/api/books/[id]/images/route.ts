@@ -76,15 +76,54 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check permissions (author, publisher, or admin)
-    const isAdmin = await isUserAdmin(user.id)
-    const isSuperAdmin = await isUserSuperAdmin(user.id)
+    // Check permissions using server-side client
+    // First check if user is admin using supabaseAdmin to query profiles table
+    let isAdmin = false
+    let isSuperAdmin = false
+    
+    try {
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single()
 
-    // TODO: Add checks for author/publisher ownership
-    // For now, allow admins only
-    if (!isAdmin && !isSuperAdmin) {
+      if (!profileError && profile) {
+        const role = (profile as any).role
+        isAdmin = role === 'admin'
+        isSuperAdmin = role === 'super_admin'
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error)
+      // Fall back to client-side check if server-side check fails
+      isAdmin = await isUserAdmin(user.id)
+      isSuperAdmin = await isUserSuperAdmin(user.id)
+    }
+
+    // Check if user can edit the book (creator or admin)
+    let canEdit = false
+    if (isAdmin || isSuperAdmin) {
+      canEdit = true
+    } else {
+      // Check if user created the book
+      try {
+        const { data: book, error: bookError } = await supabaseAdmin
+          .from('books')
+          .select('created_by')
+          .eq('id', bookId)
+          .single()
+
+        if (!bookError && book && (book as any).created_by === user.id) {
+          canEdit = true
+        }
+      } catch (error) {
+        console.error('Error checking book ownership:', error)
+      }
+    }
+
+    if (!canEdit) {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
+        { error: 'Forbidden - Admin access or book ownership required' },
         { status: 403 }
       )
     }
@@ -234,13 +273,54 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check permissions
-    const isAdmin = await isUserAdmin(user.id)
-    const isSuperAdmin = await isUserSuperAdmin(user.id)
+    // Check permissions using server-side client
+    // First check if user is admin using supabaseAdmin to query profiles table
+    let isAdmin = false
+    let isSuperAdmin = false
+    
+    try {
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single()
 
-    if (!isAdmin && !isSuperAdmin) {
+      if (!profileError && profile) {
+        const role = (profile as any).role
+        isAdmin = role === 'admin'
+        isSuperAdmin = role === 'super_admin'
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error)
+      // Fall back to client-side check if server-side check fails
+      isAdmin = await isUserAdmin(user.id)
+      isSuperAdmin = await isUserSuperAdmin(user.id)
+    }
+
+    // Check if user can edit the book (creator or admin)
+    let canEdit = false
+    if (isAdmin || isSuperAdmin) {
+      canEdit = true
+    } else {
+      // Check if user created the book
+      try {
+        const { data: book, error: bookError } = await supabaseAdmin
+          .from('books')
+          .select('created_by')
+          .eq('id', bookId)
+          .single()
+
+        if (!bookError && book && (book as any).created_by === user.id) {
+          canEdit = true
+        }
+      } catch (error) {
+        console.error('Error checking book ownership:', error)
+      }
+    }
+
+    if (!canEdit) {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
+        { error: 'Forbidden - Admin access or book ownership required' },
         { status: 403 }
       )
     }

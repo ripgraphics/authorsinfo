@@ -5,7 +5,7 @@ export async function GET() {
   try {
     // Get all activities
     const { data: activities, error } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(20)
@@ -27,7 +27,7 @@ export async function GET() {
 
     // Get count of activities
     const { count: totalActivities } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('*', { count: 'exact', head: true })
 
     return NextResponse.json({

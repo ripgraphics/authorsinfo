@@ -90,36 +90,9 @@ export async function POST(request: Request) {
       bookmark_id = newBookmark.id
     }
 
-    // Update engagement counts in activities table if this is an activity
-    if (entity_type === 'activity') {
-      try {
-        // Get current bookmark count for this activity
-        const { data: bookmarkCount, error: countError } = await supabaseAdmin
-          .from('engagement_bookmarks')
-          .select('id', { count: 'exact' })
-          .eq('entity_type', entity_type)
-          .eq('entity_id', entity_id)
-
-        if (!countError && bookmarkCount !== null) {
-          // Update the activities table with new bookmark count
-          const { error: updateError } = await supabaseAdmin
-            .from('activities')
-            .update({
-              bookmark_count: bookmarkCount.length,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', entity_id)
-
-          if (updateError) {
-            console.warn('⚠️ Warning: Failed to update activity bookmark count:', updateError)
-            // Don't fail the request for this, just log it
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Warning: Failed to update activity bookmark count:', error)
-        // Don't fail the request for this, just log it
-      }
-    }
+    // Note: Engagement counts are no longer cached in activities table
+    // They are calculated dynamically from engagement tables (engagement_bookmarks, engagement_shares, etc.)
+    // which are the single source of truth
 
     console.log('✅ Bookmark processed successfully:', {
       action,

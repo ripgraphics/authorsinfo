@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if publish_status column exists before filtering
-    const hasPublishStatus = await checkColumnExists('activities', 'publish_status')
+    const hasPublishStatus = await checkColumnExists('posts', 'publish_status')
 
     // Build query - conditionally apply publish_status filter
-    let query = (supabase.from('activities') as any)
+    let query = (supabase.from('posts') as any)
       .select('*')
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
@@ -51,22 +51,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Attach the current user's reaction for each activity (if authenticated)
+    // Attach the current user's reaction for each post (if authenticated)
     let userReactionByActivity: Record<string, string | null> = {}
     try {
       const { data: auth } = await supabase.auth.getUser()
       const currentUserId = auth?.user?.id
       if (currentUserId && Array.isArray(data) && data.length > 0) {
-        const activityIds = data.map((row: any) => row.id)
-        // Use likes table for all entity types (activity_likes doesn't exist)
+        const postIds = data.map((row: any) => row.id)
+        // Use likes table for all entity types
         const { data: reactions } = await (supabase.from('likes') as any)
           .select('entity_id')
-          .eq('entity_type', 'activity')
+          .eq('entity_type', 'post') // Changed from 'activity' to 'post'
           .eq('user_id', currentUserId)
-          .in('entity_id', activityIds)
+          .in('entity_id', postIds)
         if (Array.isArray(reactions)) {
           userReactionByActivity = reactions.reduce((acc: Record<string, string>, r: any) => {
-            acc[r.entity_id] = 'like' // Always 'like' since table doesn't support reaction types
+            acc[r.entity_id] = 'like'
             return acc
           }, {})
         }
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       // Non-fatal; omit user reaction if lookup fails
     }
 
-    // Resolve author names from users table and avatars from images table via profiles.avatar_image_id
+    // Resolve author names from users table and avatars from images table
     let userIdToName: Record<string, string> = {}
     const userIdToAvatar: Record<string, string | null> = {}
     try {
@@ -94,29 +94,24 @@ export async function GET(request: NextRequest) {
           }, {})
         }
 
-        // Fetch user avatars from images table via profiles.avatar_image_id
+        // Fetch user avatars from images table
         const { data: profiles } = await (supabase.from('profiles') as any)
           .select('user_id, avatar_image_id')
           .in('user_id', allUserIds)
           .not('avatar_image_id', 'is', null)
 
         if (profiles && profiles.length > 0) {
-          // Get unique image IDs
           const imageIds = Array.from(
             new Set(profiles.map((p: any) => p.avatar_image_id).filter(Boolean))
           )
 
           if (imageIds.length > 0) {
-            // Fetch image URLs from images table
             const { data: images } = await (supabase.from('images') as any)
               .select('id, url')
               .in('id', imageIds)
 
             if (images && images.length > 0) {
-              // Create map of image_id to url
               const imageIdToUrl = new Map(images.map((img: any) => [img.id, img.url]))
-
-              // Map user_id to avatar_url
               profiles.forEach((profile: any) => {
                 if (profile.avatar_image_id && imageIdToUrl.has(profile.avatar_image_id)) {
                   const avatarUrl = imageIdToUrl.get(profile.avatar_image_id)
@@ -128,26 +123,26 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (_) {
-      // Non-fatal; best-effort enrichment only
+      // Non-fatal enrichment
     }
 
-    // Project only fields used by the UI to minimize payload
+    // Project only fields used by the UI
     const activities = (data || []).map((row: any) => ({
       id: row.id,
       user_id: row.user_id,
       user_name: userIdToName[row.user_id] || null,
-      user_avatar_url: userIdToAvatar[row.user_id] ?? row.user_avatar_url ?? null, // Prefer avatar from images table via profiles.avatar_image_id
-      activity_type: row.activity_type,
-      data: row.data,
+      user_avatar_url: userIdToAvatar[row.user_id] ?? row.user_avatar_url ?? null,
+      activity_type: 'post_created', // Uniform activity type for posts
+      data: row.metadata, // Carry over metadata
       created_at: row.created_at,
-      is_public: row.is_public ?? null,
+      is_public: row.visibility === 'public',
       like_count: row.like_count ?? 0,
       comment_count: row.comment_count ?? 0,
       entity_type: row.entity_type,
       entity_id: row.entity_id,
       content_type: row.content_type,
       image_url: row.image_url,
-      text: row.text,
+      text: row.content, // Map content back to text for UI compatibility
       visibility: row.visibility,
       content_summary: row.content_summary,
       link_url: row.link_url,

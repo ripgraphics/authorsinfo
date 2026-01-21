@@ -68,99 +68,54 @@ export async function POST(request: Request) {
         // Continue without failing; we will attempt to record view, and DB constraints may enforce integrity
       }
     }
-    // Track view based on entity type using appropriate table
+    // Track view based on entity type using unified views table
     let view_id: string | null = null
     let action: 'added' | 'updated' | 'skipped' = 'added'
 
     try {
-      if (entity_type === 'book') {
-        // Use book_views table for books
+      const viewMetadata = {
+        ip_address: request.headers.get('x-forwarded-for'),
+        user_agent: request.headers.get('user-agent'),
+        referrer: request.headers.get('referer'),
+      }
+
+      if (targetTable) {
+        const viewPayload = {
+          user_id: userId,
+          entity_type,
+          entity_id,
+          view_duration: view_duration || 0,
+          view_source: view_source || 'direct',
+          view_metadata: viewMetadata,
+          is_completed: false,
+          updated_at: new Date().toISOString(),
+        }
+
         if (userId) {
-          const { data: existingView } = await supabaseAdmin
-            .from('book_views')
+          const { data: upsertedView, error: upsertError } = await supabaseAdmin
+            .from('views')
+            .upsert(viewPayload, { onConflict: 'user_id,entity_type,entity_id' })
             .select('id')
-            .eq('user_id', userId)
-            .eq('book_id', entity_id)
             .maybeSingle()
 
-          if (!existingView) {
-            const { data: newView, error: insertError } = await supabaseAdmin
-              .from('book_views')
-              .insert({
-                user_id: userId,
-                book_id: entity_id,
-                viewed_at: new Date().toISOString(),
-              })
-              .select('id')
-              .single()
-
-            if (!insertError && newView) {
-              view_id = newView.id
-              action = 'added'
-            }
-          } else {
-            view_id = existingView.id
+          if (!upsertError && upsertedView) {
+            view_id = upsertedView.id
             action = 'updated'
           }
-        }
-      } else if (entity_type === 'event') {
-        // Use event_views table for events
-        if (userId) {
-          const { data: existingView } = await supabaseAdmin
-            .from('event_views')
+        } else {
+          const { data: newView, error: insertError } = await supabaseAdmin
+            .from('views')
+            .insert({ ...viewPayload, user_id: null })
             .select('id')
-            .eq('user_id', userId)
-            .eq('event_id', entity_id)
-            .maybeSingle()
+            .single()
 
-          if (!existingView) {
-            const { data: newView, error: insertError } = await supabaseAdmin
-              .from('event_views')
-              .insert({
-                user_id: userId,
-                event_id: entity_id,
-                viewed_at: new Date().toISOString(),
-                ip_address: null,
-                user_agent: null,
-                referrer: null,
-              })
-              .select('id')
-              .single()
-
-            if (!insertError && newView) {
-              view_id = newView.id
-              action = 'added'
-            }
-          } else {
-            view_id = existingView.id
-            action = 'updated'
-          }
-        }
-      } else if (entity_type === 'activity') {
-        // For activities, update the view_count column directly
-        const { data: activity } = await supabaseAdmin
-          .from('activities')
-          .select('view_count')
-          .eq('id', entity_id)
-          .single()
-
-        if (activity) {
-          const newViewCount = (activity.view_count || 0) + 1
-          const { error: updateError } = await supabaseAdmin
-            .from('activities')
-            .update({
-              view_count: newViewCount,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', entity_id)
-
-          if (!updateError) {
-            action = 'updated'
+          if (!insertError && newView) {
+            view_id = newView.id
+            action = 'added'
           }
         }
       } else {
-        // For other entity types (user, author, publisher, group), skip view tracking
-        // or use activities table if applicable
+        // For unsupported entity types, skip view tracking
         action = 'skipped'
       }
     } catch (viewError) {

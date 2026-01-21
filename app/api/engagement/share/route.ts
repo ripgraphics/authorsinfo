@@ -98,36 +98,9 @@ export async function POST(request: Request) {
       share_id = newShare.id
     }
 
-    // Update engagement counts in activities table if this is an activity
-    if (entity_type === 'activity') {
-      try {
-        // Get current share count for this activity
-        const { data: shareCount, error: countError } = await supabaseAdmin
-          .from('engagement_shares')
-          .select('id', { count: 'exact' })
-          .eq('entity_type', entity_type)
-          .eq('entity_id', entity_id)
-
-        if (!countError && shareCount !== null) {
-          // Update the activities table with new share count
-          const { error: updateError } = await supabaseAdmin
-            .from('activities')
-            .update({
-              share_count: shareCount.length,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', entity_id)
-
-          if (updateError) {
-            console.warn('⚠️ Warning: Failed to update activity share count:', updateError)
-            // Don't fail the request for this, just log it
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Warning: Failed to update activity share count:', error)
-        // Don't fail the request for this, just log it
-      }
-    }
+    // Note: Engagement counts are no longer cached in activities table
+    // They are calculated dynamically from engagement tables (engagement_shares, engagement_bookmarks, etc.)
+    // which are the single source of truth
 
     console.log('✅ Share processed successfully:', {
       action,

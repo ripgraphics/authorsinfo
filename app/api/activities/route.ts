@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the activity with filtered payload
-    const { data: activity, error } = await (supabase.from('activities') as any)
+    const { data: activity, error } = await (supabase.from('posts') as any)
       .insert(filteredPayload)
       .select()
       .single()
@@ -177,7 +177,7 @@ export async function PUT(request: NextRequest) {
 
     // Check if activity exists and user owns it
     const { data: existingActivity, error: fetchError } = await supabase
-      .from('activities')
+      .from('posts')
       .select('user_id, activity_type, content_type, text, image_url, link_url, visibility')
       .eq('id', id)
       .single()
@@ -214,7 +214,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update the activity
-    const { data: updatedActivity, error: updateError } = await (supabase.from('activities') as any)
+    const { data: updatedActivity, error: updateError } = await (supabase.from('posts') as any)
       .update({
         text: text || (existingActivity as any).text,
         image_url: image_url !== undefined ? image_url : (existingActivity as any).image_url,
@@ -265,7 +265,7 @@ export async function DELETE(request: NextRequest) {
 
     // Check if activity exists and user owns it
     const { data: existingActivity, error: fetchError } = await supabase
-      .from('activities')
+      .from('posts')
       .select('user_id, activity_type, entity_type, content_type')
       .eq('id', id)
       .single()
@@ -310,7 +310,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Hard delete the activity (activities table doesn't have is_deleted column)
-    const { error: deleteError } = await (supabase.from('activities') as any).delete().eq('id', id)
+    const { error: deleteError } = await (supabase.from('posts') as any).delete().eq('id', id)
 
     if (deleteError) {
       console.error('Error deleting activity:', deleteError)

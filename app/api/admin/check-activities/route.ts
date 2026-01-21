@@ -8,7 +8,7 @@ export async function GET() {
       data: activities,
       error: activitiesError,
       count,
-    } = await supabaseAdmin.from('activities').select('*', { count: 'exact', head: true })
+    } = await supabaseAdmin.from('posts').select('*', { count: 'exact', head: true })
 
     if (activitiesError) {
       return NextResponse.json(
@@ -38,7 +38,7 @@ export async function GET() {
 
     // Check if there are any activities at all
     const { data: sampleActivities, error: sampleError } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('id, user_id, activity_type, created_at')
       .limit(5)
 

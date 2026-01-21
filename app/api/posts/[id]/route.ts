@@ -13,11 +13,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       data: { user },
     } = await supabase.auth.getUser()
 
-    // Fetch post
-    const { data: post, error } = await (supabase.from('activities') as any)
+    // Fetch post from posts table
+    const { data: post, error } = await (supabase.from('posts') as any)
       .select('*')
       .eq('id', postId)
-      .eq('activity_type', 'post_created')
       .single()
 
     if (error) {
@@ -35,18 +34,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     if (post.visibility === 'friends' && (!user || post.user_id !== user.id)) {
       // TODO: Implement friends check
-      // For now, allow access if user is authenticated
     }
 
     // Increment view count
-    await (supabase.from('activities') as any)
+    await (supabase.from('posts') as any)
       .update({
         view_count: (post.view_count || 0) + 1,
         updated_at: new Date().toISOString(),
       })
       .eq('id', postId)
 
-    return NextResponse.json({ post })
+    // Map content to text for front-end compatibility
+    const formattedPost = {
+      ...post,
+      text: post.content
+    }
+
+    return NextResponse.json({ post: formattedPost })
   } catch (error) {
     console.error('Error in GET /api/posts/[id]:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -70,10 +74,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Check if post exists and user owns it
-    const { data: existingPost, error: fetchError } = await (supabase.from('activities') as any)
-      .select('user_id, publish_status, text, data, is_deleted, metadata')
+    const { data: existingPost, error: fetchError } = await (supabase.from('posts') as any)
+      .select('user_id, publish_status, content, is_deleted, metadata')
       .eq('id', postId)
-      .eq('activity_type', 'post_created')
       .single()
 
     if (fetchError) {
@@ -109,23 +112,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    // Prepare update data
+    // Prepare update data for posts table
     const updateData: any = {
       updated_at: new Date().toISOString(),
-      last_activity_at: new Date().toISOString(),
     }
 
     if (body.content) {
-      // Save text to the correct 'text' column (not nested in content)
+      // Save text to the 'content' column
       if (body.content.text !== undefined) {
-        updateData.text = body.content.text.trim() || ''
-      }
-
-      // Save other content fields to the data JSONB field
-      updateData.data = {
-        ...(existingPost.data || {}),
-        ...body.content,
-        updated_at: new Date().toISOString(),
+        updateData.content = body.content.text.trim() || ''
       }
     }
 
@@ -150,7 +145,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     if (body.tags !== undefined) {
-      updateData.tags = body.tags
+      updateData.hashtags = body.tags // Map tags to hashtags
     }
 
     if (body.metadata !== undefined) {
@@ -172,8 +167,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.is_pinned = body.is_pinned
     }
 
-    // Update post
-    const { data: updatedPost, error: updateError } = await (supabase.from('activities') as any)
+    // Update post in posts table
+    const { data: updatedPost, error: updateError } = await (supabase.from('posts') as any)
       .update(updateData)
       .eq('id', postId)
       .select()
@@ -215,10 +210,9 @@ export async function DELETE(
     }
 
     // Check if post exists and user owns it
-    const { data: existingPost, error: fetchError } = await (supabase.from('activities') as any)
-      .select('user_id, publish_status, is_deleted')
+    const { data: existingPost, error: fetchError } = await (supabase.from('posts') as any)
+      .select('user_id, publish_status')
       .eq('id', postId)
-      .eq('activity_type', 'post_created')
       .single()
 
     if (fetchError) {
@@ -233,15 +227,16 @@ export async function DELETE(
       return NextResponse.json({ error: 'You can only delete your own posts' }, { status: 403 })
     }
 
-    if (existingPost.is_deleted) {
+    if (existingPost.publish_status === 'deleted') {
       return NextResponse.json({ error: 'Post is already deleted' }, { status: 400 })
     }
 
-    // Soft delete post
-    const { error: deleteError } = await (supabase.from('activities') as any)
+    // Soft delete post in posts table
+    const { error: deleteError } = await (supabase.from('posts') as any)
       .update({
         publish_status: 'deleted',
         updated_at: new Date().toISOString(),
+        deleted_at: new Date().toISOString(),
       })
       .eq('id', postId)
 

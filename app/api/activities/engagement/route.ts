@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     // Get current activity
     const { data: activity, error: fetchError } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('id, metadata')
       .eq('id', activity_id)
       .single()
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
     // Update the activity
     const { error: updateError } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .update({ metadata: newMetadata })
       .eq('id', activity_id)
 

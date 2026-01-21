@@ -106,7 +106,7 @@ export async function POST(request: Request) {
         if (!countError && count !== null) {
           // Update the activities table with new count
           const { error: updateError } = await supabaseAdmin
-            .from('activities')
+            .from('posts')
             .update({
               like_count: count,
               updated_at: new Date().toISOString(),

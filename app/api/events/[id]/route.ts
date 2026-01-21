@@ -19,10 +19,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         data: { user },
       } = await supabase.auth.getUser()
 
-      await supabase.from('event_views').insert({
-        event_id: eventId,
+      await supabase.from('views').insert({
         user_id: user?.id || null,
-        viewed_at: new Date().toISOString(),
+        entity_type: 'event',
+        entity_id: eventId,
+        view_duration: 0,
+        view_source: 'direct',
+        view_metadata: {
+          ip_address: request.headers.get('x-forwarded-for'),
+          user_agent: request.headers.get('user-agent'),
+          referrer: request.headers.get('referer'),
+        },
+        is_completed: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
     }
 

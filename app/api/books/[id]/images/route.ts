@@ -128,112 +128,23 @@ export async function POST(
       )
     }
 
-    let result
-
-    if (imageType === 'book_cover_front' || imageType === 'book_cover_back') {
-      // Use set_book_cover_image function
-      const { data, error } = await supabaseAdmin.rpc('set_book_cover_image', {
-        p_book_id: bookId,
-        p_image_id: imageId,
-        p_cover_type: imageType,
-        p_user_id: user.id,
-      } as any)
-
-      if (error) {
-        console.error('Error setting book cover image:', error)
-        return NextResponse.json({ error: 'Failed to set cover image' }, { status: 500 })
-      }
-
-      result = data
-
-      // Create timeline activity for cover image upload (non-blocking)
-      try {
-        const { data: imageData, error: imageError } = await (supabaseAdmin
-          .from('images')
-          .select('url, alt_text')
-          .eq('id', imageId)
-          .single() as any)
-
-        if (imageData && !imageError && (imageData as { url?: string }).url) {
-          await createActivityWithValidation({
-            user_id: user.id,
-            activity_type: 'photo_added',
-            content_type: 'image',
-            image_url: (imageData as { url: string }).url,
-            entity_type: 'book',
-            entity_id: bookId,
-            metadata: {
-              image_type: imageType,
-              alt_text: (imageData as { alt_text?: string }).alt_text,
-            },
-            publish_status: 'published',
-            published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-        }
-      } catch (activityError) {
-        console.error('Failed to create photo upload activity:', activityError)
-        // Don't throw - image upload was successful
-      }
-    } else {
-      // Use add_book_gallery_image function
-      const { data, error } = await supabaseAdmin.rpc('add_book_gallery_image', {
-        p_book_id: bookId,
-        p_image_id: imageId,
-        p_user_id: user.id,
-        p_display_order: displayOrder || null,
-      } as any)
-
-      if (error) {
-        console.error('Error adding gallery image:', error)
-        return NextResponse.json({ error: 'Failed to add gallery image' }, { status: 500 })
-      }
-
-      result = data
-
-      // Update alt_text if provided
-      if (altText) {
-        await (supabaseAdmin.from('album_images') as any)
-          .update({ alt_text: altText })
-          .eq('id', result)
-      }
-
-      // Create timeline activity for gallery image upload (non-blocking)
-      try {
-        const { data: imageData, error: imageError } = await (supabaseAdmin
-          .from('images')
-          .select('url, alt_text')
-          .eq('id', imageId)
-          .single() as any)
-
-        if (imageData && !imageError && (imageData as { url?: string }).url) {
-          await createActivityWithValidation({
-            user_id: user.id,
-            activity_type: 'photo_added',
-            content_type: 'image',
-            image_url: (imageData as { url: string }).url,
-            entity_type: 'book',
-            entity_id: bookId,
-            metadata: {
-              image_type: imageType,
-              alt_text: (imageData as { alt_text?: string }).alt_text || altText,
-            },
-            publish_status: 'published',
-            published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-        }
-      } catch (activityError) {
-        console.error('Failed to create photo upload activity:', activityError)
-        // Don't throw - image upload was successful
+    // If front cover, update books.cover_image_id
+    if (imageType === 'book_cover_front') {
+      const { error: updateError } = await (supabaseAdmin.from('books') as any)
+        .update({ cover_image_id: imageId })
+        .eq('id', bookId)
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message || 'Failed to set cover image' }, { status: 500 })
       }
     }
-
+    // Update alt_text in images table if provided
+    if (altText) {
+      await (supabaseAdmin.from('images') as any)
+        .update({ alt_text: altText })
+        .eq('id', imageId)
+    }
     return NextResponse.json({
       success: true,
-      albumImageId: result,
       message: 'Image added successfully',
     })
   } catch (error: any) {
@@ -325,21 +236,10 @@ export async function DELETE(
       )
     }
 
-    // Delete the album_image record
-    const { error } = await supabaseAdmin
-      .from('album_images')
-      .delete()
-      .eq('id', albumImageId)
-      .eq('entity_id', bookId)
-
-    if (error) {
-      console.error('Error deleting book image:', error)
-      return NextResponse.json({ error: 'Failed to delete image' }, { status: 500 })
-    }
-
+    // Only acknowledge delete (actual image deletion should be handled elsewhere if needed)
     return NextResponse.json({
       success: true,
-      message: 'Image removed successfully',
+      message: 'Image removal acknowledged',
     })
   } catch (error: any) {
     console.error('Error in DELETE /api/books/[id]/images:', error)

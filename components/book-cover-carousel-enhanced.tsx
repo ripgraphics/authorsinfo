@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback, startTransition } from 'react'
 import Image from 'next/image'
-import { Plus, Camera } from 'lucide-react'
+import { Plus, Camera, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { getBookCoverAltText, getBookGalleryAltText } from '@/utils/bookUtils'
 import { supabase } from '@/lib/supabase/client'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
+import { trackQueryPerformance } from '@/lib/performance-monitor'
 
 interface BookImage {
   id: string
-  album_id: string
   image_id: string
   image_url: string
   thumbnail_url: string | null
@@ -35,6 +35,12 @@ interface BookCoverCarouselEnhancedProps {
   onUploadClick?: () => void
 }
 
+// Enterprise-grade constants
+const MAX_RETRIES = 3
+const RETRY_DELAY = 1000
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export function BookCoverCarouselEnhanced({
   bookId,
   bookTitle,
@@ -45,117 +51,302 @@ export function BookCoverCarouselEnhanced({
 }: BookCoverCarouselEnhancedProps) {
   const [images, setImages] = useState<BookImage[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const thumbnailContainerRef = useRef<HTMLDivElement>(null)
+  const cacheRef = useRef<Map<string, { data: BookImage[]; timestamp: number }>>(new Map())
 
-  // Fetch book images using the database function
-  useEffect(() => {
-    const fetchBookImages = async () => {
-      try {
-        setLoading(true)
-        
-        // Call the get_book_images function
-        const { data, error } = await supabase.rpc('get_book_images', {
-          p_book_id: bookId,
-          p_image_type: undefined, // Get all types (undefined means optional parameter not provided)
-        } as any)
+  // Enterprise-grade input validation
+  const validateInputs = useCallback((): { isValid: boolean; error: string | null } => {
+    // Validate bookId
+    if (!bookId || typeof bookId !== 'string' || bookId.trim() === '') {
+      console.error('❌ Invalid bookId: bookId is required and must be a non-empty string')
+      return { isValid: false, error: 'Invalid book ID provided.' }
+    }
 
-        if (error) {
-          console.error('Error fetching book images:', error)
-          setImages([])
-          return
-        }
+    if (!UUID_REGEX.test(bookId)) {
+      console.error('❌ Invalid bookId format:', bookId)
+      return { isValid: false, error: 'Invalid book ID format.' }
+    }
 
-        const imagesData = data as any[]
-        if (!imagesData || imagesData.length === 0) {
-          setImages([])
-          return
-        }
+    // Validate bookTitle
+    if (!bookTitle || typeof bookTitle !== 'string' || bookTitle.trim() === '') {
+      console.warn('⚠️ bookTitle is missing or empty')
+    }
 
-        // Transform to BookImage format
-        const transformedImages: BookImage[] = imagesData.map((img: any) => ({
-          id: img.id,
-          album_id: img.album_id,
-          image_id: img.image_id,
-          image_url: img.image_url,
-          thumbnail_url: img.thumbnail_url,
-          large_url: img.large_url,
-          medium_url: img.medium_url,
-          alt_text: img.alt_text,
-          caption: img.caption,
-          image_type: img.image_type,
-          display_order: img.display_order,
-          is_cover: img.is_cover,
-          is_featured: img.is_featured,
-          created_at: img.created_at,
-        }))
+    return { isValid: true, error: null }
+  }, [bookId, bookTitle])
 
-        // Sort: front cover first, then back cover, then gallery by display_order
-        const sortedImages = transformedImages.sort((a, b) => {
-          // Front cover always first
-          if (a.image_type === 'book_cover_front' && b.image_type !== 'book_cover_front') return -1
-          if (a.image_type !== 'book_cover_front' && b.image_type === 'book_cover_front') return 1
-          
-          // Back cover second
-          if (a.image_type === 'book_cover_back' && b.image_type === 'book_gallery') return -1
-          if (a.image_type === 'book_gallery' && b.image_type === 'book_cover_back') return 1
-          
-          // Within same type, sort by display_order
-          if (a.image_type === b.image_type) {
-            return a.display_order - b.display_order
+  // Enterprise-grade retry logic with exponential backoff
+  const executeWithRetry = useCallback(
+    async <T,>(operation: () => Promise<T>, operationName: string): Promise<T> => {
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const result = await operation()
+          if (attempt > 0) {
+            console.log(`✅ ${operationName} succeeded on attempt ${attempt + 1}`)
+            setRetryCount(0)
           }
+          return result
+        } catch (error) {
+          const isLastAttempt = attempt === MAX_RETRIES
+          const errorMessage = error instanceof Error ? error.message : String(error)
           
-          return 0
-        })
+          if (isLastAttempt) {
+            console.error(`❌ ${operationName} failed after ${MAX_RETRIES + 1} attempts:`, errorMessage)
+            throw error
+          }
 
-        setImages(sortedImages)
-        
-        // Set selected image to current cover or first image
-        if (currentImageId) {
-          const currentIndex = sortedImages.findIndex(img => img.image_id === currentImageId)
-          if (currentIndex >= 0) {
-            setSelectedImageIndex(currentIndex)
+          const backoffDelay = RETRY_DELAY * Math.pow(2, attempt)
+          console.warn(`⚠️ ${operationName} failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying in ${backoffDelay}ms...`, errorMessage)
+          setRetryCount(attempt + 1)
+          await new Promise((resolve) => setTimeout(resolve, backoffDelay))
+        }
+      }
+      throw new Error(`${operationName} failed after all retries`)
+    },
+    []
+  )
+
+  // Transform image data to BookImage format with type safety
+  const transformImageToBookImage = useCallback((img: any, imageType: 'book_cover_front' | 'book_cover_back' | 'book_gallery', displayOrder: number): BookImage | null => {
+    if (!img || !img.id || !img.url) {
+      console.warn('⚠️ Invalid image data:', img)
+      return null
+    }
+
+    return {
+      id: img.id,
+      image_id: img.id,
+      image_url: img.url,
+      thumbnail_url: img.thumbnail_url || null,
+      large_url: img.large_url || null,
+      medium_url: img.medium_url || null,
+      alt_text: img.alt_text || null,
+      caption: img.caption || null,
+      image_type: imageType,
+      display_order: displayOrder,
+      is_cover: imageType === 'book_cover_front',
+      is_featured: (img.metadata?.is_featured || false) as boolean,
+      created_at: img.created_at || new Date().toISOString(),
+    }
+  }, [])
+
+  // Fetch book images with enterprise-grade implementation
+  const fetchBookImages = useCallback(
+    async (append = false) => {
+      try {
+        // Input validation
+        const validation = validateInputs()
+        if (!validation.isValid) {
+          setError(validation.error)
+          setLoading(false)
+          return
+        }
+
+        setError(null)
+
+        // Check cache first
+        const cacheKey = `book_images_${bookId}`
+        const cached = cacheRef.current.get(cacheKey)
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          console.log('🚀 Cache hit for:', cacheKey)
+          const cachedImages = cached.data
+          
+          startTransition(() => {
+            if (append) {
+              setImages((prev) => [...prev, ...cachedImages])
+            } else {
+              setImages(cachedImages)
+            }
+            setSelectedImageIndex(0)
+            setRetryCount(0)
+          })
+          setLoading(false)
+          return
+        }
+
+        console.log('📥 Fetching from database:', cacheKey)
+
+        // Fetch front cover image using books.cover_image_id foreign key relationship
+        const frontCoverData = await executeWithRetry(async () => {
+          return trackQueryPerformance('fetchBookFrontCover', async () => {
+            const { data: bookData, error } = await supabase
+              .from('books')
+              .select('cover_image_id, cover_image:images!books_cover_image_id_fkey(id, url, alt_text, thumbnail_url, large_url, medium_url, caption, created_at)')
+              .eq('id', bookId)
+              .single()
+
+            if (error) {
+              throw new Error(`Failed to fetch front cover: ${error.message}`)
+            }
+            
+            // Return the cover_image from the foreign key relationship
+            // Check if cover_image exists and is not deleted
+            const typedBookData = bookData as any
+            if (typedBookData?.cover_image) {
+              // Check if image is deleted (though foreign key join should handle this)
+              const coverImage = typedBookData.cover_image
+              if (coverImage.id && coverImage.url) {
+                return coverImage
+              }
+            }
+            return null
+          })
+        }, 'Fetch front cover')
+
+        // Fetch back cover image directly from images table using entity_id and image_type
+        const backCoverData = await executeWithRetry(async () => {
+          return trackQueryPerformance('fetchBookBackCover', async () => {
+            const { data, error } = await supabase
+              .from('images')
+              .select('id, url, alt_text, thumbnail_url, large_url, medium_url, caption, created_at')
+              .eq('entity_id', bookId)
+              .eq('image_type', 'book_cover_back')
+              .is('deleted_at', null)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle()
+
+            if (error) {
+              throw new Error(`Failed to fetch back cover: ${error.message}`)
+            }
+
+            return data || null
+          })
+        }, 'Fetch back cover')
+
+        // Fetch gallery images directly from images table using entity_id and image_type
+        const galleryData = await executeWithRetry(async () => {
+          return trackQueryPerformance('fetchBookGalleryImages', async () => {
+            const { data, error } = await supabase
+              .from('images')
+              .select('id, url, alt_text, thumbnail_url, large_url, medium_url, caption, created_at')
+              .eq('entity_id', bookId)
+              .eq('image_type', 'book_gallery')
+              .is('deleted_at', null)
+              .order('created_at', { ascending: false })
+
+            if (error) {
+              throw new Error(`Failed to fetch gallery images: ${error.message}`)
+            }
+
+            return data || []
+          })
+        }, 'Fetch gallery images')
+
+        // Transform images to BookImage format
+        const transformedImages: BookImage[] = []
+
+        // Front cover (always first)
+        if (frontCoverData) {
+          const transformed = transformImageToBookImage(frontCoverData, 'book_cover_front', 0)
+          if (transformed) transformedImages.push(transformed)
+        }
+
+        // Back cover (second)
+        if (backCoverData) {
+          const transformed = transformImageToBookImage(backCoverData, 'book_cover_back', 1)
+          if (transformed) transformedImages.push(transformed)
+        }
+
+        // Gallery images (follow)
+        if (galleryData && Array.isArray(galleryData)) {
+          galleryData.forEach((galleryImg, index) => {
+            const transformed = transformImageToBookImage(galleryImg, 'book_gallery', index + 2)
+            if (transformed) transformedImages.push(transformed)
+          })
+        }
+
+        // Cache the results
+        cacheRef.current.set(cacheKey, { data: transformedImages, timestamp: Date.now() })
+        console.log(`✅ Fetched ${transformedImages.length} images and cached for book: ${bookId}`)
+
+        // Update state with transition for non-urgent updates
+        startTransition(() => {
+          if (append) {
+            setImages((prev) => [...prev, ...transformedImages])
           } else {
-            // If currentImageId doesn't match any image, select the front cover if available
-            const frontCoverIndex = sortedImages.findIndex(img => img.image_type === 'book_cover_front')
+            setImages(transformedImages)
+          }
+
+          // Set selected image index
+          if (currentImageId) {
+            const currentIndex = transformedImages.findIndex((img) => img.image_id === currentImageId)
+            if (currentIndex >= 0) {
+              setSelectedImageIndex(currentIndex)
+            } else {
+              const frontCoverIndex = transformedImages.findIndex((img) => img.image_type === 'book_cover_front')
+              if (frontCoverIndex >= 0) {
+                setSelectedImageIndex(frontCoverIndex)
+              } else if (transformedImages.length > 0) {
+                setSelectedImageIndex(0)
+              }
+            }
+          } else {
+            const frontCoverIndex = transformedImages.findIndex((img) => img.image_type === 'book_cover_front')
             if (frontCoverIndex >= 0) {
               setSelectedImageIndex(frontCoverIndex)
-            } else if (sortedImages.length > 0) {
+            } else if (transformedImages.length > 0) {
               setSelectedImageIndex(0)
             }
           }
-        } else {
-          // If no currentImageId, select the front cover if available, otherwise first image
-          const frontCoverIndex = sortedImages.findIndex(img => img.image_type === 'book_cover_front')
-          if (frontCoverIndex >= 0) {
-            setSelectedImageIndex(frontCoverIndex)
-          } else if (sortedImages.length > 0) {
-            setSelectedImageIndex(0)
-          }
+
+          setRetryCount(0)
+        })
+      } catch (err) {
+        console.error('❌ Error fetching book images:', err)
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load images. Please try again.'
+        
+        // Determine user-friendly error message
+        let userMessage = 'Failed to load images. Please try again.'
+        if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+          userMessage = 'Unable to connect. Please check your connection.'
+        } else if (errorMessage.includes('rate limit') || errorMessage.includes('429')) {
+          userMessage = 'Too many requests. Please wait a moment.'
+        } else if (errorMessage.includes('Invalid book ID')) {
+          userMessage = 'Invalid book ID provided.'
         }
-      } catch (error) {
-        console.error('Error fetching book images:', error)
+
+        setError(userMessage)
         setImages([])
       } finally {
         setLoading(false)
       }
+    },
+    [bookId, currentImageId, validateInputs, executeWithRetry, transformImageToBookImage]
+  )
+
+  // Main effect to fetch images
+  useEffect(() => {
+    let isMounted = true
+
+    const loadImages = async () => {
+      if (!isMounted) return
+      await fetchBookImages()
     }
 
-    fetchBookImages()
+    loadImages()
 
-    // Listen for image changes
+    // Listen for image changes and invalidate cache
     const handleImageChange = () => {
-      fetchBookImages()
+      if (!isMounted) return
+      console.log('🔄 Image changed event received, invalidating cache and refetching')
+      const cacheKey = `book_images_${bookId}`
+      cacheRef.current.delete(cacheKey)
+      loadImages()
     }
 
     window.addEventListener('entityImageChanged', handleImageChange)
     return () => {
+      isMounted = false
       window.removeEventListener('entityImageChanged', handleImageChange)
     }
-  }, [bookId, currentImageId])
+  }, [bookId, currentImageId, fetchBookImages])
 
   const frontCover = images.find(img => img.image_type === 'book_cover_front')
   const backCover = images.find(img => img.image_type === 'book_cover_back')
@@ -278,6 +469,32 @@ export function BookCoverCarouselEnhanced({
     }
   }, [selectedImageIndex, images.length])
 
+  // Error state with retry option
+  if (error && !loading) {
+    return (
+      <div className="space-y-4">
+        <Card className="w-full aspect-[2/3] flex items-center justify-center bg-muted">
+          <div className="text-center text-muted-foreground">
+            <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50 text-destructive" />
+            <p className="text-sm font-medium mb-1">Failed to load images</p>
+            <p className="text-xs mb-4">{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setError(null)
+                setRetryCount(0)
+                fetchBookImages()
+              }}
+            >
+              Retry
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -329,12 +546,12 @@ export function BookCoverCarouselEnhanced({
           <div className="book-page__cover-image w-full h-full relative aspect-[2/3] flex items-center justify-center bg-muted/10">
             <Image
               src={currentImage.large_url || currentImage.image_url}
-              alt={currentImage.alt_text || (currentImage.image_type === 'book_gallery' 
+              alt={currentImage.image_type === 'book_gallery' 
                 ? getBookGalleryAltText(bookTitle, currentImage.caption || undefined)
-                : getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front'))}
-              title={currentImage.alt_text || (currentImage.image_type === 'book_gallery' 
+                : getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
+              title={currentImage.image_type === 'book_gallery' 
                 ? getBookGalleryAltText(bookTitle, currentImage.caption || undefined)
-                : getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front'))}
+                : getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
               width={400}
               height={600}
               className={`w-full h-full ${
@@ -433,8 +650,8 @@ export function BookCoverCarouselEnhanced({
               >
                 <Image
                   src={galleryImage.thumbnail_url || galleryImage.image_url}
-                  alt={galleryImage.alt_text || getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
-                  title={galleryImage.alt_text || getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
+                  alt={getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
+                  title={getBookGalleryAltText(bookTitle, galleryImage.caption || undefined)}
                   fill
                   className="object-cover"
                   sizes="60px"

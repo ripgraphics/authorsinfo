@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: activity, error: activityError } = await supabase
-      .from('activities')
+      .from('posts')
       .select('id, user_id')
       .eq('id', entityId)
       .single()

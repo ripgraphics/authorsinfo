@@ -38,11 +38,10 @@ export async function POST(request: NextRequest) {
 
     const { content, entity_type, entity_id, visibility } = validationResult.data
 
-    // 4. Create post in activities table
+    // 4. Create post in posts table
     const postData = {
       user_id: userId,
-      text: content.text.trim(),
-      activity_type: 'post_created',
+      content: content.text.trim(),
       content_type: 'text',
       visibility: visibility,
       publish_status: 'published',
@@ -51,8 +50,8 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
     }
 
-    // 5. Insert the post into activities table
-    const { data: post, error: postError } = await (supabase.from('activities') as any)
+    // 5. Insert the post into posts table
+    const { data: post, error: postError } = await (supabase.from('posts') as any)
       .insert(postData)
       .select()
       .single()
@@ -64,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      post: { id: post.id, text: post.text },
+      post: { id: post.id, text: post.content },
       message: 'Post created successfully',
     })
   } catch (error) {

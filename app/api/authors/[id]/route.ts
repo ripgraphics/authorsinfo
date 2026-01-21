@@ -91,7 +91,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         }
 
         try {
-          await supabaseAdmin.from('activities').insert({
+          await supabaseAdmin.from('posts').insert({
             user_id: user?.id,
             activity_type: 'author_profile_updated',
             data: {
@@ -197,7 +197,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     try {
-      await supabaseAdmin.from('activities').insert({
+      await supabaseAdmin.from('posts').insert({
         user_id: user?.id,
         activity_type: 'author_profile_updated',
         data: {

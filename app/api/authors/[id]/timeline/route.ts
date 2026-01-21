@@ -60,7 +60,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       console.log('⚠️ RPC function returned no data, trying direct query...')
 
       const { data: directData, error: directError } = await supabaseAdmin
-        .from('activities')
+        .from('posts')
         .select('*')
         .eq('entity_type', 'author')
         .eq('entity_id', authorId)

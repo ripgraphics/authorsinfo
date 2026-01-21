@@ -46,14 +46,13 @@ export function BookImageManager({
       throw new Error('Invalid file type')
     }
 
-    // Determine image type for entity-image API
+    // Upload using entity-image API (Supabase is the single source of truth)
     const entityImageType = imageType === 'book_cover_front' 
       ? 'bookCover' 
       : imageType === 'book_cover_back'
       ? 'bookCoverBack'
       : 'bookGallery'
 
-    // Prepare FormData for entity-image API
     const formData = new FormData()
     formData.append('file', file)
     formData.append('entityType', 'book')
@@ -61,7 +60,6 @@ export function BookImageManager({
     formData.append('imageType', entityImageType)
     formData.append('originalType', imageType === 'book_cover_front' || imageType === 'book_cover_back' ? 'bookCover' : 'bookGallery')
 
-    // Upload using entity-image API
     const uploadResponse = await fetch('/api/upload/entity-image', {
       method: 'POST',
       body: formData,
@@ -78,45 +76,15 @@ export function BookImageManager({
       throw new Error('Upload succeeded but no image ID returned')
     }
 
-    // Always add to book album using book images API
-    // This ensures proper categorization with image_type
-    const addResponse = await fetch(`/api/books/${bookId}/images`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        imageId: uploadResult.image_id,
-        imageType: imageType,
-        altText: imageType === 'book_cover_back' 
-          ? `${bookTitle} : book back cover`
-          : imageType === 'book_cover_front'
-          ? `${bookTitle} : book cover`
-          : `${bookTitle} : gallery image`,
-      }),
-    })
-
-    if (!addResponse.ok) {
-      const error = await addResponse.json()
-      // If image already exists in album, that's okay - just update the type
-      if (error.error?.includes('already exists') || error.error?.includes('duplicate')) {
-        // Try to update existing record
-        const { data: existing } = await (supabase.from('album_images') as any)
-          .select('id')
-          .eq('image_id', uploadResult.image_id)
-          .eq('entity_id', bookId)
-          .maybeSingle()
-        
-        if (existing) {
-          await (supabase.from('album_images') as any)
-            .update({ image_type: imageType })
-            .eq('id', (existing as any).id)
-        }
-      } else {
-        throw new Error(error.error || 'Failed to add image to book')
+    // If front cover, update books.cover_image_id
+    if (imageType === 'book_cover_front') {
+      const { error: updateError } = await (supabase.from('books') as any)
+        .update({ cover_image_id: uploadResult.image_id })
+        .eq('id', bookId)
+      if (updateError) {
+        throw new Error(updateError.message || 'Failed to set book cover image')
       }
     }
-
     if (showToast) {
       toast({
         title: 'Success',
@@ -204,7 +172,7 @@ export function BookImageManager({
     }
   }
 
-  // Handle front cover upload completion from EntityImageUpload
+  // Handle front cover upload completion from EntityImageUpload (Supabase only)
   const handleFrontCoverUploadComplete = async (newImageUrl: string, newImageId?: string) => {
     if (!newImageId) {
       toast({
@@ -216,41 +184,18 @@ export function BookImageManager({
     }
 
     try {
-      // Update books.cover_image_id
+      // Update books.cover_image_id only
       const { error: updateError } = await (supabase.from('books') as any)
         .update({ cover_image_id: newImageId })
         .eq('id', bookId)
-
       if (updateError) {
         console.error('Error updating book cover_image_id:', updateError)
         throw new Error(`Failed to update book cover: ${updateError.message}`)
       }
-
-      // Add to book album with image_type: 'book_cover_front'
-      const addResponse = await fetch(`/api/books/${bookId}/images`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageId: newImageId,
-          imageType: 'book_cover_front',
-          altText: `${bookTitle} : book cover`,
-        }),
-      })
-
-      if (!addResponse.ok) {
-        const error = await addResponse.json()
-        console.warn('Failed to add front cover to album (non-critical):', error)
-        // Don't throw - the image is uploaded and cover_image_id is updated
-      }
-
       toast({
         title: 'Success',
         description: 'Front cover uploaded and cropped successfully',
       })
-
-      // Trigger refresh with detail so listeners can identify book cover uploads
       window.dispatchEvent(
         new CustomEvent('entityImageChanged', {
           detail: { entityType: 'book', entityId: bookId, imageType: 'bookCover' },
@@ -259,8 +204,6 @@ export function BookImageManager({
       if (onImageAdded) {
         onImageAdded()
       }
-
-      // Close the upload modal
       setIsFrontCoverUploadOpen(false)
     } catch (error: any) {
       console.error('Error handling front cover upload:', error)
@@ -272,7 +215,7 @@ export function BookImageManager({
     }
   }
 
-  // Handle back cover upload completion from EntityImageUpload
+  // Handle back cover upload completion from EntityImageUpload (Supabase only)
   const handleBackCoverUploadComplete = async (newImageUrl: string, newImageId?: string) => {
     if (!newImageId) {
       toast({
@@ -284,52 +227,15 @@ export function BookImageManager({
     }
 
     try {
-      // Add to book album with image_type: 'book_cover_back'
-      const addResponse = await fetch(`/api/books/${bookId}/images`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageId: newImageId,
-          imageType: 'book_cover_back',
-          altText: `${bookTitle} : book back cover`,
-        }),
-      })
-
-      if (!addResponse.ok) {
-        const error = await addResponse.json()
-        // If image already exists in album, that's okay - just update the type
-        if (error.error?.includes('already exists') || error.error?.includes('duplicate')) {
-          // Try to update existing record
-          const { data: existing } = await (supabase.from('album_images') as any)
-            .select('id')
-            .eq('image_id', newImageId)
-            .eq('entity_id', bookId)
-            .maybeSingle()
-          
-          if (existing) {
-            await (supabase.from('album_images') as any)
-              .update({ image_type: 'book_cover_back' })
-              .eq('id', (existing as any).id)
-          }
-        } else {
-          throw new Error(error.error || 'Failed to add back cover to book')
-        }
-      }
-
+      // No album logic for back cover; just trigger UI updates
       toast({
         title: 'Success',
         description: 'Back cover uploaded and cropped successfully',
       })
-
-      // Trigger refresh
       window.dispatchEvent(new CustomEvent('entityImageChanged'))
       if (onImageAdded) {
         onImageAdded()
       }
-
-      // Close the upload modal
       setIsBackCoverUploadOpen(false)
     } catch (error: any) {
       console.error('Error handling back cover upload:', error)

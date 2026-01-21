@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
 
     // Try to update the comment count in the activities table if this is an activity post
     const { data: activity, error: activityFetchError } = await supabase
-      .from('activities')
+      .from('posts')
       .select('id, comment_count')
       .eq('id', post_id)
       .single()
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       console.log('Updating activity comment count for activity:', activityData?.id)
       const currentCount = activityData?.comment_count || 0
       const { error: updateError } = await supabase
-        .from('activities')
+        .from('posts')
         .update({
           comment_count: currentCount + 1,
         })

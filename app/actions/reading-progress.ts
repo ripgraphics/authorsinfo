@@ -211,18 +211,21 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
                     : 'Abandoned',
         }
 
-        // Create the activity
-        const { error: activityError } = await supabase.from('activities').insert({
+        // Create the post entry for the timeline
+        const { error: activityError } = await supabase.from('posts').insert({
           user_id: user.id,
           activity_type: activityType,
           entity_type: 'book',
           entity_id: (book as any).id,
-          data: activityData,
+          book_id: (book as any).id,
+          content: `${authorName}'s book "${(book as any).title}" was added to shelf: ${activityData.shelf}`,
           metadata: {
+            ...activityData,
             privacy_level: progress.privacy_level || 'private',
             engagement_count: 0,
             is_premium: false,
           },
+          visibility: progress.privacy_level === 'private' ? 'private' : 'public',
         } as any)
 
         if (activityError) {

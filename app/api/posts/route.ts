@@ -23,10 +23,9 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sort_by') || 'created_at'
     const sortOrder = searchParams.get('sort_order') || 'desc'
 
-    // Build query using activities table (unified system)
-    let query = (supabase.from('activities') as any)
+    // Build query using posts table
+    let query = (supabase.from('posts') as any)
       .select('*')
-      .eq('activity_type', 'post_created')
       .eq('publish_status', publishStatus)
       .neq('visibility', 'private')
 
@@ -65,7 +64,7 @@ export async function GET(request: NextRequest) {
     const { data: posts, error, count } = await query
 
     if (error) {
-      console.error('Error fetching posts from activities:', error)
+      console.error('Error fetching posts from database:', error)
       return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 })
     }
 
@@ -75,9 +74,8 @@ export async function GET(request: NextRequest) {
       totalCount = count
     } else {
       // Fallback: count total posts with same filters
-      const { count: total } = await (supabase.from('activities') as any)
+      const { count: total } = await (supabase.from('posts') as any)
         .select('*', { count: 'exact', head: true })
-        .eq('activity_type', 'post_created')
         .eq('publish_status', publishStatus)
         .neq('visibility', 'private')
 
@@ -192,10 +190,9 @@ export async function POST(request: NextRequest) {
       // level === 'public' -> allow any authenticated user by default
     }
 
-    // Prepare payload
+    // Prepare payload for posts table
     const payload = {
       user_id: user.id,
-      activity_type: 'post_created',
       entity_type: targetEntityType,
       entity_id: targetEntityId,
       metadata: {
@@ -206,7 +203,7 @@ export async function POST(request: NextRequest) {
         age_restriction: 'all',
         sensitive_content: false,
       },
-      text: content?.text || content?.content || content?.body || 'Post content',
+      content: content?.text || content?.content || content?.body || 'Post content',
       image_url: content?.image_url || content?.images || content?.media_url,
       link_url: content?.link_url || content?.url,
       hashtags: content?.hashtags || tags || [],
@@ -217,9 +214,6 @@ export async function POST(request: NextRequest) {
       published_at: new Date().toISOString(),
       is_featured: false,
       is_pinned: false,
-      bookmark_count: 0,
-      trending_score: 0,
-      engagement_score: 0,
       updated_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
     }
@@ -229,21 +223,21 @@ export async function POST(request: NextRequest) {
       payload: filteredPayload,
       removedColumns,
       warnings,
-    } = await validateAndFilterPayload('activities', payload)
+    } = await validateAndFilterPayload('posts', payload)
 
     // Log warnings if any columns were removed
     if (removedColumns.length > 0) {
       console.warn(`Removed non-existent columns from posts insert:`, removedColumns)
     }
 
-    // Create the post in the activities table with filtered payload
-    const { data: activity, error } = await (supabase.from('activities') as any)
+    // Create the post in the posts table with filtered payload
+    const { data: activity, error } = await (supabase.from('posts') as any)
       .insert(filteredPayload)
       .select('*')
       .single()
 
     if (error) {
-      console.error('Error creating post in activities:', error)
+      console.error('Error creating post in database:', error)
       return NextResponse.json({ error: 'Failed to create post' }, { status: 500 })
     }
 

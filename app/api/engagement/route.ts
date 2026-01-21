@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { getEntityTypeId } from '@/lib/entity-types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -360,9 +361,23 @@ async function handleCommentWithFunction(
       parentId,
     })
 
+    // Look up entity_types.id from entity type name
+    const entityTypeId = await getEntityTypeId(entityType)
+    if (!entityTypeId) {
+      return NextResponse.json(
+        {
+          error: 'Failed to add comment',
+          details: `Invalid entity type: ${entityType}`,
+        },
+        { status: 400 }
+      )
+    }
+
+    console.log('✅ Resolved entity_type:', { name: entityType, id: entityTypeId })
+
     const { data: commentId, error } = await supabase.rpc('add_entity_comment', {
       p_user_id: userId,
-      p_entity_type: entityType,
+      p_entity_type: entityTypeId,  // UUID from entity_types.id
       p_entity_id: entityId,
       p_comment_text: trimmed,
       p_parent_comment_id: parentId || null,

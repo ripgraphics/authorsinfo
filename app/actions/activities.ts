@@ -76,20 +76,21 @@ export async function createActivity(params: CreateActivityParams): Promise<{
       return { success: false, error: 'Activity type is required' }
     }
 
-    // Create the activity
+    // Create the post (formerly activity)
     const { data: activity, error } = await supabase
-      .from('activities')
+      .from('posts')
       .insert({
         user_id: user.id,
         activity_type: params.activity_type,
         entity_type: params.entity_type || 'unknown',
         entity_id: params.entity_id || null,
-        is_public: params.is_public ?? true,
+        visibility: params.is_public === false ? 'private' : 'public',
         metadata: params.metadata || {},
         group_id: params.group_id || null,
         book_id: params.book_id || null,
         author_id: params.author_id || null,
         event_id: params.event_id || null,
+        content: params.metadata?.text || params.metadata?.content || '',
       } as any)
       .select()
       .single()

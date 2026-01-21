@@ -391,6 +391,7 @@ export async function POST(request: NextRequest) {
     const normalizedImageType = normalizeImageType(imageType, originalType)
     const columnName = deriveImageColumnName(entityType, normalizedImageType)
     const entityWarnings: string[] = []
+    const shouldSkipEntityLinking = entityType === 'book' && imageType === 'bookCoverBack'
 
     // Strict integrity: if an author avatar is uploaded, it MUST be linked via authors.author_image_id.
     const strictLinking = entityType === 'author' && normalizedImageType === 'avatar'
@@ -522,7 +523,14 @@ export async function POST(request: NextRequest) {
 
     let linkSucceeded = false
 
-    if (!columnName) {
+    if (shouldSkipEntityLinking) {
+      // Back cover uploads must NEVER overwrite books.cover_image_id (or any entity cover column).
+      // Back covers are managed via the book images album (`/api/books/[id]/images`) only.
+      console.log(
+        `ℹ️ Skipping entity-table image linking for book back cover upload (entityId=${entityId})`
+      )
+      linkSucceeded = true
+    } else if (!columnName) {
       appendEntityWarning(
         `Unable to derive an image column for entity type '${entityType}' and image type '${imageType}'`
       )

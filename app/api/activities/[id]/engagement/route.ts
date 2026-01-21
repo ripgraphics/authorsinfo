@@ -29,7 +29,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (action === 'like') {
       // Handle like/unlike - update the like_count in activities table
       const { data: existingActivity, error: fetchError } = await supabase
-        .from('activities')
+        .from('posts')
         .select('like_count, user_has_reacted')
         .eq('id', activityId)
         .single()
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       // Update the activity with new like count and user reaction status
       // Check if user_has_reacted column exists
       const { data: columnCheck } = await supabase
-        .from('activities')
+        .from('posts')
         .select('user_has_reacted')
         .limit(1)
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
       if (hasUserHasReactedColumn) {
         // Update like_count and user_has_reacted
-        const { error: updateError } = await (supabase.from('activities') as any)
+        const { error: updateError } = await (supabase.from('posts') as any)
           .update({
             like_count: hasLiked
               ? (existingActivity as any).like_count - 1
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
       } else {
         // Fallback: only update like_count if user_has_reacted column doesn't exist
-        const { error: updateError } = await (supabase.from('activities') as any)
+        const { error: updateError } = await (supabase.from('posts') as any)
           .update({
             like_count: hasLiked
               ? (existingActivity as any).like_count - 1
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       // For now, just increment the comment count
       // In a full implementation, you might want to store actual comments
       const { data: existingActivity, error: fetchError } = await supabase
-        .from('activities')
+        .from('posts')
         .select('comment_count')
         .eq('id', activityId)
         .single()
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       const newCommentCount = ((existingActivity as any).comment_count || 0) + 1
 
       // Update the activity with new comment count
-      const { error: updateError } = await (supabase.from('activities') as any)
+      const { error: updateError } = await (supabase.from('posts') as any)
         .update({ comment_count: newCommentCount })
         .eq('id', activityId)
 
@@ -194,7 +194,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Check if user_has_reacted column exists
     const { data: columnCheck } = await supabase
-      .from('activities')
+      .from('posts')
       .select('user_has_reacted')
       .limit(1)
 
@@ -203,7 +203,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Fetch the activity data
     const { data: activity, error } = await supabase
-      .from('activities')
+      .from('posts')
       .select('like_count, comment_count, share_count, bookmark_count, user_has_reacted')
       .eq('id', activityId)
       .single()

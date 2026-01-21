@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
 import { supabaseAdmin } from '@/lib/supabase'
+import { getEntityTypeId } from '@/lib/entity-types'
 
 export async function POST(request: Request) {
   try {
@@ -36,10 +37,21 @@ export async function POST(request: Request) {
       parent_comment_id: parent_comment_id || parent_id || null,
     })
 
-    // Use the add_entity_comment() function as documented in COMMENT_SYSTEM_FIXED.md
+    // Look up entity_types.id from entity type name
+    const entityTypeId = await getEntityTypeId(entity_type)
+    if (!entityTypeId) {
+      return NextResponse.json(
+        { error: `Invalid entity type: ${entity_type}` },
+        { status: 400 }
+      )
+    }
+
+    console.log('✅ Resolved entity_type:', { name: entity_type, id: entityTypeId })
+
+    // Use the add_entity_comment() function - requires entity_types.id (UUID)
     const { data: commentId, error: insertError } = await supabaseAdmin.rpc('add_entity_comment', {
       p_user_id: user.id,
-      p_entity_type: entity_type,
+      p_entity_type: entityTypeId,  // UUID from entity_types.id
       p_entity_id: entity_id,
       p_comment_text: comment_text.trim(),
       p_parent_comment_id: parent_comment_id || parent_id || null,
@@ -63,7 +75,7 @@ export async function POST(request: Request) {
         if (!countError && commentCount !== null) {
           // Update the activities table with new comment count
           const { error: updateError } = await supabaseAdmin
-            .from('activities')
+            .from('posts')
             .update({
               comment_count: commentCount.length,
               updated_at: new Date().toISOString(),

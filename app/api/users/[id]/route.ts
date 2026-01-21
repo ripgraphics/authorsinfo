@@ -195,7 +195,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
         // Log activity
         try {
-          await supabaseAdmin.from('activities').insert({
+          await supabaseAdmin.from('posts').insert({
             user_id: authUser?.id,
             activity_type: 'user_profile_updated',
             data: {

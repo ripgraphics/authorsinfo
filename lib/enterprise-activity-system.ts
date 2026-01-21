@@ -111,7 +111,7 @@ export class EnterpriseActivityGenerator {
   // Check for existing activities to prevent duplicates
   private async checkForDuplicates(activity: EnterpriseActivityData): Promise<boolean> {
     const { data, error } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('id')
       .eq('user_id', activity.user_id)
       .eq('activity_type', activity.activity_type)
@@ -149,7 +149,7 @@ export class EnterpriseActivityGenerator {
       const batch = batches[i]
 
       try {
-        const { error } = await supabaseAdmin.from('activities').insert(
+        const { error } = await supabaseAdmin.from('posts').insert(
           batch.map((activity) => ({
             ...activity,
             metadata: {
@@ -676,14 +676,14 @@ export class EnterpriseActivityGenerator {
     try {
       // Get total count
       const { count: total } = await supabaseAdmin
-        .from('activities')
+        .from('posts')
         .select('*', { count: 'exact', head: true })
 
       // Get today's count
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       const { count: todayCount } = await supabaseAdmin
-        .from('activities')
+        .from('posts')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', today.toISOString())
 
@@ -691,7 +691,7 @@ export class EnterpriseActivityGenerator {
       const weekAgo = new Date()
       weekAgo.setDate(weekAgo.getDate() - 7)
       const { count: weekCount } = await supabaseAdmin
-        .from('activities')
+        .from('posts')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', weekAgo.toISOString())
 
@@ -699,13 +699,13 @@ export class EnterpriseActivityGenerator {
       const monthAgo = new Date()
       monthAgo.setMonth(monthAgo.getMonth() - 1)
       const { count: monthCount } = await supabaseAdmin
-        .from('activities')
+        .from('posts')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', monthAgo.toISOString())
 
       // Get breakdown by activity type
       const { data: typeBreakdown } = await supabaseAdmin
-        .from('activities')
+        .from('posts')
         .select('activity_type')
         .limit(1000) // Sample for breakdown
 
@@ -720,7 +720,7 @@ export class EnterpriseActivityGenerator {
 
       // Get breakdown by entity type
       const { data: entityBreakdown } = await supabaseAdmin
-        .from('activities')
+        .from('posts')
         .select('entity_type')
         .limit(1000) // Sample for breakdown
 

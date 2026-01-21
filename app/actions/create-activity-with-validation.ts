@@ -162,18 +162,30 @@ export async function createActivityWithValidation(
     }
 
     // Validate and filter payload against actual schema
+    // Map 'text' to 'content' for the posts table
+    const postPayload = {
+      ...params,
+      content: params.text || (params.data as any)?.content || (params.data as any)?.text,
+    }
+    
+    // Remove 'text' as it's now 'content'
+    delete (postPayload as any).text;
+
     const { payload, removedColumns, warnings } = await validateAndFilterPayload(
-      'activities',
-      params
+      'posts',
+      postPayload
     )
 
     // Log warnings if any columns were removed
     if (removedColumns.length > 0) {
-      console.warn(`Removed non-existent columns from activities insert:`, removedColumns)
+      console.warn(`Removed non-existent columns from posts insert:`, removedColumns)
     }
 
-    // Insert the filtered payload
-    const { data: activity, error } = await (supabase.from('activities') as any)
+    // Note: Engagement counts are calculated dynamically from 
+    // engagement tables which are the single source of truth.
+
+    // Insert the filtered payload (no cached count columns)
+    const { data: activity, error } = await (supabase.from('posts') as any)
       .insert([payload])
       .select()
       .single()

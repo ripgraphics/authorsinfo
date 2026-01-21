@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
     // Create a test activity
     const { data: activity, error } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .insert({
         user_id: userId,
         activity_type: 'book_added',

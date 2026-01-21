@@ -74,7 +74,7 @@ export async function generateAuthorActivities(
     }
 
     // Insert all activities
-    const { error: insertError } = await supabaseAdmin.from('activities').insert(activities)
+    const { error: insertError } = await supabaseAdmin.from('posts').insert(activities)
 
     if (insertError) {
       console.error('Error inserting activities:', insertError)
@@ -147,7 +147,7 @@ export async function generateBookActivities(
     ]
 
     // Insert activity
-    const { error: insertError } = await supabaseAdmin.from('activities').insert(activities)
+    const { error: insertError } = await supabaseAdmin.from('posts').insert(activities)
 
     if (insertError) {
       console.error('Error inserting book activity:', insertError)
@@ -225,7 +225,7 @@ export async function generatePublisherActivities(
     }
 
     // Insert all activities
-    const { error: insertError } = await supabaseAdmin.from('activities').insert(activities)
+    const { error: insertError } = await supabaseAdmin.from('posts').insert(activities)
 
     if (insertError) {
       console.error('Error inserting publisher activities:', insertError)
@@ -285,7 +285,7 @@ export async function generateUserProfileActivities(
     })
 
     // Insert all activities
-    const { error: insertError } = await supabaseAdmin.from('activities').insert(activities)
+    const { error: insertError } = await supabaseAdmin.from('posts').insert(activities)
 
     if (insertError) {
       console.error('Error inserting user profile activities:', insertError)
@@ -359,7 +359,7 @@ export async function generateGroupActivities(
     })
 
     // Insert all activities
-    const { error: insertError } = await supabaseAdmin.from('activities').insert(activities)
+    const { error: insertError } = await supabaseAdmin.from('posts').insert(activities)
 
     if (insertError) {
       console.error('Error inserting group activities:', insertError)

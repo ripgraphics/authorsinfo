@@ -18,7 +18,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Check if post exists and user owns it
-    const { data: existingPost, error: fetchError } = await (supabase.from('activities') as any)
+    const { data: existingPost, error: fetchError } = await (supabase.from('posts') as any)
       .select('user_id, publish_status')
       .eq('id', postId)
       .eq('activity_type', 'post_created')
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Restore post
-    const { data: restoredPost, error: restoreError } = await (supabase.from('activities') as any)
+    const { data: restoredPost, error: restoreError } = await (supabase.from('posts') as any)
       .update({
         publish_status: 'published',
         updated_at: new Date().toISOString(),

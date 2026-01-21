@@ -160,6 +160,43 @@ export async function getBookById(id: string): Promise<Book | null> {
           return
         }
 
+        // Prefer the FRONT cover from the book images system (get_book_images).
+        // This guarantees the book page header/avatar fallback never uses the back cover.
+        try {
+          const { data: frontImages, error: frontError } = await supabaseAdmin.rpc(
+            'get_book_images',
+            {
+              p_book_id: id,
+              p_image_type: 'book_cover_front',
+            } as any
+          )
+
+          const front = Array.isArray(frontImages) ? frontImages[0] : null
+
+          if (!frontError && front && (front as any).image_id && (front as any).image_url) {
+            data.cover_image = {
+              id: (front as any).image_id,
+              url: (front as any).image_url,
+              alt_text: (front as any).alt_text,
+            } as any
+
+            // Repair legacy/bad state: ensure books.cover_image_id points to the front cover.
+            if ((data as any).cover_image_id !== (front as any).image_id) {
+              const { error: repairError } = await (supabaseAdmin.from('books') as any)
+                .update({ cover_image_id: (front as any).image_id })
+                .eq('id', id)
+
+              if (repairError) {
+                console.warn('⚠️ Failed to repair books.cover_image_id to front cover:', repairError)
+              } else {
+                ;(data as any).cover_image_id = (front as any).image_id
+              }
+            }
+          }
+        } catch (frontCoverError) {
+          console.warn('⚠️ Failed to fetch/repair front cover via get_book_images:', frontCoverError)
+        }
+
         // If cover_image is not available from foreign key, try to get it from album
         if (!data.cover_image) {
           console.log('Cover image not found via foreign key, checking album...')

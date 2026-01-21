@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create the activity
-        const { error: activityError } = await (supabase.from('activities') as any).insert({
+        const { error: activityError } = await (supabase.from('posts') as any).insert({
           user_id: user.id,
           activity_type: activityType,
           entity_type: 'book',

@@ -40,7 +40,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     // Enterprise: Build optimized query with filters
     let query = supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select(
         `
         id,
@@ -244,7 +244,7 @@ async function calculateTimelineAnalytics(userId: string) {
   try {
     // Get total activities count
     const { count: totalActivities } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
 
@@ -253,7 +253,7 @@ async function calculateTimelineAnalytics(userId: string) {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
     const { data: recentActivities } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('id')
       .eq('user_id', userId)
       .gte('created_at', thirtyDaysAgo.toISOString())
@@ -270,7 +270,7 @@ async function calculateTimelineAnalytics(userId: string) {
 
     // Get top activity type
     const { data: activityTypes } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('activity_type')
       .eq('user_id', userId)
 
@@ -295,7 +295,7 @@ async function calculateTimelineAnalytics(userId: string) {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
     const { count: weeklyActivities } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .gte('created_at', sevenDaysAgo.toISOString())
@@ -304,7 +304,7 @@ async function calculateTimelineAnalytics(userId: string) {
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
 
     const { count: previousWeekActivities } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .gte('created_at', fourteenDaysAgo.toISOString())

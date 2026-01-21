@@ -119,8 +119,9 @@ export async function getContentPopularityData(dateRange: DateRange) {
     }> = []
     try {
       const { data: views, error: viewsError } = await supabaseAdmin
-        .from('book_views')
-        .select('id, book_id, created_at')
+        .from('views')
+        .select('id, entity_id, created_at')
+        .eq('entity_type', 'book')
         .gte('created_at', startDate)
         .lte('created_at', endDate)
 
@@ -128,8 +129,8 @@ export async function getContentPopularityData(dateRange: DateRange) {
         // Count views per book
         const bookViewCounts: Record<string, number> = {}
         for (const view of views) {
-          if (view.book_id) {
-            bookViewCounts[view.book_id] = (bookViewCounts[view.book_id] || 0) + 1
+          if (view.entity_id) {
+            bookViewCounts[view.entity_id] = (bookViewCounts[view.entity_id] || 0) + 1
           }
         }
 

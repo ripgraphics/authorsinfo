@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify post exists
-    const { data: post, error: postError } = await (supabase.from('activities') as any)
+    const { data: post, error: postError } = await (supabase.from('posts') as any)
       .select('*')
       .eq('id', post_id)
       .eq('activity_type', 'post_created')
@@ -87,8 +87,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: engagementResult.error }, { status: 500 })
     }
 
-    // Update post engagement counts
-    await updatePostEngagementCounts(supabase, post_id)
+    // Note: Engagement counts are no longer cached in activities table
+    // They are calculated dynamically from engagement tables (likes, comments, shares, bookmarks)
+    // which are the single source of truth
 
     console.log('=== ENTERPRISE ENGAGEMENT API SUCCESS ===')
     return NextResponse.json({
@@ -279,7 +280,7 @@ async function handleBookmark(supabase: any, userId: string, postId: string, act
 async function handleView(supabase: any, userId: string, postId: string, actionData: any) {
   try {
     // For views, we just update the post view count
-    const { error: updateError } = await (supabase.from('activities') as any)
+    const { error: updateError } = await (supabase.from('posts') as any)
       .update({
         view_count: supabase.sql`COALESCE(view_count, 0) + 1`,
       })
@@ -298,46 +299,55 @@ async function handleView(supabase: any, userId: string, postId: string, actionD
 }
 
 /**
- * Update post engagement counts
+ * Get post engagement counts dynamically from engagement tables
+ * Engagement tables (likes, comments, shares, bookmarks) are the single source of truth
+ * Note: No longer updates cached counts - counts are always calculated dynamically
  */
-async function updatePostEngagementCounts(supabase: any, postId: string) {
+async function getPostEngagementCounts(supabase: any, postId: string) {
   try {
-    // Get counts from engagement tables
+    // Get counts from engagement tables (single source of truth)
     const [reactionsResult, commentsResult, sharesResult, bookmarksResult] = await Promise.all([
-      (supabase.from('post_reactions') as any)
+      (supabase.from('likes') as any)
         .select('id', { count: 'exact' })
-        .eq('post_id', postId),
-      (supabase.from('post_comments') as any)
+        .eq('entity_type', 'activity')
+        .eq('entity_id', postId),
+      (supabase.from('comments') as any)
         .select('id', { count: 'exact' })
-        .eq('post_id', postId),
-      (supabase.from('post_shares') as any).select('id', { count: 'exact' }).eq('post_id', postId),
-      (supabase.from('post_bookmarks') as any)
+        .eq('entity_type', 'activity')
+        .eq('entity_id', postId)
+        .eq('is_deleted', false),
+      (supabase.from('shares') as any)
         .select('id', { count: 'exact' })
-        .eq('post_id', postId),
+        .eq('entity_type', 'activity')
+        .eq('entity_id', postId),
+      (supabase.from('bookmarks') as any)
+        .select('id', { count: 'exact' })
+        .eq('entity_type', 'activity')
+        .eq('entity_id', postId),
     ])
 
     const likeCount = reactionsResult.count || 0
     const commentCount = commentsResult.count || 0
     const shareCount = sharesResult.count || 0
     const bookmarkCount = bookmarksResult.count || 0
+    const engagementScore = likeCount + commentCount + shareCount + bookmarkCount
 
-    // Update post with new counts
-    const { error: updateError } = await (supabase.from('activities') as any)
-      .update({
-        like_count: likeCount,
-        comment_count: commentCount,
-        share_count: shareCount,
-        bookmark_count: bookmarkCount,
-        engagement_score: likeCount + commentCount + shareCount + bookmarkCount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', postId)
-
-    if (updateError) {
-      console.error('Error updating post engagement counts:', updateError)
+    return {
+      like_count: likeCount,
+      comment_count: commentCount,
+      share_count: shareCount,
+      bookmark_count: bookmarkCount,
+      engagement_score: engagementScore,
     }
   } catch (error) {
-    console.error('Error in updatePostEngagementCounts:', error)
+    console.error('Error getting post engagement counts:', error)
+    return {
+      like_count: 0,
+      comment_count: 0,
+      share_count: 0,
+      bookmark_count: 0,
+      engagement_score: 0,
+    }
   }
 }
 

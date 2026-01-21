@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the original activity to understand what's being liked
-    const { data: originalActivity, error: fetchError } = await (supabase.from('activities') as any)
+    const { data: originalActivity, error: fetchError } = await (supabase.from('posts') as any)
       .select('*')
       .eq('id', activity_id)
       .single()
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Remove the like activity from timeline
-      const { error: deleteLikeActivityError } = await (supabase.from('activities') as any)
+      const { error: deleteLikeActivityError } = await (supabase.from('posts') as any)
         .delete()
         .eq('user_id', user.id)
         .eq('activity_type', 'like')
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
       }
 
       const { data: likeActivity, error: likeActivityError } = await (
-        supabase.from('activities') as any
+        supabase.from('posts') as any
       )
         .insert([
           {

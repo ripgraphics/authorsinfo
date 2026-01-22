@@ -121,7 +121,7 @@ export default function EntityCommentComposer({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           entity_id: entityId,
-          entity_type: entityType || 'activity',
+          entity_type: entityType || 'post',
           engagement_type: 'comment',
           content,
           parent_id: parentCommentId || undefined,

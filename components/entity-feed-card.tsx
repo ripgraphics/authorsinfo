@@ -270,8 +270,9 @@ export default function EntityFeedCard({
       setIsLoadingComments(true)
       console.log('🔍 FeedCard: Fetching comments for post:', post.id)
 
+      const engagementType = post.entity_type === 'book' ? 'book' : 'post'
       const response = await fetch(
-        `/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`,
+        `/api/engagement?entity_id=${post.id}&entity_type=${engagementType}`,
         {
           signal: AbortSignal.timeout(30000), // 30 second timeout
         }
@@ -313,12 +314,13 @@ export default function EntityFeedCard({
     if (!text) return
     if (text.length > MAX_COMMENT_CHARS) return
     try {
+      const engagementType = post.entity_type === 'book' ? 'book' : 'post'
       const resp = await fetch('/api/engagement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           entity_id: post.id,
-          entity_type: post.entity_type || 'activity',
+          entity_type: engagementType,
           engagement_type: 'comment',
           content: text,
         }),
@@ -369,8 +371,9 @@ export default function EntityFeedCard({
       setIsLoadingLikes(true)
       console.log('🔍 FeedCard: Fetching likes for post:', post.id)
 
+      const engagementType = post.entity_type === 'book' ? 'book' : 'post'
       const response = await fetch(
-        `/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`
+        `/api/engagement?entity_id=${post.id}&entity_type=${engagementType}`
       )
 
       if (response.ok) {
@@ -1072,7 +1075,7 @@ export default function EntityFeedCard({
       if (!showCommentsModal) return
       try {
         const resp = await fetch(
-          `/api/engagement/can-comment?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`
+          `/api/engagement/can-comment?entity_id=${post.id}&entity_type=${'post'}`
         )
         if (!resp.ok) {
           if (!cancelled) setCanCommentModal(false)
@@ -1636,7 +1639,7 @@ export default function EntityFeedCard({
     return (
       <EngagementDisplay
         entityId={post.id}
-        entityType={post.entity_type || 'activity'}
+        entityType={'post'}
         reactionCount={post.like_count || 0}
         commentCount={post.comment_count || 0}
         onReactionsClick={() => setShowLikesModal(true)}
@@ -2183,7 +2186,7 @@ export default function EntityFeedCard({
                           <div className="mt-2">
                             <EntityCommentComposer
                               entityId={post.id}
-                              entityType={post.entity_type || 'activity'}
+                              entityType={'post'}
                               currentUserId={user?.id}
                               currentUserName={currentUserDisplayName}
                               currentUserAvatar={currentUserAvatar}
@@ -2208,7 +2211,7 @@ export default function EntityFeedCard({
         <div className="enterprise-feed-card-comment-composer mt-3">
           <EntityCommentComposer
             entityId={post.id}
-            entityType={post.entity_type || 'activity'}
+            entityType={'post'}
             currentUserId={user?.id}
             currentUserName={currentUserDisplayName}
             currentUserAvatar={currentUserAvatar}
@@ -2289,7 +2292,7 @@ export default function EntityFeedCard({
         isOpen={showLikesModal}
         onClose={() => setShowLikesModal(false)}
         entityId={post.id}
-        entityType={post.entity_type || 'activity'}
+        entityType={'post'}
         reactionCount={post.like_count || 0}
         title="Reactions"
         description="People who reacted to this post"
@@ -2883,7 +2886,7 @@ export default function EntityFeedCard({
                                 <div className="ml-8 mt-3">
                                   <EntityCommentComposer
                                     entityId={post.id}
-                                    entityType={post.entity_type || 'activity'}
+                                    entityType={'post'}
                                     currentUserId={user?.id}
                                     currentUserName={currentUserDisplayName}
                                     currentUserAvatar={currentUserAvatar}
@@ -2917,7 +2920,7 @@ export default function EntityFeedCard({
                 <div className="bg-white px-4 py-3 border-t border-gray-200 shrink-0">
                   <EntityCommentComposer
                     entityId={post.id}
-                    entityType={post.entity_type || 'activity'}
+                    entityType={'post'}
                     currentUserId={user?.id}
                     currentUserName={currentUserDisplayName}
                     currentUserAvatar={currentUserAvatar}

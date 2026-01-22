@@ -14,8 +14,14 @@ const entityTypeCache = new Map<string, string>()
  * @returns UUID string from entity_types.id
  */
 export async function getEntityTypeId(entityTypeName: string): Promise<string | null> {
-  // Map "book" to "Book Post" for comments/posts
-  const normalizedName = entityTypeName.toLowerCase() === 'book' ? 'Book Post' : entityTypeName
+  // Map category name to specific engagement entity types
+  let normalizedName = entityTypeName.toLowerCase()
+  if (normalizedName === 'book') {
+    normalizedName = 'Book Post'
+  } else if (normalizedName === 'activity') {
+    // Legacy activities map to "Post"
+    normalizedName = 'Post'
+  }
   
   // Check cache first (use original name for cache key)
   if (entityTypeCache.has(entityTypeName.toLowerCase())) {

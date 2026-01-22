@@ -126,34 +126,64 @@ export async function GET(request: NextRequest) {
       // Non-fatal enrichment
     }
 
+    // Fetch dynamic counts for all posts in a single batch RPC call
+    let countsMap: Record<string, { likes_count: number; comments_count: number }> = {}
+    if (Array.isArray(data) && data.length > 0) {
+      try {
+        const postIds = data.map((row: any) => row.id)
+        const postTypes = data.map((row: any) => row.entity_type === 'book' ? 'book' : 'post')
+        
+        const { data: batchCounts, error: batchError } = await (supabase.rpc as any)('get_multiple_entities_engagement', {
+          p_entity_ids: postIds,
+          p_entity_types: postTypes
+        })
+        
+        if (!batchError && Array.isArray(batchCounts)) {
+          countsMap = batchCounts.reduce((acc: any, item: any) => {
+            acc[item.entity_id] = {
+              likes_count: Number(item.likes_count || 0),
+              comments_count: Number(item.comments_count || 0)
+            }
+            return acc
+          }, {})
+        }
+      } catch (e) {
+        console.error('Error fetching batch engagement counts:', e)
+      }
+    }
+
     // Project only fields used by the UI
-    const activities = (data || []).map((row: any) => ({
-      id: row.id,
-      user_id: row.user_id,
-      user_name: userIdToName[row.user_id] || null,
-      user_avatar_url: userIdToAvatar[row.user_id] ?? row.user_avatar_url ?? null,
-      activity_type: 'post_created', // Uniform activity type for posts
-      data: row.metadata, // Carry over metadata
-      created_at: row.created_at,
-      is_public: row.visibility === 'public',
-      like_count: row.like_count ?? 0,
-      comment_count: row.comment_count ?? 0,
-      entity_type: row.entity_type,
-      entity_id: row.entity_id,
-      content_type: row.content_type,
-      image_url: row.image_url,
-      text: row.content, // Map content back to text for UI compatibility
-      visibility: row.visibility,
-      content_summary: row.content_summary,
-      link_url: row.link_url,
-      hashtags: row.hashtags,
-      share_count: row.share_count ?? 0,
-      view_count: row.view_count ?? 0,
-      engagement_score: row.engagement_score ?? 0,
-      metadata: row.metadata ?? {},
-      user_reaction_type: userReactionByActivity[row.id] || null,
-      is_liked: !!userReactionByActivity[row.id],
-    }))
+    const activities = (data || []).map((row: any) => {
+      const engagement = countsMap[row.id] || { likes_count: 0, comments_count: 0 }
+      
+      return {
+        id: row.id,
+        user_id: row.user_id,
+        user_name: userIdToName[row.user_id] || null,
+        user_avatar_url: userIdToAvatar[row.user_id] ?? row.user_avatar_url ?? null,
+        activity_type: 'post_created', // Uniform activity type for posts
+        data: row.metadata, // Carry over metadata
+        created_at: row.created_at,
+        is_public: row.visibility === 'public',
+        like_count: engagement.likes_count,
+        comment_count: engagement.comments_count,
+        entity_type: row.entity_type,
+        entity_id: row.entity_id,
+        content_type: row.content_type,
+        image_url: row.image_url,
+        text: row.content, // Map content back to text for UI compatibility
+        visibility: row.visibility,
+        content_summary: row.content_summary,
+        link_url: row.link_url,
+        hashtags: row.hashtags,
+        share_count: row.share_count ?? 0,
+        view_count: row.view_count ?? 0,
+        engagement_score: row.engagement_score ?? 0,
+        metadata: row.metadata ?? {},
+        user_reaction_type: userReactionByActivity[row.id] || null,
+        is_liked: !!userReactionByActivity[row.id],
+      }
+    })
 
     return NextResponse.json({
       activities,

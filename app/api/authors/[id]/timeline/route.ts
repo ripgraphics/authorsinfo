@@ -87,48 +87,79 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     // Use fallback data if RPC function failed
     const finalActivities = activities || fallbackActivities || []
     console.log('🔍 Final activities to transform:', finalActivities?.length || 0)
+
+    // Fetch dynamic counts for all posts in a single batch RPC call
+    let countsMap: Record<string, { likes_count: number; comments_count: number }> = {}
+    if (Array.isArray(finalActivities) && finalActivities.length > 0) {
+      try {
+        const postIds = finalActivities.map((row: any) => row.id)
+        const postTypes = finalActivities.map((row: any) => row.entity_type === 'book' ? 'book' : 'post')
+        
+        const { data: batchCounts, error: batchError } = await (supabaseAdmin.rpc as any)('get_multiple_entities_engagement', {
+          p_entity_ids: postIds,
+          p_entity_types: postTypes
+        })
+        
+        if (!batchError && Array.isArray(batchCounts)) {
+          countsMap = batchCounts.reduce((acc: any, item: any) => {
+            acc[item.entity_id] = {
+              likes_count: Number(item.likes_count || 0),
+              comments_count: Number(item.comments_count || 0)
+            }
+            return acc
+          }, {})
+        }
+      } catch (e) {
+        console.error('Error fetching batch engagement counts in author timeline:', e)
+      }
+    }
+
     if (finalActivities && finalActivities.length > 0) {
       console.log('🔍 First final activity before transform:', finalActivities[0])
     }
 
     // Transform the data to match the expected structure
     const transformedActivities =
-      finalActivities?.map((activity: any) => ({
-        id: activity.id,
-        user_id: activity.user_id,
-        user_name: activity.user_name,
-        user_avatar_url: activity.user_avatar_url,
-        activity_type: activity.activity_type,
-        data: activity.data,
-        created_at: activity.created_at,
-        is_public: activity.is_public,
-        like_count: activity.like_count,
-        comment_count: activity.comment_count,
-        share_count: activity.share_count,
-        view_count: activity.view_count,
-        is_liked: activity.is_liked,
-        entity_type: activity.entity_type,
-        entity_id: activity.entity_id,
-        // New enhanced columns
-        content_type: activity.content_type,
-        text: activity.text,
-        image_url: activity.image_url,
-        link_url: activity.link_url,
-        content_summary: activity.content_summary,
-        hashtags: activity.hashtags,
-        visibility: activity.visibility,
-        engagement_score: activity.engagement_score,
-        updated_at: activity.updated_at,
-        // Enterprise features
-        cross_posted_to: activity.cross_posted_to,
-        collaboration_type: activity.collaboration_type,
-        ai_enhanced: activity.ai_enhanced,
-        ai_enhanced_text: activity.ai_enhanced_text,
-        ai_enhanced_performance: activity.ai_enhanced_performance,
-        metadata: activity.metadata,
-        // User reaction information
-        user_reaction_type: activity.user_reaction_type,
-      })) || []
+      finalActivities?.map((activity: any) => {
+        const engagement = countsMap[activity.id] || { likes_count: 0, comments_count: 0 }
+        
+        return {
+          id: activity.id,
+          user_id: activity.user_id,
+          user_name: activity.user_name,
+          user_avatar_url: activity.user_avatar_url,
+          activity_type: activity.activity_type,
+          data: activity.data,
+          created_at: activity.created_at,
+          is_public: activity.is_public,
+          like_count: engagement.likes_count,
+          comment_count: engagement.comments_count,
+          share_count: activity.share_count,
+          view_count: activity.view_count,
+          is_liked: activity.is_liked,
+          entity_type: activity.entity_type,
+          entity_id: activity.entity_id,
+          // New enhanced columns
+          content_type: activity.content_type,
+          text: activity.text,
+          image_url: activity.image_url,
+          link_url: activity.link_url,
+          content_summary: activity.content_summary,
+          hashtags: activity.hashtags,
+          visibility: activity.visibility,
+          engagement_score: activity.engagement_score,
+          updated_at: activity.updated_at,
+          // Enterprise features
+          cross_posted_to: activity.cross_posted_to,
+          collaboration_type: activity.collaboration_type,
+          ai_enhanced: activity.ai_enhanced,
+          ai_enhanced_text: activity.ai_enhanced_text,
+          ai_enhanced_performance: activity.ai_enhanced_performance,
+          metadata: activity.metadata,
+          // User reaction information
+          user_reaction_type: activity.user_reaction_type,
+        }
+      }) || []
 
     // Debug: Log the transformed data
     console.log('=== TRANSFORMED DATA DEBUG ===')

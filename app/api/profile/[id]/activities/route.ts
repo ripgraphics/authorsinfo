@@ -94,9 +94,36 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       })
     }
 
-    // Enhance activities with entity details (handle missing entities gracefully)
+    // Enhance activities with entity details and engagement counts
+    // Fetch dynamic counts for all posts in a single batch RPC call
+    let countsMap: Record<string, { likes_count: number; comments_count: number }> = {}
+    if (Array.isArray(activities) && activities.length > 0) {
+      try {
+        const postIds = activities.map((row: any) => row.id)
+        const postTypes = activities.map((row: any) => row.entity_type === 'book' ? 'book' : 'post')
+        
+        const { data: batchCounts, error: batchError } = await (supabaseAdmin.rpc as any)('get_multiple_entities_engagement', {
+          p_entity_ids: postIds,
+          p_entity_types: postTypes
+        })
+        
+        if (!batchError && Array.isArray(batchCounts)) {
+          countsMap = batchCounts.reduce((acc: any, item: any) => {
+            acc[item.entity_id] = {
+              likes_count: Number(item.likes_count || 0),
+              comments_count: Number(item.comments_count || 0)
+            }
+            return acc
+          }, {})
+        }
+      } catch (e) {
+        console.error('Error fetching batch engagement counts in profile:', e)
+      }
+    }
+
     const enhancedActivities = await Promise.all(
       activities.map(async (activity) => {
+        const engagement = countsMap[activity.id] || { likes_count: 0, comments_count: 0 }
         let entityDetails = null
 
         try {
@@ -207,8 +234,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           ...activity,
           entity_details: entityDetails,
           post_content: postContent, // Add this for timeline display
+          like_count: engagement.likes_count,
+          comment_count: engagement.comments_count,
           metadata: {
-            engagement_count: 0,
+            engagement_count: engagement.likes_count + engagement.comments_count,
             is_premium: false,
             privacy_level: 'public',
           },

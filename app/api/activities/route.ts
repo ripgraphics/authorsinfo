@@ -62,13 +62,48 @@ export async function GET(request: NextRequest) {
       filteredData = filteredData.filter((activity: any) => activity.entity_type === entityType)
     }
 
+    // Fetch dynamic engagement counts for feed activities
+    let countsMap: Record<string, { likes_count: number; comments_count: number }> = {}
+    if (filteredData.length > 0) {
+      try {
+        const postIds = filteredData.map((row: any) => row.id)
+        const postTypes = filteredData.map((row: any) => row.entity_type === 'book' ? 'book' : 'post')
+        
+        const { data: batchCounts, error: batchError } = await (supabase.rpc as any)('get_multiple_entities_engagement', {
+          p_entity_ids: postIds,
+          p_entity_types: postTypes
+        })
+        
+        if (!batchError && Array.isArray(batchCounts)) {
+          countsMap = batchCounts.reduce((acc: any, item: any) => {
+            acc[item.entity_id] = {
+              likes_count: Number(item.likes_count || 0),
+              comments_count: Number(item.comments_count || 0)
+            }
+            return acc
+          }, {})
+        }
+      } catch (e) {
+        console.error('Error fetching batch engagement counts in feed:', e)
+      }
+    }
+
+    const activitiesWithCounts = filteredData.map((activity: any) => {
+      const engagement = countsMap[activity.id] || { likes_count: 0, comments_count: 0 }
+      return {
+        ...activity,
+        like_count: engagement.likes_count,
+        comment_count: engagement.comments_count
+      }
+    })
+
     return NextResponse.json({
-      activities: filteredData,
+      activities: activitiesWithCounts,
       pagination: {
         limit,
         offset,
-        total: filteredData.length,
-        has_more: filteredData.length === limit,
+        total: activitiesWithCounts.length,
+        has_more: activitiesWithCounts.length === limit,
       },
     })
   } catch (error) {

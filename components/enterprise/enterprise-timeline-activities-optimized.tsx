@@ -1268,6 +1268,10 @@ const EnterpriseTimelineComposer = React.memo(function EnterpriseTimelineCompose
 
   useEffect(() => {
     resizeComposer()
+    // Auto-focus the textarea when the composer is mounted/activated
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+    }
   }, [text, resizeComposer])
 
   const trimmed = text.trim()

@@ -10,14 +10,8 @@ export async function GET(
   try {
     const { id: bookId } = await params
     
-    // Convert bookId to number if it's a numeric string
-    const bookIdNum = parseInt(bookId, 10)
-    if (isNaN(bookIdNum)) {
-      return NextResponse.json({ error: 'Invalid book ID' }, { status: 400 })
-    }
-
     // Get book events using the existing function
-    const events = await getBookEvents(bookIdNum, 10)
+    const events = await getBookEvents(bookId, 10)
     
     return NextResponse.json({ data: events || [] })
   } catch (error: any) {

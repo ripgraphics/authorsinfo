@@ -160,7 +160,7 @@ export async function getFeaturedEvents(limit = 4) {
 }
 
 // Get upcoming events for an author
-export async function getAuthorEvents(authorId: number, limit = 5) {
+export async function getAuthorEvents(authorId: string, limit = 5) {
   const supabase = createClient()
 
   const { data, error } = await supabase
@@ -183,7 +183,7 @@ export async function getAuthorEvents(authorId: number, limit = 5) {
 }
 
 // Get upcoming events for a book
-export async function getBookEvents(bookId: number, limit = 5) {
+export async function getBookEvents(bookId: string, limit = 5) {
   const supabase = createClient()
 
   const { data, error } = await supabase

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { checkColumnExists } from '@/lib/schema/schema-validators'
 
 export async function GET(request: NextRequest) {
@@ -15,12 +16,17 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createRouteHandlerClientAsync()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const isAuthenticated = !!user
+    const readClient = isAuthenticated ? supabase : supabaseAdmin
 
     // Resolve permalink to UUID when necessary
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(entityId)) {
       const table = entityType === 'user' ? 'users' : `${entityType}s`
-      const { data: entityRow } = await (supabase.from(table) as any)
+      const { data: entityRow } = await (readClient.from(table) as any)
         .select('id, permalink')
         .or(`id.eq.${entityId},permalink.eq.${entityId}`)
         .maybeSingle()
@@ -33,7 +39,7 @@ export async function GET(request: NextRequest) {
     const hasPublishStatus = await checkColumnExists('posts', 'publish_status')
 
     // Build query - conditionally apply publish_status filter
-    let query = (supabase.from('posts') as any)
+    let query = (readClient.from('posts') as any)
       .select('*')
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
@@ -41,6 +47,12 @@ export async function GET(request: NextRequest) {
     // Only filter by publish_status if the column exists
     if (hasPublishStatus) {
       query = query.or('publish_status.eq.published,publish_status.is.null')
+    }
+
+    // Enforce public visibility for unauthenticated requests
+    const hasVisibility = await checkColumnExists('posts', 'visibility')
+    if (!isAuthenticated && hasVisibility) {
+      query = query.eq('visibility', 'public')
     }
 
     const { data, error } = await query
@@ -54,8 +66,7 @@ export async function GET(request: NextRequest) {
     // Attach the current user's reaction for each post (if authenticated)
     let userReactionByActivity: Record<string, string | null> = {}
     try {
-      const { data: auth } = await supabase.auth.getUser()
-      const currentUserId = auth?.user?.id
+      const currentUserId = user?.id
       if (currentUserId && Array.isArray(data) && data.length > 0) {
         const postIds = data.map((row: any) => row.id)
         // Use likes table for all entity types

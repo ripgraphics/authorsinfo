@@ -213,7 +213,7 @@ export async function PUT(request: NextRequest) {
     // Check if activity exists and user owns it
     const { data: existingActivity, error: fetchError } = await supabase
       .from('posts')
-      .select('user_id, activity_type, content_type, text, image_url, link_url, visibility')
+      .select('user_id, activity_type, content_type, content, content_summary, image_url, link_url, visibility')
       .eq('id', id)
       .single()
 
@@ -248,15 +248,30 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const updatePayload: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    }
+
+    if (typeof text === 'string') {
+      updatePayload.content = text
+      updatePayload.content_summary = text.substring(0, 100)
+    }
+
+    if (image_url !== undefined) {
+      updatePayload.image_url = image_url
+    }
+
+    if (link_url !== undefined) {
+      updatePayload.link_url = link_url
+    }
+
+    if (visibility) {
+      updatePayload.visibility = visibility
+    }
+
     // Update the activity
     const { data: updatedActivity, error: updateError } = await (supabase.from('posts') as any)
-      .update({
-        text: text || (existingActivity as any).text,
-        image_url: image_url !== undefined ? image_url : (existingActivity as any).image_url,
-        link_url: link_url !== undefined ? link_url : (existingActivity as any).link_url,
-        visibility: visibility || (existingActivity as any).visibility,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', id)
       .select()
       .single()

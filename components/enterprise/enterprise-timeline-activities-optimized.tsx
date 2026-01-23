@@ -237,9 +237,10 @@ const EnterpriseTimelineActivities = React.memo(
     const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null)
     const [isPending, startTransition] = useTransition()
     // Composer & posting state
+    const defaultVisibility = entityType === 'user' ? 'friends' : 'public'
     const [postForm, setPostForm] = useState({
       contentType: 'text',
-      visibility: 'friends' as 'friends' | 'followers' | 'private',
+      visibility: defaultVisibility as 'friends' | 'followers' | 'private' | 'public',
       imageUrl: '',
       linkUrl: '',
       hashtags: '',
@@ -979,7 +980,7 @@ const EnterpriseTimelineActivities = React.memo(
 
           setPostForm({
             contentType: 'text',
-            visibility: 'friends',
+            visibility: defaultVisibility,
             imageUrl: '',
             linkUrl: '',
             hashtags: '',
@@ -1223,7 +1224,7 @@ const EnterpriseTimelineActivities = React.memo(
 
 interface EnterpriseTimelineComposerProps {
   placeholder: string
-  visibility: 'friends' | 'followers' | 'private'
+  visibility: 'friends' | 'followers' | 'private' | 'public'
   imageUrl?: string
   onVisibilityChange: (value: string) => void
   onUpload: () => void
@@ -1319,6 +1320,7 @@ const EnterpriseTimelineComposer = React.memo(function EnterpriseTimelineCompose
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="public">Public</SelectItem>
                 <SelectItem value="friends">Friends</SelectItem>
                 <SelectItem value="followers">Followers</SelectItem>
                 <SelectItem value="private">Only me</SelectItem>

@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getEntityTypeId } from '@/lib/entity-types'
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const isAuthenticated = !!user
+    const readClient = isAuthenticated ? supabase : supabaseAdmin
 
     const { searchParams } = new URL(request.url)
     const entityType = searchParams.get('entity_type')
@@ -21,8 +27,32 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 GET /api/engagement - Request:', { entityType, entityId })
 
+    // If unauthenticated, only return engagement for public posts
+    if (!isAuthenticated) {
+      const { data: post } = await (readClient.from('posts') as any)
+        .select('id, visibility, publish_status')
+        .eq('id', entityId)
+        .maybeSingle()
+      if (!post || post.visibility !== 'public') {
+        return NextResponse.json({
+          likes_count: 0,
+          comments_count: 0,
+          recent_likes: [],
+          recent_comments: [],
+        })
+      }
+      if (post.publish_status && post.publish_status !== 'published') {
+        return NextResponse.json({
+          likes_count: 0,
+          comments_count: 0,
+          recent_likes: [],
+          recent_comments: [],
+        })
+      }
+    }
+
     // Use the get_entity_engagement() function as documented in COMMENT_SYSTEM_FIXED.md
-    const { data: engagementData, error: engagementError } = await supabase.rpc(
+    const { data: engagementData, error: engagementError } = await (readClient.rpc as any)(
       'get_entity_engagement' as any,
       {
         p_entity_type: entityType,

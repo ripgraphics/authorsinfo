@@ -171,6 +171,7 @@ export default function EntityFeedCard({
 
   const { toast } = useToast()
   const { user } = useAuth()
+  const [currentVisibility, setCurrentVisibility] = useState(post.visibility)
   const [isExpanded, setIsExpanded] = useState(false)
   const [showFullContent, setShowFullContent] = useState(false)
   const [engagementData, setEngagementData] = useState<any>({
@@ -198,6 +199,7 @@ export default function EntityFeedCard({
   const [editImages, setEditImages] = useState<string[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [showActionsMenu, setShowActionsMenu] = useState(false)
+  const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false)
   const [showImageUpload, setShowImageUpload] = useState(false)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
@@ -916,6 +918,49 @@ export default function EntityFeedCard({
       })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleVisibilityChange = async (nextVisibility: string) => {
+    if (!nextVisibility || nextVisibility === post.visibility) return
+    setIsUpdatingVisibility(true)
+    try {
+      const response = await fetch('/api/activities', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: post.id,
+          visibility: nextVisibility,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || 'Failed to update visibility')
+      }
+
+      const responseData = await response.json()
+      const updatedActivity = responseData.activity || responseData
+
+      if (onPostUpdated) {
+        onPostUpdated(updatedActivity)
+      }
+
+      Object.assign(post, { visibility: nextVisibility })
+      setCurrentVisibility(nextVisibility)
+      toast({
+        title: 'Visibility updated',
+        description: `Post is now ${nextVisibility}.`,
+      })
+    } catch (error) {
+      console.error('Error updating visibility:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to update post visibility. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsUpdatingVisibility(false)
     }
   }
 
@@ -1679,8 +1724,12 @@ export default function EntityFeedCard({
   const currentContentConfig =
     contentTypeConfigs[getPostContentType(post) as keyof typeof contentTypeConfigs]
   const currentEntityConfig = entityTypeConfigs[post.entity_type as keyof typeof entityTypeConfigs]
+  useEffect(() => {
+    setCurrentVisibility(post.visibility)
+  }, [post.visibility])
+
   const currentVisibilityConfig =
-    visibilityConfigs[post.visibility as keyof typeof visibilityConfigs]
+    visibilityConfigs[currentVisibility as keyof typeof visibilityConfigs]
   const contentSafetyLevel = getContentSafetyLevel(post.metadata?.content_safety_score || 1)
   const currentSafetyConfig = safetyConfigs[contentSafetyLevel]
 
@@ -1755,13 +1804,47 @@ export default function EntityFeedCard({
                 </Badge>
               )}
 
-              {/* Visibility Badge */}
-              {currentVisibilityConfig && (
-                <Badge variant="secondary" className="enterprise-feed-card-visibility">
-                  <currentVisibilityConfig.icon className="h-3 w-3 mr-1" />
-                  {currentVisibilityConfig.label}
-                </Badge>
-              )}
+              {/* Visibility Badge / Control */}
+              {currentVisibilityConfig &&
+                (canEdit ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs enterprise-feed-card-visibility"
+                        disabled={isUpdatingVisibility}
+                      >
+                        <currentVisibilityConfig.icon className="h-3 w-3 mr-1" />
+                        {currentVisibilityConfig.label}
+                        <ChevronDown className="h-3 w-3 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => handleVisibilityChange('public')}>
+                        <Globe className="h-3.5 w-3.5 mr-2" />
+                        Public
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleVisibilityChange('friends')}>
+                        <Users className="h-3.5 w-3.5 mr-2" />
+                        Friends
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleVisibilityChange('followers')}>
+                        <Users2 className="h-3.5 w-3.5 mr-2" />
+                        Followers
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleVisibilityChange('private')}>
+                        <Lock className="h-3.5 w-3.5 mr-2" />
+                        Only me
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Badge variant="secondary" className="enterprise-feed-card-visibility">
+                    <currentVisibilityConfig.icon className="h-3 w-3 mr-1" />
+                    {currentVisibilityConfig.label}
+                  </Badge>
+                ))}
 
               {/* Age Restriction */}
               {post.age_restriction && (

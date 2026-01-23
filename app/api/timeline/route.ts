@@ -94,8 +94,8 @@ export async function GET(request: NextRequest) {
         new Set((data || []).map((row: any) => row.user_id).filter(Boolean))
       )
       if (allUserIds.length > 0) {
-        // Fetch user names
-        const { data: users } = await (supabase.from('users') as any)
+        // Fetch user names (use readClient so unauthenticated requests get poster data via admin)
+        const { data: users } = await (readClient.from('users') as any)
           .select('id, name')
           .in('id', allUserIds)
         if (Array.isArray(users)) {
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Fetch user avatars from images table
-        const { data: profiles } = await (supabase.from('profiles') as any)
+        const { data: profiles } = await (readClient.from('profiles') as any)
           .select('user_id, avatar_image_id')
           .in('user_id', allUserIds)
           .not('avatar_image_id', 'is', null)
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
           )
 
           if (imageIds.length > 0) {
-            const { data: images } = await (supabase.from('images') as any)
+            const { data: images } = await (readClient.from('images') as any)
               .select('id, url')
               .in('id', imageIds)
 
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
         const postIds = data.map((row: any) => row.id)
         const postTypes = data.map((row: any) => row.entity_type === 'book' ? 'book' : 'post')
         
-        const { data: batchCounts, error: batchError } = await (supabase.rpc as any)('get_multiple_entities_engagement', {
+        const { data: batchCounts, error: batchError } = await (readClient.rpc as any)('get_multiple_entities_engagement', {
           p_entity_ids: postIds,
           p_entity_types: postTypes
         })

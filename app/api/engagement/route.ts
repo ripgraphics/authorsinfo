@@ -105,9 +105,8 @@ export async function GET(request: NextRequest) {
       // Fetch user names from users table and location/avatar_image_id from profiles
       const userIdsArray = Array.from(userIds)
       const [usersResult, profilesResult] = await Promise.all([
-        supabase.from('users').select('id, name').in('id', userIdsArray),
-        supabase
-          .from('profiles')
+        (readClient.from('users') as any).select('id, name').in('id', userIdsArray),
+        (readClient.from('profiles') as any)
           .select('user_id, location, avatar_image_id')
           .in('user_id', userIdsArray),
       ])
@@ -120,7 +119,7 @@ export async function GET(request: NextRequest) {
 
       if (users) {
         users.forEach((user: any) => {
-          const profile = profileMap.get(user.id)
+          const profile = profileMap.get(user.id) as { location?: string; avatar_image_id?: string } | undefined
           userProfiles[user.id] = {
             id: user.id,
             name: user.name || 'Unknown User',
@@ -138,9 +137,8 @@ export async function GET(request: NextRequest) {
         )
 
         if (avatarImageIds.length > 0) {
-          // Fetch image URLs from images table
-          const { data: images } = await supabase
-            .from('images')
+          // Fetch image URLs from images table (use readClient for unauthenticated)
+          const { data: images } = await (readClient.from('images') as any)
             .select('id, url')
             .in('id', avatarImageIds)
 

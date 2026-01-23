@@ -1309,7 +1309,8 @@ export function EntityHeader({
                   </div>
                 ))}
 
-                {mutualFriendsCount !== undefined && mutualFriendsCount > 0 && (
+                {/* Only show mutual friends if user is logged in (mutual friends require a logged-in user to compare) */}
+                {user && mutualFriendsCount !== undefined && mutualFriendsCount > 0 && (
                   <div className="entity-header__mutual-friends-item flex items-center text-muted-foreground">
                     <MutualFriendsDisplay
                       count={mutualFriendsCount}

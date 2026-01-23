@@ -352,7 +352,8 @@ export function EntityHoverCard({
               {(type === 'author' || type === 'publisher') && (
                 (() => {
                   const hasFollowers = info.followersCount !== undefined && info.followersCount > 0
-                  const hasMutualFriends = info.mutualFriendsCount !== undefined && info.mutualFriendsCount > 0
+                  // Only show mutual friends if user is logged in (mutual friends require a logged-in user to compare)
+                  const hasMutualFriends = user && info.mutualFriendsCount !== undefined && info.mutualFriendsCount > 0
                   
                   if (!hasFollowers && !hasMutualFriends) {
                     return null

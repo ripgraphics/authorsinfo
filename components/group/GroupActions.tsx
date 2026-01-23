@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { Loader2, UserPlus, Heart } from 'lucide-react'
 import { FollowButton } from '@/components/follow-button'
 import { joinGroup } from '@/app/actions/groups/manage-members'
+import { useAuth } from '@/hooks/useAuth'
 
 interface GroupActionsProps {
   groupId: string
@@ -22,6 +23,7 @@ export function GroupActions({
   isMember,
   onJoinChange,
 }: GroupActionsProps) {
+  const { user } = useAuth()
   const [isJoining, setIsJoining] = useState(false)
   const { toast } = useToast()
 
@@ -71,6 +73,11 @@ export function GroupActions({
       })
       setIsJoining(false)
     }
+  }
+
+  // Don't show action buttons if user is not logged in
+  if (!user) {
+    return null
   }
 
   return (

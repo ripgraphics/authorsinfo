@@ -201,8 +201,8 @@ export default function FollowButton({
     [isFollowingState]
   )
 
-  // Don't render the button if targetType is undefined, entityId is invalid, or user is trying to follow themselves
-  if (!targetType || !isValidEntityId || isSelfFollow) {
+  // Don't render the button if user is not logged in, targetType is undefined, entityId is invalid, or user is trying to follow themselves
+  if (!user || !targetType || !isValidEntityId || isSelfFollow) {
     return null
   }
 

@@ -237,7 +237,7 @@ export function ShelfCard({
 
           {showQuickActions && !isOwnEntity && shelf.isPublic && (
             <div className="space-y-2 mt-2 pt-2 border-t">
-              {booksInCommon !== null && booksInCommon > 0 && (
+              {user && booksInCommon !== null && booksInCommon > 0 && (
                 <div className="text-xs text-muted-foreground">
                   You have {booksInCommon} {booksInCommon === 1 ? 'book' : 'books'} in common
                 </div>
@@ -264,27 +264,30 @@ export function ShelfCard({
                   <Share2 className="w-3 h-3 mr-1" />
                   Share
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={handleFollow}
-                  disabled={isFollowLoading}
-                >
-                  {isFollowLoading ? (
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  ) : isFollowing ? (
-                    <>
-                      <UserCheck className="w-3 h-3 mr-1" />
-                      Following
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="w-3 h-3 mr-1" />
-                      Follow
-                    </>
-                  )}
-                </Button>
+                {/* Only show Follow button if user is logged in */}
+                {user && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={handleFollow}
+                    disabled={isFollowLoading}
+                  >
+                    {isFollowLoading ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : isFollowing ? (
+                      <>
+                        <UserCheck className="w-3 h-3 mr-1" />
+                        Following
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-3 h-3 mr-1" />
+                        Follow
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           )}

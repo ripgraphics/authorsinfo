@@ -1,6 +1,8 @@
 // Unified FeedPost interface for the feed system
 // This interface works with both old and new post structures from the activities table
 
+import type { LinkPreviewMetadata } from './link-preview'
+
 export interface FeedPost {
   // Core activity fields
   id: string
@@ -104,6 +106,7 @@ export interface PostLink {
   description?: string
   thumbnail_url?: string
   domain?: string
+  preview_metadata?: LinkPreviewMetadata  // Full metadata from extraction
 }
 
 export interface PostMetadata {
@@ -207,6 +210,18 @@ export function getPostContentType(post: FeedPost): string {
   if (hasImageContent(post)) return 'image'
   if (post.content?.media_files?.some((f) => f.type === 'video')) return 'video'
   if (post.content?.links && post.content.links.length > 0) return 'link'
+  
+  // Check for link_url field
+  if (post.link_url) return 'link'
+  
+  // Check if text contains URLs (dynamic import to avoid circular dependency)
+  if (post.text || post.content?.text) {
+    const text = post.text || post.content?.text || ''
+    // Simple URL pattern check - if text contains http:// or https://, treat as link
+    if (text.match(/https?:\/\/[^\s<>"{}|\\^`\[\]]+/i)) {
+      return 'link'
+    }
+  }
 
   return 'text'
 }

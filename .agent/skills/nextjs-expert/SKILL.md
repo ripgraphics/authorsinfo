@@ -370,6 +370,627 @@ npm run dev
 - https://nextjs.org/docs/app/building-your-application/routing/layouts-and-templates
 - https://nextjs.org/docs/app/building-your-application/upgrading
 
+### Server Actions & Form Handling
+**Common Issues:**
+- Server Actions not revalidating cache after mutations
+- Form submissions not working properly
+- Missing error handling in Server Actions
+- Server Actions exposing sensitive data
+- Not using revalidatePath/revalidateTag after mutations
+
+**Diagnosis:**
+```bash
+# Find Server Actions
+grep -r "'use server'" app/ --include="*.ts" --include="*.tsx"
+
+# Check for revalidation usage
+grep -r "revalidatePath\|revalidateTag" app/ --include="*.ts" --include="*.tsx"
+
+# Find form submissions
+grep -r "action=\|formAction" app/ --include="*.tsx" --include="*.jsx"
+
+# Check Server Action error handling
+grep -r "try.*catch" app/actions/ --include="*.ts"
+```
+
+**Prioritized Fixes:**
+1. **Minimal**: Add 'use server' directive, implement basic error handling, add revalidatePath after mutations
+2. **Better**: Use revalidatePath with proper path patterns, implement proper TypeScript types, add validation
+3. **Complete**: Implement optimistic updates, use useFormStatus for loading states, add proper error boundaries
+
+**Server Action Pattern:**
+```typescript
+'use server'
+import { revalidatePath } from 'next/cache'
+import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
+
+export async function createActivity(params: CreateActivityParams) {
+  try {
+    const supabase = await createServerActionClientAsync()
+    
+    // Authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return { success: false, error: 'Authentication required' }
+    }
+    
+    // Validation
+    if (!params.activity_type) {
+      return { success: false, error: 'Activity type is required' }
+    }
+    
+    // Database operation
+    const { data, error } = await supabase
+      .from('posts')
+      .insert({ ...params, user_id: user.id })
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('Error creating activity:', error)
+      return { success: false, error: 'Failed to create activity' }
+    }
+    
+    // Revalidate affected paths
+    revalidatePath('/feed')
+    revalidatePath(`/profile/${user.id}`)
+    if (params.group_id) {
+      revalidatePath(`/groups/${params.group_id}`)
+    }
+    
+    return { success: true, activity: data }
+  } catch (error) {
+    console.error('Unexpected error:', error)
+    return { success: false, error: 'Internal server error' }
+  }
+}
+```
+
+**Revalidation Patterns:**
+```typescript
+// Revalidate specific page
+revalidatePath('/books/[id]', 'page')
+
+// Revalidate layout
+revalidatePath('/profile/[id]', 'layout')
+
+// Revalidate all pages under path
+revalidatePath('/books')
+
+// Revalidate by tag
+revalidateTag('books')
+```
+
+**Form Integration:**
+```typescript
+'use client'
+import { useActionState } from 'react'
+import { createActivity } from '@/app/actions/activities'
+
+export function ActivityForm() {
+  const [state, formAction, isPending] = useActionState(createActivity, null)
+  
+  return (
+    <form action={formAction}>
+      <input name="activity_type" required />
+      {state?.error && <p className="error">{state.error}</p>}
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Submitting...' : 'Submit'}
+      </button>
+    </form>
+  )
+}
+```
+
+**Validation:**
+```bash
+# Test Server Action
+# Check network tab for form submission
+# Verify cache invalidation after mutation
+# Test error handling with invalid data
+```
+
+**Resources:**
+- https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations
+- https://nextjs.org/docs/app/api-reference/functions/revalidatePath
+- https://nextjs.org/docs/app/api-reference/functions/revalidateTag
+
+### Metadata & SEO
+**Common Issues:**
+- Missing or incorrect metadata for dynamic routes
+- Not generating metadata based on route params
+- Missing Open Graph tags
+- Static metadata for dynamic content
+- Not using generateMetadata for dynamic routes
+
+**Diagnosis:**
+```bash
+# Find metadata usage
+grep -r "export.*metadata\|generateMetadata" app/ --include="*.ts" --include="*.tsx"
+
+# Check for dynamic metadata
+grep -r "generateMetadata.*params" app/ --include="*.ts" --include="*.tsx"
+
+# Find missing metadata
+find app/ -name "page.tsx" -exec grep -L "metadata\|generateMetadata" {} \;
+```
+
+**Prioritized Fixes:**
+1. **Minimal**: Add static metadata export, implement basic generateMetadata for dynamic routes
+2. **Better**: Add Open Graph tags, implement dynamic metadata based on data fetching
+3. **Complete**: Add structured data, implement viewport generation, add Twitter cards
+
+**Static Metadata:**
+```typescript
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: "Author's Info",
+  description: 'A social platform for book lovers',
+  icons: {
+    icon: '/images/authorsinfo-icon.svg',
+    apple: '/images/authorsinfo-icon.svg',
+  },
+}
+```
+
+**Dynamic Metadata:**
+```typescript
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const book = await getBook(params.id)
+  
+  return {
+    title: book.title,
+    description: book.description,
+    openGraph: {
+      title: book.title,
+      description: book.description,
+      images: [book.cover_image],
+    },
+  }
+}
+```
+
+**Validation:**
+```bash
+# Check metadata in page source
+curl http://localhost:3000/books/123 | grep -E "<title>|<meta"
+# Verify Open Graph tags
+# Test with different route params
+```
+
+**Resources:**
+- https://nextjs.org/docs/app/building-your-application/optimizing/metadata
+- https://nextjs.org/docs/app/api-reference/functions/generate-metadata
+
+### Route Segment Configuration
+**Common Issues:**
+- Pages rendering as static when they should be dynamic
+- Cache not invalidating properly
+- Wrong runtime configuration
+- ISR not working as expected
+- Edge runtime compatibility issues
+
+**Diagnosis:**
+```bash
+# Find route segment configs
+grep -r "export const \(dynamic\|revalidate\|runtime\|fetchCache\)" app/ --include="*.ts" --include="*.tsx"
+
+# Check for force-dynamic usage
+grep -r "dynamic.*force-dynamic" app/ --include="*.ts" --include="*.tsx"
+
+# Find revalidate values
+grep -r "revalidate.*=" app/ --include="*.ts" --include="*.tsx"
+```
+
+**Prioritized Fixes:**
+1. **Minimal**: Add `export const dynamic = 'force-dynamic'` for dynamic routes, set appropriate revalidate values
+2. **Better**: Use route segment config consistently, implement ISR where appropriate
+3. **Complete**: Optimize caching strategy, use Edge runtime where beneficial, implement on-demand revalidation
+
+**Configuration Options:**
+```typescript
+// Force dynamic rendering (no caching)
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+// Static with ISR (revalidate every 30 minutes)
+export const revalidate = 1800
+
+// Static with ISR (revalidate every hour)
+export const revalidate = 3600
+
+// Edge runtime (faster, limited Node.js APIs)
+export const runtime = 'edge'
+
+// Disable fetch caching
+export const fetchCache = 'force-no-store'
+```
+
+**Common Patterns:**
+```typescript
+// Dynamic user pages
+export const dynamic = 'force-dynamic'
+
+// ISR for semi-static content (events, listings)
+export const revalidate = 3600 // 1 hour
+
+// Edge runtime for API routes
+export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
+```
+
+**Validation:**
+```bash
+# Check build output for static/dynamic routes
+npm run build | grep -E "(Static|Dynamic|ISR)"
+# Test revalidation timing
+# Verify Edge runtime compatibility
+```
+
+**Resources:**
+- https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config
+- https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes
+
+### Loading & Error States
+**Common Issues:**
+- Missing loading.tsx files causing layout shifts
+- Error boundaries not catching all errors
+- Loading states not matching page structure
+- Error pages not providing recovery options
+- Suspense boundaries in wrong locations
+
+**Diagnosis:**
+```bash
+# Find loading states
+find app/ -name "loading.tsx" -o -name "loading.js"
+
+# Find error boundaries
+find app/ -name "error.tsx" -o -name "error.js"
+
+# Check for not-found pages
+find app/ -name "not-found.tsx" -o -name "not-found.js"
+
+# Find Suspense usage
+grep -r "<Suspense" app/ --include="*.tsx" --include="*.jsx"
+```
+
+**Prioritized Fixes:**
+1. **Minimal**: Add loading.tsx for routes with async data, add error.tsx with reset function
+2. **Better**: Match loading UI to page structure, implement proper error recovery
+3. **Complete**: Use Suspense boundaries strategically, implement progressive loading, add error monitoring
+
+**Loading State Pattern:**
+```typescript
+// app/books/loading.tsx
+export default function Loading() {
+  return (
+    <div className="space-y-4">
+      <div className="h-8 bg-gray-200 animate-pulse rounded" />
+      <div className="grid grid-cols-3 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-48 bg-gray-200 animate-pulse rounded" />
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+**Error Boundary Pattern:**
+```typescript
+// app/books/error.tsx
+'use client'
+import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error('Error:', error)
+  }, [error])
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
+      <Button onClick={reset}>Try again</Button>
+    </div>
+  )
+}
+```
+
+**Suspense Pattern:**
+```typescript
+import { Suspense } from 'react'
+import { BooksList } from './books-list'
+import { BooksSkeleton } from './books-skeleton'
+
+export default function BooksPage() {
+  return (
+    <div>
+      <h1>Books</h1>
+      <Suspense fallback={<BooksSkeleton />}>
+        <BooksList />
+      </Suspense>
+    </div>
+  )
+}
+```
+
+**Not Found Pattern:**
+```typescript
+// app/books/[id]/not-found.tsx
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+
+export default function NotFound() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-4xl font-bold mb-2">404</h1>
+      <h2 className="text-2xl font-semibold mb-4">Book Not Found</h2>
+      <Button asChild>
+        <Link href="/books">Back to Books</Link>
+      </Button>
+    </div>
+  )
+}
+```
+
+**Validation:**
+```bash
+# Test loading states
+# Navigate to routes and check for loading UI
+# Test error boundaries by throwing errors
+# Verify not-found pages for invalid routes
+```
+
+**Resources:**
+- https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming
+- https://nextjs.org/docs/app/building-your-application/routing/error-handling
+- https://nextjs.org/docs/app/api-reference/file-conventions/not-found
+
+### Image Optimization & Configuration
+**Common Issues:**
+- Images not optimizing properly
+- Missing remote patterns for external images
+- Incorrect image dimensions causing CLS
+- Not using next/image component
+- Images loading slowly
+
+**Diagnosis:**
+```bash
+# Check next/image usage
+grep -r "next/image" app/ components/ --include="*.tsx" --include="*.jsx"
+
+# Find image configuration
+grep -r "images:" next.config.* --include="*.js" --include="*.mjs" --include="*.ts"
+
+# Check for unoptimized images
+grep -r "<img" app/ components/ --include="*.tsx" --include="*.jsx"
+```
+
+**Prioritized Fixes:**
+1. **Minimal**: Use next/image component, add remote patterns for external domains
+2. **Better**: Configure image optimization settings, add proper dimensions
+3. **Complete**: Implement responsive images, use priority for above-fold images, optimize formats
+
+**Next.config.mjs Pattern:**
+```javascript
+const nextConfig = {
+  images: {
+    qualities: [75, 95],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
+  },
+}
+```
+
+**Image Component Usage:**
+```typescript
+import Image from 'next/image'
+
+// With dimensions
+<Image
+  src={book.cover_image}
+  alt={book.title}
+  width={300}
+  height={450}
+  priority // For above-fold images
+/>
+
+// Responsive with sizes
+<Image
+  src={book.cover_image}
+  alt={book.title}
+  width={300}
+  height={450}
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+/>
+```
+
+**Security Headers Configuration:**
+```javascript
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin'
+          },
+        ]
+      }
+    ]
+  },
+}
+```
+
+**Validation:**
+```bash
+# Check image optimization in Network tab
+# Verify WebP/AVIF format serving
+# Test responsive image sizes
+# Check security headers with curl
+curl -I http://localhost:3000 | grep -i "x-frame\|strict-transport"
+```
+
+**Resources:**
+- https://nextjs.org/docs/app/building-your-application/optimizing/images
+- https://nextjs.org/docs/app/api-reference/next-config-js/images
+- https://nextjs.org/docs/app/api-reference/next-config-js/headers
+
+### Route Handlers vs Server Actions
+**When to Use Route Handlers:**
+- External API integrations (webhooks, third-party APIs)
+- Public endpoints that need CORS
+- File uploads/downloads
+- Streaming responses
+- When you need specific HTTP methods (PUT, DELETE, PATCH)
+- When you need custom response headers
+
+**When to Use Server Actions:**
+- Form submissions
+- Mutations that update data
+- Actions triggered by user interactions
+- When you need automatic revalidation
+- When you want type-safe form handling
+- When you need progressive enhancement
+
+**Route Handler Pattern:**
+```typescript
+// app/api/books/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const book = await getBook(params.id)
+    return NextResponse.json({ success: true, data: book })
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch book' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.json()
+  // Handle POST
+}
+```
+
+**Server Action Pattern:**
+```typescript
+// app/actions/books.ts
+'use server'
+import { revalidatePath } from 'next/cache'
+
+export async function createBook(data: BookData) {
+  const book = await insertBook(data)
+  revalidatePath('/books')
+  return { success: true, book }
+}
+```
+
+**Decision Matrix:**
+| Use Case | Route Handler | Server Action |
+|----------|---------------|---------------|
+| Form submission | ❌ | ✅ |
+| Webhook endpoint | ✅ | ❌ |
+| File upload | ✅ | ✅ (with formData) |
+| Public API | ✅ | ❌ |
+| Data mutation | ❌ | ✅ |
+| CORS needed | ✅ | ❌ |
+| Streaming | ✅ | ❌ |
+
+**Resources:**
+- https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations
+- https://nextjs.org/docs/app/building-your-application/routing/route-handlers
+
+### Route Groups & Advanced Routing
+**Route Groups:**
+Organize routes without affecting URL structure using parentheses:
+
+```
+app/
+  (marketing)/
+    about/
+      page.tsx        # /about
+    contact/
+      page.tsx        # /contact
+  (shop)/
+    products/
+      page.tsx       # /products
+```
+
+**Parallel Routes:**
+Render multiple pages simultaneously using `@folder` convention:
+
+```
+app/
+  @analytics/
+    page.tsx
+  @team/
+    page.tsx
+  layout.tsx         # Receives both @analytics and @team
+```
+
+**Intercepting Routes:**
+Show modal versions of routes using `(.)folder` syntax:
+
+```
+app/
+  (.)photos/
+    [id]/
+      page.tsx       # Intercepts /photos/[id] as modal
+  photos/
+    [id]/
+      page.tsx       # Full page version
+```
+
+**Resources:**
+- https://nextjs.org/docs/app/building-your-application/routing/route-groups
+- https://nextjs.org/docs/app/building-your-application/routing/parallel-routes
+- https://nextjs.org/docs/app/building-your-application/routing/intercepting-routes
+
 ## Code Review Checklist
 
 When reviewing Next.js applications, focus on:
@@ -409,12 +1030,58 @@ When reviewing Next.js applications, focus on:
 - [ ] Performance monitoring is configured (Web Vitals, analytics)
 - [ ] Security headers and authentication are properly implemented
 
+### Server Actions & Form Handling
+- [ ] Server Actions have 'use server' directive
+- [ ] revalidatePath/revalidateTag called after mutations
+- [ ] Proper error handling and return types in Server Actions
+- [ ] Forms use Server Actions instead of client-side fetch
+- [ ] useFormStatus/useActionState used for loading states
+- [ ] Server Actions validate input before processing
+
+### Metadata & SEO
+- [ ] Static metadata exported for static pages
+- [ ] generateMetadata implemented for dynamic routes
+- [ ] Open Graph tags included for social sharing
+- [ ] Metadata includes proper title and description
+- [ ] Viewport metadata configured where needed
+
+### Route Segment Configuration
+- [ ] dynamic = 'force-dynamic' for truly dynamic routes
+- [ ] revalidate values set appropriately for ISR
+- [ ] runtime = 'edge' used where beneficial
+- [ ] fetchCache configured for data fetching needs
+- [ ] Route segment configs match actual route behavior
+
+### Loading & Error States
+- [ ] loading.tsx files exist for async routes
+- [ ] error.tsx files with reset function implemented
+- [ ] not-found.tsx for 404 handling
+- [ ] Suspense boundaries placed strategically
+- [ ] Loading states match page structure
+- [ ] Error boundaries provide recovery options
+
+### Image Optimization
+- [ ] next/image used instead of <img> tags
+- [ ] Remote patterns configured in next.config
+- [ ] Image dimensions specified to prevent CLS
+- [ ] priority prop used for above-fold images
+- [ ] Responsive sizes configured where needed
+- [ ] WebP/AVIF formats enabled
+
+### Security & Headers
+- [ ] Security headers configured in next.config
+- [ ] CORS properly configured for API routes
+- [ ] Environment variables properly scoped (NEXT_PUBLIC_)
+- [ ] No sensitive data exposed in client components
+- [ ] Authentication checks in Server Actions/Route Handlers
+
 ### Migration & Advanced Features
 - [ ] No mixing of Pages Router and App Router patterns
 - [ ] Legacy data fetching methods (getServerSideProps) are migrated
 - [ ] API routes are moved to Route Handlers for App Router
 - [ ] Layout patterns follow App Router conventions
 - [ ] TypeScript types are updated for new Next.js APIs
+- [ ] Route Handlers vs Server Actions chosen appropriately
 
 ## Runtime Considerations
 - **App Router**: Server Components run on server, Client Components hydrate on client
@@ -431,6 +1098,16 @@ When reviewing Next.js applications, focus on:
 - Monitor Core Web Vitals and performance metrics
 - Use environment variables for sensitive configuration
 - Implement proper authentication and authorization patterns
+- Always revalidate cache after mutations using revalidatePath/revalidateTag
+- Use generateMetadata for dynamic routes to ensure proper SEO
+- Configure route segment configs (dynamic, revalidate) explicitly
+- Implement loading.tsx and error.tsx for all async routes
+- Use Server Actions for form submissions, Route Handlers for external APIs
+- Validate all input in Server Actions before database operations
+- Configure security headers in next.config for production
+- Use next/image for all images to enable automatic optimization
+- Test error boundaries by intentionally throwing errors
+- Monitor bundle size and use dynamic imports for large dependencies
 
 ## Anti-Patterns to Avoid
 1. **Client Component Overuse**: Don't mark entire layouts as 'use client' - use selective boundaries
@@ -441,3 +1118,11 @@ When reviewing Next.js applications, focus on:
 6. **Cache Overrides**: Don't disable caching without understanding the implications
 7. **API Route Overuse**: Use Server Actions for mutations instead of API routes when possible
 8. **Mixed Router Patterns**: Avoid mixing Pages and App Router patterns in the same application
+9. **Missing Revalidation**: Always call revalidatePath/revalidateTag after Server Action mutations
+10. **Static Metadata for Dynamic Content**: Use generateMetadata for dynamic routes, not static exports
+11. **Missing Route Segment Config**: Don't assume routes are dynamic - explicitly configure with `dynamic`
+12. **Unoptimized Images**: Always use next/image instead of <img> tags
+13. **Missing Loading States**: Don't leave users with blank screens - implement loading.tsx
+14. **No Error Boundaries**: Always provide error.tsx for graceful error handling
+15. **Server Actions Without Validation**: Always validate input in Server Actions before processing
+16. **Route Handlers for Forms**: Use Server Actions for form submissions, not Route Handlers

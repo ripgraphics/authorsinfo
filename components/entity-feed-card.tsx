@@ -80,6 +80,25 @@ import { ReactionsModal } from '@/components/enterprise/reactions-modal'
 import { CommentsModal } from '@/components/enterprise/comments-modal'
 import { EngagementDisplay } from '@/components/enterprise/engagement-display'
 import EntityCommentComposer from '@/components/entity-comment-composer'
+import dynamic from 'next/dynamic'
+import { extractLinks, extractFirstLink } from '@/lib/link-preview/link-extractor'
+
+// Code splitting: Lazy load link preview components
+const EnterpriseLinkPreviewCard = dynamic(
+  () => import('@/components/enterprise/link-preview/enterprise-link-preview-card').then((mod) => ({ default: mod.EnterpriseLinkPreviewCard })),
+  {
+    loading: () => <div className="h-32 w-full animate-pulse rounded-lg bg-muted" />,
+    ssr: false, // Disable SSR for link previews to reduce initial bundle size
+  }
+)
+
+const MultipleLinkPreview = dynamic(
+  () => import('@/components/enterprise/link-preview/multiple-link-preview').then((mod) => ({ default: mod.MultipleLinkPreview })),
+  {
+    loading: () => <div className="h-32 w-full animate-pulse rounded-lg bg-muted" />,
+    ssr: false,
+  }
+)
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -1356,14 +1375,28 @@ export default function EntityFeedCard({
 
     const content = { text: post.text || post.data?.text || '' } as PostContent
 
+    // Extract link from text if no explicit link_url
+    let detectedLink: string | null = null
+    if (!post.link_url && !content.links?.length && displayText) {
+      const extracted = extractFirstLink(displayText)
+      if (extracted) {
+        detectedLink = extracted.url
+      }
+    }
+
+    // Check if post has link_url or detected link - if so, treat as link post
+    const hasLinkUrl = !!(post.link_url || content.links?.length || detectedLink)
+    const effectiveContentType = hasLinkUrl && displayContentType !== 'image' ? 'link' : displayContentType
+
     console.log('Content type switch:', {
-      contentType: displayContentType,
+      contentType: effectiveContentType,
       postId: post.id,
       postContentType: post.content_type,
+      hasLinkUrl,
       postContent: { text: post.text || post.data?.text || '' },
     })
 
-    switch (displayContentType) {
+    switch (effectiveContentType) {
       case 'text':
         console.log('Rendering text content case:', {
           postId: post.id,
@@ -1635,35 +1668,78 @@ export default function EntityFeedCard({
         )
 
       case 'link':
+        // Collect all links: from content.links, post.link_url, or detected from text
+        const allLinks: Array<{ url: string; metadata?: any }> = []
+        
+        // Add links from content.links array
+        if (content.links && content.links.length > 0) {
+          content.links.forEach((link) => {
+            allLinks.push({
+              url: link.url,
+              metadata: link.preview_metadata,
+            })
+          })
+        }
+        
+        // Add link_url if not already in links
+        if (post.link_url && !allLinks.some((l) => l.url === post.link_url)) {
+          allLinks.push({ url: post.link_url })
+        }
+        
+        // Add detected link if not already present
+        if (detectedLink && !allLinks.some((l) => l.url === detectedLink)) {
+          allLinks.push({ url: detectedLink })
+        }
+
+        // Extract text without the link URLs for caption
+        let captionText = content.text || displayText || ''
+        allLinks.forEach((link) => {
+          if (captionText.includes(link.url)) {
+            captionText = captionText.replace(link.url, '').trim()
+          }
+        })
+
+        // If no links found, return null
+        if (allLinks.length === 0) {
+          return (
+            <div className="enterprise-feed-card-link-content">
+              <p className="text-sm text-muted-foreground">{displayText}</p>
+            </div>
+          )
+        }
+
         return (
-          <div className="enterprise-feed-card-link-content">
-            {content.links && content.links.length > 0 && (
-              <div className="enterprise-feed-card-link-preview border rounded-lg p-3">
-                {content.links.map((link, index) => (
-                  <div key={index} className="flex items-start gap-3 mb-2">
-                    <ExternalLink className="h-5 w-5 text-muted-foreground mt-1" />
-                    <div className="flex-1">
-                      {link.title && <h4 className="font-semibold text-sm">{link.title}</h4>}
-                      {link.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{link.description}</p>
-                      )}
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline mt-2 inline-block"
-                      >
-                        {link.url}
-                      </a>
-                    </div>
-                  </div>
-                ))}
+          <div className="enterprise-feed-card-link-content space-y-3">
+            {/* Post caption/text above link preview (only if there's text beyond the URLs) */}
+            {captionText && captionText.length > 0 && (
+              <div className="enterprise-feed-card-link-caption">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{captionText}</p>
               </div>
             )}
-            {content.text && (
-              <div className="enterprise-feed-card-link-caption mt-3">
-                <p className="text-sm text-muted-foreground">{content.text}</p>
-              </div>
+
+            {/* Multiple links - use MultipleLinkPreview component */}
+            {allLinks.length > 1 ? (
+              <MultipleLinkPreview
+                links={allLinks}
+                layout="carousel"
+                maxVisible={3}
+                className="enterprise-feed-card-link-preview"
+              />
+            ) : (
+              /* Single link - use EnterpriseLinkPreviewCard */
+              allLinks[0] && (
+                <EnterpriseLinkPreviewCard
+                  url={allLinks[0].url}
+                  metadata={allLinks[0].metadata}
+                  layout="horizontal"
+                  showImage={true}
+                  showDescription={true}
+                  showSiteName={true}
+                  showSecurityBadge={true}
+                  trackAnalytics={true}
+                  className="enterprise-feed-card-link-preview"
+                />
+              )
             )}
           </div>
         )

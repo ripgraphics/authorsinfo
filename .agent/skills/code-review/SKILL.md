@@ -411,6 +411,864 @@ Structure all feedback using this template:
 [Issues that appear multiple times - candidates for team discussion]
 ```
 
+## Project-Specific Review Patterns
+
+### Next.js App Router Patterns
+
+**Server Actions Review:**
+```bash
+# Find Server Actions
+grep -r "'use server'" app/ --include="*.ts" --include="*.tsx"
+
+# Check for revalidation after mutations
+grep -r "revalidatePath\|revalidateTag" app/actions/ --include="*.ts"
+
+# Verify error handling in Server Actions
+grep -r "try.*catch\|return.*error" app/actions/ --include="*.ts" | head -20
+```
+
+**Checklist:**
+- [ ] Server Actions have `'use server'` directive
+- [ ] `revalidatePath` or `revalidateTag` called after mutations
+- [ ] Proper error handling with try/catch
+- [ ] Return types are explicit (not `any`)
+- [ ] Input validation before database operations
+- [ ] Authentication checks present
+- [ ] No sensitive data in return values
+
+**Route Handlers Review:**
+```bash
+# Find Route Handlers
+find app/api -name "route.ts" -o -name "route.js"
+
+# Check for proper HTTP method exports
+grep -r "export async function \(GET\|POST\|PUT\|DELETE\)" app/api/ --include="route.ts"
+
+# Verify error handling uses error-handler utility
+grep -r "handleDatabaseError\|handleValidationError\|nextErrorResponse" app/api/ --include="route.ts"
+```
+
+**Checklist:**
+- [ ] Uses `@/lib/error-handler` utilities (not raw `error.message`)
+- [ ] Proper HTTP status codes (401, 403, 400, 404, 500)
+- [ ] Authentication checks with `supabase.auth.getUser()`
+- [ ] Input validation before processing
+- [ ] `dynamic = 'force-dynamic'` for dynamic routes
+- [ ] CORS headers if needed
+- [ ] No sensitive error details exposed to clients
+
+**Error Handling Pattern (Required):**
+```typescript
+// ✅ CORRECT - Use error-handler utilities
+import {
+  handleDatabaseError,
+  handleValidationError,
+  nextErrorResponse,
+  unauthorizedError,
+  badRequestError,
+} from '@/lib/error-handler'
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createRouteHandlerClientAsync()
+    
+    // Authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(unauthorizedError(), { status: 401 })
+    }
+    
+    // Validation
+    const json = await request.json()
+    const validationResult = mySchema.safeParse(json)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        handleValidationError(validationResult.error.flatten()),
+        { status: 400 }
+      )
+    }
+    
+    // Database operations
+    const { data, error } = await supabase.from('table').insert(json)
+    if (error) {
+      const { message, statusCode } = handleDatabaseError(error, 'Failed to create')
+      return NextResponse.json({ error: message }, { status: statusCode })
+    }
+    
+    return NextResponse.json({ success: true, data })
+  } catch (error) {
+    return nextErrorResponse(error, 'Failed to create record')
+  }
+}
+
+// ❌ WRONG - Exposes sensitive error details
+export async function POST(request: NextRequest) {
+  try {
+    const { data, error } = await supabase.from('table').insert(json)
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+      // ⚠️ May expose: table names, constraint details, schema info
+    }
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
+    // ⚠️ May expose: stack trace, internal error details
+  }
+}
+```
+
+### TypeScript-Specific Checks
+
+**Type Safety Review:**
+```bash
+# Find any types
+grep -r ": any\|as any" app/ components/ --include="*.ts" --include="*.tsx" | head -20
+
+# Check for unused variables (ESLint should catch)
+grep -r "@typescript-eslint/no-unused-vars" .eslintrc*
+
+# Verify strict mode enabled
+grep -r '"strict".*true' tsconfig.json
+```
+
+**Checklist:**
+- [ ] No `any` types (use `unknown` and type guards if needed)
+- [ ] No `as any` type assertions
+- [ ] Proper interface/type definitions
+- [ ] Return types explicitly defined
+- [ ] Generic types used appropriately
+- [ ] `strict: true` in tsconfig.json
+- [ ] No implicit `any` errors
+
+**Type Safety Pattern:**
+```typescript
+// ✅ CORRECT - Type-safe
+interface CreateBookParams {
+  title: string
+  author_id: string
+  isbn?: string
+}
+
+export async function createBook(params: CreateBookParams): Promise<{
+  success: boolean
+  book?: Book
+  error?: string
+}> {
+  // Implementation
+}
+
+// ❌ WRONG - Loose typing
+export async function createBook(params: any): Promise<any> {
+  // Implementation
+}
+```
+
+### Supabase/Database Patterns
+
+**Database Query Review:**
+```bash
+# Find Supabase queries
+grep -r "supabase\.from\|supabaseAdmin\.from" app/ --include="*.ts" --include="*.tsx" | head -20
+
+# Check for N+1 query patterns
+grep -r "\.map.*supabase\|\.forEach.*supabase" app/ --include="*.ts" --include="*.tsx"
+
+# Verify proper error handling
+grep -r "if.*error\|error:" app/actions/ app/api/ --include="*.ts" | grep -v "error-handler"
+```
+
+**Checklist:**
+- [ ] Uses `supabaseAdmin` for server-side operations
+- [ ] Uses `createRouteHandlerClientAsync()` for API routes
+- [ ] Uses `createServerActionClientAsync()` for Server Actions
+- [ ] No N+1 queries (use `.select()` with relations)
+- [ ] Proper error handling for database operations
+- [ ] Transactions used for multi-step operations
+- [ ] Input validation before database operations
+- [ ] No raw SQL strings (use Supabase query builder)
+
+**Database Pattern:**
+```typescript
+// ✅ CORRECT - Proper Supabase usage
+import { supabaseAdmin } from '@/lib/supabase/server'
+
+const { data, error } = await supabaseAdmin
+  .from('books')
+  .select('id, title, authors(id, name)') // Avoids N+1
+  .eq('status', 'active')
+  .limit(10)
+
+if (error) {
+  const { message, statusCode } = handleDatabaseError(error, 'Failed to fetch books')
+  return { success: false, error: message }
+}
+
+// ❌ WRONG - N+1 query pattern
+const books = await supabaseAdmin.from('books').select('*')
+for (const book of books.data || []) {
+  const author = await supabaseAdmin
+    .from('authors')
+    .select('*')
+    .eq('id', book.author_id)
+    .single()
+  // ⚠️ N+1 query problem
+}
+```
+
+### Cloudinary Integration Patterns
+
+**Image Upload Review:**
+```bash
+# Find Cloudinary uploads
+grep -r "cloudinary\|CLOUDINARY" app/ --include="*.ts" --include="*.tsx" | head -20
+
+# Check for proper URL validation
+grep -r "isValidCloudinaryUrl\|validateAndSanitizeImageUrl" app/ --include="*.ts" --include="*.tsx"
+
+# Verify rollback patterns
+grep -r "deleteFromCloudinary\|rollback" app/api/upload/ --include="*.ts"
+```
+
+**Checklist:**
+- [ ] Environment variables validated before use
+- [ ] Signature generation uses sorted parameters
+- [ ] SHA1 hash (not SHA256) for signatures
+- [ ] URL validation before saving to database
+- [ ] Rollback pattern when database operations fail
+- [ ] Proper folder structure (`authorsinfo/{type}`)
+- [ ] WebP conversion applied
+- [ ] Public ID stored for deletion
+
+### Component Patterns
+
+**React Component Review:**
+```bash
+# Find Client Components
+grep -r "'use client'" components/ app/ --include="*.tsx" | wc -l
+
+# Check for Server Component misuse
+grep -r "useState\|useEffect" app/ --include="*.tsx" | grep -v "'use client'"
+
+# Verify proper error boundaries
+find app/ -name "error.tsx" -o -name "error.js"
+```
+
+**Checklist:**
+- [ ] `'use client'` only on components needing browser APIs/hooks
+- [ ] Server Components are async and use direct fetch
+- [ ] No browser APIs (window, document) in Server Components
+- [ ] Proper loading states with `loading.tsx`
+- [ ] Error boundaries with `error.tsx`
+- [ ] Suspense boundaries for async data
+- [ ] No prop drilling (use Context where appropriate)
+
+### Security Patterns
+
+**Security Review:**
+```bash
+# Find hardcoded secrets
+grep -r "password.*=.*['\"]\|api_key.*=.*['\"]\|secret.*=.*['\"]" app/ --include="*.ts" --include="*.tsx"
+
+# Check for SQL injection risks
+grep -r "\.query\|\.raw\|template.*string" app/ --include="*.ts"
+
+# Verify authentication checks
+grep -r "supabase\.auth\.getUser\|getServerSession" app/api/ app/actions/ --include="*.ts"
+```
+
+**Checklist:**
+- [ ] No hardcoded secrets/API keys
+- [ ] Environment variables for sensitive config
+- [ ] Authentication checks in protected routes
+- [ ] Authorization checks (user owns resource)
+- [ ] Input validation and sanitization
+- [ ] No SQL injection risks (use Supabase query builder)
+- [ ] XSS prevention (React escapes by default)
+- [ ] CSRF protection for mutations
+- [ ] Rate limiting considered
+- [ ] Sensitive data not logged
+
+### Performance Patterns
+
+**Performance Review:**
+```bash
+# Find large components
+find components/ app/ -name "*.tsx" -exec wc -l {} \; | sort -rn | head -10
+
+# Check for missing image optimization
+grep -r "<img" components/ app/ --include="*.tsx" | grep -v "next/image"
+
+# Find missing Suspense boundaries
+grep -r "await.*fetch\|await.*supabase" app/ --include="*.tsx" | grep -v "Suspense"
+```
+
+**Checklist:**
+- [ ] `next/image` used instead of `<img>` tags
+- [ ] Images have proper dimensions to prevent CLS
+- [ ] Suspense boundaries for async data
+- [ ] Parallel data fetching with `Promise.all()`
+- [ ] Proper caching strategy (`cache: 'no-store'` for dynamic)
+- [ ] Route segment configs (`dynamic`, `revalidate`)
+- [ ] No unnecessary re-renders
+- [ ] Code splitting for large components
+- [ ] Bundle size considered
+
+### Code Quality Patterns
+
+**Code Quality Review:**
+```bash
+# Find TODO/FIXME comments
+grep -r "TODO\|FIXME\|HACK\|XXX" app/ components/ --include="*.ts" --include="*.tsx" | head -20
+
+# Check for console.log statements
+grep -r "console\.log\|console\.debug\|console\.error" app/ components/ --include="*.ts" --include="*.tsx" | grep -v "error-handler\|node_modules"
+
+# Find duplicate code patterns
+grep -r "validateEmail\|validateUser" app/ components/ --include="*.ts" | cut -d: -f1 | uniq -c | sort -rn
+```
+
+**Checklist:**
+- [ ] No `console.log` in production code (use proper logging)
+- [ ] TODO comments have ticket references
+- [ ] No commented-out code
+- [ ] Functions < 50 lines (recommended)
+- [ ] Files < 200 lines (recommended)
+- [ ] Single Responsibility Principle
+- [ ] DRY principle (no duplicate logic)
+- [ ] Meaningful variable/function names
+- [ ] Proper TypeScript types
+- [ ] ESLint rules followed
+
+## Project-Specific Review Commands
+
+### Quick Review Script
+```bash
+#!/bin/bash
+# Quick code review checklist
+
+echo "=== TypeScript Type Safety ==="
+grep -r ": any\|as any" app/ components/ --include="*.ts" --include="*.tsx" | wc -l
+
+echo "=== Error Handling ==="
+echo "Routes using error-handler:"
+grep -r "handleDatabaseError\|handleValidationError" app/api/ --include="route.ts" | wc -l
+echo "Routes with raw error.message:"
+grep -r "error\.message" app/api/ --include="route.ts" | grep -v "error-handler" | wc -l
+
+echo "=== Server Actions ==="
+echo "Total Server Actions:"
+grep -r "'use server'" app/actions/ --include="*.ts" | wc -l
+echo "With revalidation:"
+grep -r "revalidatePath\|revalidateTag" app/actions/ --include="*.ts" | wc -l
+
+echo "=== Security ==="
+echo "Hardcoded secrets found:"
+grep -r "password.*=.*['\"]\|api_key.*=.*['\"]" app/ --include="*.ts" --include="*.tsx" | wc -l
+
+echo "=== Code Quality ==="
+echo "Console.log statements:"
+grep -r "console\.log" app/ components/ --include="*.ts" --include="*.tsx" | grep -v "node_modules" | wc -l
+echo "TODO comments:"
+grep -r "TODO\|FIXME" app/ components/ --include="*.ts" --include="*.tsx" | wc -l
+```
+
+## Comprehensive Review Checklist
+
+Use this checklist for systematic code reviews:
+
+### 🔴 Critical (Must Fix Before Merge)
+
+#### Security
+- [ ] No hardcoded secrets, API keys, or credentials
+- [ ] Environment variables used for sensitive config
+- [ ] Authentication checks in protected routes/actions
+- [ ] Authorization checks (user owns resource)
+- [ ] Input validation before database operations
+- [ ] Error handling uses `@/lib/error-handler` (no raw `error.message`)
+- [ ] No sensitive data in error responses
+- [ ] No SQL injection risks (use Supabase query builder)
+
+#### Data Integrity
+- [ ] Database operations use transactions where needed
+- [ ] Rollback patterns for Cloudinary uploads
+- [ ] Foreign key constraints respected
+- [ ] No data loss scenarios
+
+#### Type Safety
+- [ ] No `any` types (use `unknown` with type guards)
+- [ ] No `as any` type assertions
+- [ ] Proper TypeScript interfaces/types
+- [ ] Return types explicitly defined
+
+### 🟠 High Priority (Fix Before Merge)
+
+#### Error Handling
+- [ ] All API routes use `handleDatabaseError()`, `handleValidationError()`, `nextErrorResponse()`
+- [ ] All Server Actions have try/catch blocks
+- [ ] Proper HTTP status codes (401, 403, 400, 404, 500)
+- [ ] No `console.log` in production code
+- [ ] Structured error logging server-side
+
+#### Next.js Patterns
+- [ ] Server Actions have `'use server'` directive
+- [ ] `revalidatePath`/`revalidateTag` called after mutations
+- [ ] Route segment configs (`dynamic`, `revalidate`) set appropriately
+- [ ] `'use client'` only on components needing browser APIs
+- [ ] Server Components are async and use direct fetch
+- [ ] Loading states with `loading.tsx`
+- [ ] Error boundaries with `error.tsx`
+
+#### Database
+- [ ] Uses `supabaseAdmin` for server-side operations
+- [ ] Uses proper client helpers (`createRouteHandlerClientAsync`, `createServerActionClientAsync`)
+- [ ] No N+1 queries (use `.select()` with relations)
+- [ ] Proper error handling for database operations
+
+### 🟡 Medium Priority (Fix Soon)
+
+#### Code Quality
+- [ ] Functions < 50 lines (recommended)
+- [ ] Files < 200 lines (recommended)
+- [ ] Single Responsibility Principle
+- [ ] DRY principle (no duplicate logic)
+- [ ] Meaningful variable/function names
+- [ ] No commented-out code
+- [ ] TODO comments have ticket references
+
+#### Performance
+- [ ] `next/image` used instead of `<img>` tags
+- [ ] Images have proper dimensions
+- [ ] Suspense boundaries for async data
+- [ ] Parallel data fetching with `Promise.all()`
+- [ ] Proper caching strategy
+- [ ] No unnecessary re-renders
+
+#### Cloudinary
+- [ ] Environment variables validated
+- [ ] Signature generation correct (sorted params, SHA1)
+- [ ] URL validation before saving
+- [ ] Rollback pattern implemented
+- [ ] WebP conversion applied
+
+### 🟢 Low Priority (Nice to Have)
+
+#### Documentation
+- [ ] Complex logic has comments explaining WHY
+- [ ] API routes have JSDoc comments
+- [ ] Server Actions have type documentation
+- [ ] README updated if needed
+
+#### Testing
+- [ ] Critical paths have tests
+- [ ] Edge cases considered
+- [ ] Error scenarios tested
+
+## Review Workflow
+
+### Step 1: Pre-Review Context
+```bash
+# Understand project structure
+ls -la app/ components/ lib/
+cat package.json | grep -A 5 "dependencies"
+cat tsconfig.json | grep -A 3 "compilerOptions"
+cat .eslintrc.json
+```
+
+### Step 2: Pattern Detection
+```bash
+# Detect error handling patterns
+grep -r "error-handler" app/ --include="*.ts" | head -5
+
+# Detect Server Action patterns
+grep -r "'use server'" app/actions/ --include="*.ts" | head -5
+
+# Detect Supabase patterns
+grep -r "supabaseAdmin\|createRouteHandlerClientAsync" app/ --include="*.ts" | head -5
+```
+
+### Step 3: File-Specific Review
+For each file being reviewed:
+```bash
+FILE="app/api/example/route.ts"
+
+# Check error handling
+grep -n "error" "$FILE" | grep -v "error-handler"
+
+# Check authentication
+grep -n "getUser\|getSession" "$FILE"
+
+# Check validation
+grep -n "validate\|safeParse" "$FILE"
+
+# Check database operations
+grep -n "supabase\.from\|supabaseAdmin\.from" "$FILE"
+```
+
+### Step 4: Cross-File Analysis
+```bash
+# Find where file is imported
+grep -r "from.*example\|import.*example" app/ components/ --include="*.ts" --include="*.tsx"
+
+# Find similar patterns
+grep -r "similarPattern" app/ --include="*.ts" | cut -d: -f1 | uniq
+```
+
+### Step 5: Generate Review Report
+Use the Review Output Template (see above) to structure findings.
+
+## Common Issues & Solutions
+
+### Issue: Raw Error Messages Exposed
+**Problem**: `return NextResponse.json({ error: error.message }, { status: 500 })`
+
+**Solution**:
+```typescript
+import { handleDatabaseError } from '@/lib/error-handler'
+const { message, statusCode } = handleDatabaseError(error, 'Failed to create')
+return NextResponse.json({ error: message }, { status: statusCode })
+```
+
+### Issue: Missing Revalidation
+**Problem**: Server Action mutates data but doesn't revalidate cache
+
+**Solution**:
+```typescript
+import { revalidatePath } from 'next/cache'
+// ... mutation code ...
+revalidatePath('/books')
+revalidatePath(`/books/${bookId}`, 'page')
+```
+
+### Issue: N+1 Query Problem
+**Problem**: Looping over results and making separate queries
+
+**Solution**:
+```typescript
+// ❌ WRONG
+const books = await supabase.from('books').select('*')
+for (const book of books.data || []) {
+  const author = await supabase.from('authors').select('*').eq('id', book.author_id).single()
+}
+
+// ✅ CORRECT
+const books = await supabase
+  .from('books')
+  .select('id, title, authors(id, name)') // Single query with relations
+```
+
+### Issue: Missing Authentication Check
+**Problem**: Route handler doesn't verify user authentication
+
+**Solution**:
+```typescript
+const supabase = await createRouteHandlerClientAsync()
+const { data: { user }, error: authError } = await supabase.auth.getUser()
+if (authError || !user) {
+  return NextResponse.json(unauthorizedError(), { status: 401 })
+}
+```
+
+### Issue: Using `any` Types
+**Problem**: `function process(data: any): any`
+
+**Solution**:
+```typescript
+interface ProcessData {
+  id: string
+  name: string
+}
+
+interface ProcessResult {
+  success: boolean
+  data?: ProcessData
+  error?: string
+}
+
+function process(data: ProcessData): ProcessResult {
+  // Implementation
+}
+```
+
+## Automatic Fix Capabilities
+
+### Auto-Fix Patterns
+
+The code review skill can automatically fix common issues:
+
+#### 1. Error Handling Auto-Fix
+**Pattern Detection**:
+```bash
+# Find raw error.message usage
+grep -r "error\.message" app/api/ --include="route.ts" | grep -v "error-handler"
+```
+
+**Auto-Fix Logic**:
+```typescript
+// Detect: return NextResponse.json({ error: error.message }, { status: 500 })
+// Fix: Replace with handleDatabaseError()
+
+// BEFORE
+if (error) {
+  return NextResponse.json({ error: error.message }, { status: 500 })
+}
+
+// AFTER (Auto-fixed)
+import { handleDatabaseError } from '@/lib/error-handler'
+const { message, statusCode } = handleDatabaseError(error, 'Failed to create')
+return NextResponse.json({ error: message }, { status: statusCode })
+```
+
+#### 2. Missing Revalidation Auto-Fix
+**Pattern Detection**:
+```bash
+# Find Server Actions without revalidation
+grep -r "'use server'" app/actions/ --include="*.ts" | while read file; do
+  if ! grep -q "revalidatePath\|revalidateTag" "$file"; then
+    echo "Missing revalidation: $file"
+  fi
+done
+```
+
+**Auto-Fix Logic**:
+```typescript
+// Detect: Server Action with mutation but no revalidation
+// Fix: Add revalidatePath based on context
+
+// BEFORE
+export async function createBook(data: BookData) {
+  const book = await insertBook(data)
+  return { success: true, book }
+}
+
+// AFTER (Auto-fixed)
+import { revalidatePath } from 'next/cache'
+export async function createBook(data: BookData) {
+  const book = await insertBook(data)
+  revalidatePath('/books')
+  if (book.id) {
+    revalidatePath(`/books/${book.id}`, 'page')
+  }
+  return { success: true, book }
+}
+```
+
+#### 3. Missing Authentication Auto-Fix
+**Pattern Detection**:
+```bash
+# Find API routes without auth checks
+grep -r "export async function POST\|export async function PUT\|export async function DELETE" app/api/ --include="route.ts" | while read file; do
+  if ! grep -q "getUser\|getSession" "$file"; then
+    echo "Missing auth: $file"
+  fi
+done
+```
+
+**Auto-Fix Logic**:
+```typescript
+// Detect: API route without authentication
+// Fix: Add authentication check at start
+
+// BEFORE
+export async function POST(request: NextRequest) {
+  const json = await request.json()
+  // ... process
+}
+
+// AFTER (Auto-fixed)
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { unauthorizedError } from '@/lib/error-handler'
+
+export async function POST(request: NextRequest) {
+  const supabase = await createRouteHandlerClientAsync()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json(unauthorizedError(), { status: 401 })
+  }
+  const json = await request.json()
+  // ... process
+}
+```
+
+#### 4. Type Safety Auto-Fix
+**Pattern Detection**:
+```bash
+# Find any types
+grep -r ": any\|as any" app/ components/ --include="*.ts" --include="*.tsx"
+```
+
+**Auto-Fix Logic**:
+```typescript
+// Detect: function process(data: any): any
+// Fix: Infer or create proper types
+
+// BEFORE
+function process(data: any): any {
+  return { success: true, data }
+}
+
+// AFTER (Auto-fixed)
+interface ProcessData {
+  id: string
+  name: string
+}
+
+interface ProcessResult {
+  success: boolean
+  data?: ProcessData
+}
+
+function process(data: ProcessData): ProcessResult {
+  return { success: true, data }
+}
+```
+
+#### 5. Missing 'use server' Auto-Fix
+**Pattern Detection**:
+```bash
+# Find Server Actions without directive
+grep -r "export async function" app/actions/ --include="*.ts" | while read file; do
+  if ! grep -q "'use server'" "$file"; then
+    echo "Missing 'use server': $file"
+  fi
+done
+```
+
+**Auto-Fix Logic**:
+```typescript
+// Detect: Server Action without 'use server'
+// Fix: Add directive at top of file
+
+// BEFORE
+import { supabaseAdmin } from '@/lib/supabase/server'
+export async function createActivity(params: CreateActivityParams) {
+  // ...
+}
+
+// AFTER (Auto-fixed)
+'use server'
+import { supabaseAdmin } from '@/lib/supabase/server'
+export async function createActivity(params: CreateActivityParams) {
+  // ...
+}
+```
+
+#### 6. Console.log Removal Auto-Fix
+**Pattern Detection**:
+```bash
+# Find console.log statements
+grep -r "console\.log\|console\.debug" app/ components/ --include="*.ts" --include="*.tsx" | grep -v "node_modules\|error-handler"
+```
+
+**Auto-Fix Logic**:
+```typescript
+// Detect: console.log('Debug:', data)
+// Fix: Remove or comment out
+
+// BEFORE
+console.log('Debug:', data)
+console.debug('User:', user)
+
+// AFTER (Auto-fixed)
+// Removed debug statements
+// Use proper logging utility if needed: logger.debug('Debug:', data)
+```
+
+#### 7. Missing Imports Auto-Fix
+**Pattern Detection**:
+```bash
+# Find usage without imports
+grep -r "revalidatePath\|handleDatabaseError\|NextResponse" app/ --include="*.ts" | while read line; do
+  file=$(echo "$line" | cut -d: -f1)
+  symbol=$(echo "$line" | grep -oE "(revalidatePath|handleDatabaseError|NextResponse)")
+  if ! grep -q "import.*$symbol" "$file"; then
+    echo "Missing import: $file - $symbol"
+  fi
+done
+```
+
+**Auto-Fix Logic**:
+```typescript
+// Detect: Usage of symbol without import
+// Fix: Add appropriate import
+
+// BEFORE
+export async function createBook(data: BookData) {
+  const book = await insertBook(data)
+  revalidatePath('/books') // Missing import
+  return NextResponse.json({ success: true }) // Missing import
+}
+
+// AFTER (Auto-fixed)
+import { revalidatePath } from 'next/cache'
+import { NextResponse } from 'next/server'
+
+export async function createBook(data: BookData) {
+  const book = await insertBook(data)
+  revalidatePath('/books')
+  return NextResponse.json({ success: true })
+}
+```
+
+### Auto-Fix Execution
+
+When auto-fix is enabled, the review process:
+
+1. **Scans** the modified files for known patterns
+2. **Identifies** fixable issues automatically
+3. **Applies** fixes using search_replace tool
+4. **Validates** fixes don't break functionality
+5. **Reports** what was fixed and what needs manual review
+
+### Auto-Fix Safety Rules
+
+**Always Auto-Fix** (Safe, non-breaking):
+- ✅ Missing imports
+- ✅ Missing `'use server'` directive
+- ✅ Console.log removal
+- ✅ Type safety improvements (when types can be inferred)
+- ✅ Missing `revalidatePath`/`revalidateTag` (when context is clear)
+
+**Never Auto-Fix** (Require human review):
+- 🔴 Security-related changes
+- 🔴 Database schema modifications
+- 🔴 Complex refactoring (>50 lines)
+- 🔴 Breaking API changes
+- 🔴 Performance optimizations requiring analysis
+
+**Ask Before Fixing**:
+- 🟡 Large changes (>3 files affected)
+- 🟡 Changes to shared utilities
+- 🟡 Changes affecting multiple components
+- 🟡 Ambiguous fixes (multiple valid solutions)
+
+### Auto-Fix Report Format
+
+```markdown
+## [AUTO-FIX] Automatic Fixes Applied
+
+**File**: `app/api/example/route.ts`
+**Fixes Applied**: 5
+**Manual Review Required**: 2
+
+### ✅ Auto-Fixed
+1. ✅ Added missing import: `handleDatabaseError` from `@/lib/error-handler`
+2. ✅ Replaced `error.message` with `handleDatabaseError(error, 'Failed to create')`
+3. ✅ Added authentication check at start of POST handler
+4. ✅ Removed `console.log('Debug:', data)` statement
+5. ✅ Added `'use server'` directive to Server Action
+
+### ⚠️ Requires Manual Review
+1. ⚠️ Potential N+1 query detected - Line 45
+   - **Issue**: Loop with database query inside
+   - **Suggestion**: Use `.select()` with relations
+   
+2. ⚠️ Missing input validation - Line 30
+   - **Issue**: No validation before database insert
+   - **Suggestion**: Add Zod schema validation
+```
+
 ## Success Metrics
 
 A quality review should:
@@ -422,3 +1280,10 @@ A quality review should:
 - ✅ Suggest proactive improvements
 - ✅ Reference related code and patterns
 - ✅ Adapt to project's architectural style
+- ✅ Check project-specific patterns (Next.js, Supabase, Cloudinary)
+- ✅ Verify error handling uses `@/lib/error-handler`
+- ✅ Ensure type safety (no `any` types)
+- ✅ Validate Server Actions have revalidation
+- ✅ Confirm security best practices
+- ✅ Automatically fix common issues when safe
+- ✅ Flag issues requiring manual review appropriately

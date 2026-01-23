@@ -4,6 +4,8 @@ activation: always_on
 
 # Pre-Delivery Checklist
 
+**Note**: This checklist is automatically validated by the Auto-Code-Review system (see `14-auto-code-review.md`). Many issues are automatically fixed before manual review.
+
 Mandatory checklist before delivering code. Apply relevant sections based on project type.
 
 ## Code Quality (All Languages)

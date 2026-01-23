@@ -79,6 +79,22 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+  to {
+    height: 0;
+  }
+}
+
 /* Tailwind v4 removed JS config for `container` — reintroduce your v3 behavior in CSS */
 @utility container {
   width: 100%;

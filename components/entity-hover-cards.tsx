@@ -24,6 +24,7 @@ import { FollowButton } from '@/components/follow-button'
 import { AddFriendButton } from '@/components/add-friend-button'
 import { FollowersDisplay } from '@/components/followers-display'
 import { MutualFriendsDisplay } from '@/components/mutual-friends-display'
+import { useAuth } from '@/hooks/useAuth'
 
 // Enterprise-grade type definitions
 type EntityType = 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
@@ -123,6 +124,7 @@ export function EntityHoverCard({
   showActions = true,
   userStats,
 }: EntityHoverCardProps) {
+  const { user } = useAuth()
   const router = useRouter()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isHoverCardOpen, setIsHoverCardOpen] = useState(false)
@@ -409,8 +411,8 @@ export function EntityHoverCard({
             </div>
           </div>
         </div>
-        {/* Action Buttons - Show for users, authors, and publishers */}
-        {showActions && (type === 'user' || type === 'author' || type === 'publisher') && (
+        {/* Action Buttons - Show for users, authors, and publishers (only when logged in) */}
+        {user && showActions && (type === 'user' || type === 'author' || type === 'publisher') && (
           <div className="px-4 pb-4 border-t border-gray-100">
             <div className="flex gap-2 mt-3">
               {type === 'user' ? (

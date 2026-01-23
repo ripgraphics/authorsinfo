@@ -1074,33 +1074,38 @@ export function EntityHeader({
 
     return (
       <>
-        {/* Add Friend button for user profiles */}
-        {entityType === 'user' && entityId && (
-          <AddFriendButton
-            targetUserId={entityId}
-            targetUserName={name}
-            className="entity-header__add-friend-button flex items-center"
-            variant="outline"
-            size="sm"
-          />
-        )}
-        {/* Follow button */}
-        {entityId && targetType && (
-          <FollowButton
-            entityId={entityId}
-            targetType={targetType}
-            entityName={name}
-            variant={isFollowing ? 'outline' : 'default'}
-            className="entity-header__follow-button flex items-center"
-            onFollowChange={onFollow}
-          />
-        )}
-        {/* Message button - shown by default when isMessageable is true, but not for own profile */}
-        {isMessageable && !(entityType === 'user' && user?.id === entityId) && (
-          <Button className="entity-header__message-button flex items-center" onClick={onMessage}>
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Message
-          </Button>
+        {/* Only show action buttons if user is logged in */}
+        {user && (
+          <>
+            {/* Add Friend button for user profiles */}
+            {entityType === 'user' && entityId && (
+              <AddFriendButton
+                targetUserId={entityId}
+                targetUserName={name}
+                className="entity-header__add-friend-button flex items-center"
+                variant="outline"
+                size="sm"
+              />
+            )}
+            {/* Follow button */}
+            {entityId && targetType && (
+              <FollowButton
+                entityId={entityId}
+                targetType={targetType}
+                entityName={name}
+                variant={isFollowing ? 'outline' : 'default'}
+                className="entity-header__follow-button flex items-center"
+                onFollowChange={onFollow}
+              />
+            )}
+            {/* Message button - shown by default when isMessageable is true, but not for own profile */}
+            {isMessageable && !(entityType === 'user' && user?.id === entityId) && (
+              <Button className="entity-header__message-button flex items-center" onClick={onMessage}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Message
+              </Button>
+            )}
+          </>
         )}
         {/* More options dropdown - always visible */}
         <DropdownMenu>

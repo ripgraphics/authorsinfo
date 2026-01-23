@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { Avatar } from '@/components/ui/avatar'
 import { Heart, MessageCircle, ThumbsUp, Smile, Star, AlertTriangle, Zap, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
 
 export interface EngagementUser {
   id: string
@@ -51,6 +52,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   maxPreviewItems = 6,
   showAddFriendButtons = true,
 }) => {
+  const { user } = useAuth()
   const [reactions, setReactions] = useState<EngagementUser[]>([])
   const [comments, setComments] = useState<EngagementUser[]>([])
   const [isLoadingReactions, setIsLoadingReactions] = useState(false)
@@ -222,7 +224,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                             </div>
                           )}
                         </div>
-                        {showAddFriendButtons && reaction.user?.id && (
+                        {user && showAddFriendButtons && reaction.user?.id && (
                           <button
                             className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-all duration-150 flex items-center gap-1 opacity-0 group-hover:opacity-100"
                             onClick={() => handleAddFriend(reaction.user.id)}
@@ -293,7 +295,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                             {comment.comment_text || ''}
                           </div>
                         </div>
-                        {showAddFriendButtons && comment.user?.id && (
+                        {user && showAddFriendButtons && comment.user?.id && (
                           <button
                             className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-all duration-150 flex items-center gap-1 opacity-0 group-hover:opacity-100"
                             onClick={() => handleAddFriend(comment.user.id)}

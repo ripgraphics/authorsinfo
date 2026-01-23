@@ -177,20 +177,30 @@ async function getAuthorActivities(authorId: string) {
 
     const bookIds = authorBooks.map((book) => book.id)
 
-    // Get activities related to these books
+    if (bookIds.length === 0) {
+      return []
+    }
+
+    // Get posts/activities related to these books (using posts table after migration)
     const { data: activities, error } = await supabaseAdmin
-      .from('activities')
+      .from('posts')
       .select(
         `
         id,
         activity_type,
         created_at,
-        data,
+        metadata,
         book_id,
-        user_id
+        user_id,
+        content,
+        content_summary,
+        entity_type,
+        entity_id
       `
       )
-      .in('book_id', bookIds)
+      .eq('entity_type', 'book')
+      .in('entity_id', bookIds)
+      .eq('publish_status', 'published')
       .order('created_at', { ascending: false })
       .limit(10)
 
@@ -205,8 +215,10 @@ async function getAuthorActivities(authorId: string) {
       return []
     }
 
-    // Get book information for all activities
-    const activityBookIds = activities.map((activity) => activity.book_id).filter(Boolean)
+    // Get book information for all activities (use entity_id for book_id in posts table)
+    const activityBookIds = activities
+      .map((activity) => activity.entity_id || activity.book_id)
+      .filter(Boolean)
 
     let books: Record<string, any> = {}
 
@@ -255,21 +267,22 @@ async function getAuthorActivities(authorId: string) {
       // Calculate time ago for display
       const timeAgo = getTimeAgo(new Date(activity.created_at))
 
-      // Cast data to appropriate type
-      const data = activity.data as Record<string, any> | null
+      // Cast metadata to appropriate type (posts table uses 'metadata' instead of 'data')
+      const data = (activity.metadata as Record<string, any>) || null
 
-      // Get book information from our lookup map
-      const book = activity.book_id ? books[activity.book_id] : null
+      // Get book information from our lookup map (use entity_id for book_id in posts table)
+      const bookId = activity.entity_id || activity.book_id
+      const book = bookId ? books[bookId] : null
 
       return {
         id: activity.id,
-        type: activity.activity_type,
+        type: activity.activity_type || 'post_created',
         timeAgo,
         bookTitle: book?.title || data?.book_title || 'Unknown Book',
         bookAuthor: book?.author || data?.book_author || 'Unknown Author',
         rating: data?.rating as number,
         shelf: data?.shelf as string,
-        reviewText: data?.review_text as string,
+        reviewText: data?.review_text || activity.content || data?.review_text || null,
         books: book,
       }
     })

@@ -243,7 +243,7 @@ export function FriendList({
         defaultSort="recent"
         emptyMessage="No friends yet"
         emptySearchMessage="No friends found matching your search"
-        renderItem={(friend) => (
+        renderItem={(friend, compact) => (
           <div className="flex flex-col border rounded-lg hover:bg-accent transition-colors overflow-hidden">
             <Link
               href={getProfileUrlFromUser(friend.friend)}
@@ -295,7 +295,7 @@ export function FriendList({
                 )}
               </div>
             </Link>
-            <div className="px-3 pb-3 pt-3 border-t">
+            <div className="px-3 pb-3 pt-3 border-t" data-button-container>
               <UserActionButtons
                 userId={friend.friend.id}
                 userName={friend.friend.name}
@@ -310,6 +310,7 @@ export function FriendList({
                   setCurrentPage(1)
                 }}
                 className="justify-center"
+                compact={compact}
               />
             </div>
           </div>

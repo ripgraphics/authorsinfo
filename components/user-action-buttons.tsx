@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import FollowButton from '@/components/FollowButton'
+import { unfollowEntity } from '@/app/actions/follow'
 import { cn } from '@/lib/utils'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
@@ -15,6 +16,68 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
+
+function OwnCardDropdown({
+  entityId,
+  entityType,
+  onRemoveSelf,
+  containerClass,
+  variant,
+  size,
+}: {
+  entityId: string
+  entityType: 'book' | 'author' | 'publisher' | 'user' | 'group'
+  onRemoveSelf?: () => void
+  containerClass: string
+  variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  size: 'default' | 'sm' | 'lg' | 'icon'
+}) {
+  const { toast } = useToast()
+  const router = useRouter()
+  const [isUnfollowing, setIsUnfollowing] = useState(false)
+
+  const handleUnfollow = async () => {
+    if (isUnfollowing) return
+    try {
+      setIsUnfollowing(true)
+      const result = await unfollowEntity(entityId, entityType)
+      if (result.success) {
+        toast({ title: 'Unfollowed', description: 'You have been removed from this list.' })
+        onRemoveSelf?.()
+        router.refresh()
+      } else {
+        toast({ title: 'Error', description: result.error || 'Failed to unfollow', variant: 'destructive' })
+      }
+    } catch (e) {
+      console.error('Error unfollowing:', e)
+      toast({ title: 'Error', description: 'Failed to unfollow', variant: 'destructive' })
+    } finally {
+      setIsUnfollowing(false)
+    }
+  }
+
+  return (
+    <div className={containerClass}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant={variant} size={size} className="ml-auto" disabled={isUnfollowing}>
+            {isUnfollowing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MoreHorizontal className="h-4 w-4" />
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem className="cursor-pointer" onClick={handleUnfollow} disabled={isUnfollowing}>
+            Unfollow
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
+}
 
 interface UserActionButtonsProps {
   userId: string
@@ -29,6 +92,10 @@ interface UserActionButtonsProps {
   className?: string
   onFriendChange?: () => void
   onFollowChange?: () => void
+  compact?: boolean
+  /** When viewing own card in a list (e.g. followers), pass entity to allow "Unfollow" in dropdown */
+  removeSelfEntity?: { entityId: string; entityType: 'book' | 'author' | 'publisher' | 'user' | 'group' }
+  onRemoveSelf?: () => void
 }
 
 export function UserActionButtons({
@@ -44,6 +111,9 @@ export function UserActionButtons({
   className,
   onFriendChange,
   onFollowChange: _onFollowChange,
+  compact = false,
+  removeSelfEntity,
+  onRemoveSelf,
 }: UserActionButtonsProps) {
   const { user } = useAuth()
   const router = useRouter()
@@ -110,7 +180,21 @@ export function UserActionButtons({
     )
   }
 
-  // Don't show buttons if viewing own profile
+  // Own card in a list (e.g. followers): show dropdown with "Unfollow" to remove self
+  if (user.id === userId && removeSelfEntity) {
+    return (
+      <OwnCardDropdown
+        entityId={removeSelfEntity.entityId}
+        entityType={removeSelfEntity.entityType}
+        onRemoveSelf={onRemoveSelf}
+        containerClass={containerClass}
+        variant={variant}
+        size={size}
+      />
+    )
+  }
+
+  // Don't show buttons if viewing own profile (no removeSelfEntity)
   if (user.id === userId) {
     return null
   }
@@ -228,12 +312,15 @@ export function UserActionButtons({
   return (
     <div className={containerClass}>
       {showMessage && (
-        <Button variant="default" size={size} asChild>
-          <Link href={`/messages/${userPermalink || userId}`}>
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Message
-          </Link>
-        </Button>
+        <ResponsiveActionButton
+          icon={<MessageCircle className="h-4 w-4" />}
+          label="Message"
+          tooltip="Message"
+          compact={compact}
+          href={`/messages/${userPermalink || userId}`}
+          variant="default"
+          size={size}
+        />
       )}
 
       {showFriend && (
@@ -243,70 +330,70 @@ export function UserActionButtons({
               <Loader2 className="h-4 w-4 animate-spin" />
             </Button>
           ) : friendStatus === 'accepted' ? (
-            <Button
+            <ResponsiveActionButton
+              icon={
+                isRemovingFriend ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UserMinus className="h-4 w-4" />
+                )
+              }
+              label={isRemovingFriend ? 'Removing...' : 'Friends'}
+              tooltip={isRemovingFriend ? 'Removing...' : 'Friends'}
+              compact={compact}
               variant={variant}
               size={size}
               onClick={handleRemoveFriend}
               disabled={isRemovingFriend}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              {isRemovingFriend ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Removing...
-                </>
-              ) : (
-                <>
-                  <UserMinus className="h-4 w-4 mr-2" />
-                  Friends
-                </>
-              )}
-            </Button>
+            />
           ) : friendStatus === 'pending' ? (
             isRequestedByMe ? (
-              <Button
+              <ResponsiveActionButton
+                icon={
+                  isRemovingFriend ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Clock className="h-4 w-4" />
+                  )
+                }
+                label={isRemovingFriend ? 'Cancelling...' : 'Cancel Request'}
+                tooltip={isRemovingFriend ? 'Cancelling...' : 'Cancel Request'}
+                compact={compact}
                 variant={variant}
                 size={size}
                 onClick={handleCancelRequest}
                 disabled={isRemovingFriend}
-              >
-                {isRemovingFriend ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Cancelling...
-                  </>
+              />
+            ) : (
+              <Button variant={variant} size={size} disabled title="Request Received">
+                {compact ? (
+                  <Clock className="h-4 w-4" />
                 ) : (
                   <>
                     <Clock className="h-4 w-4 mr-2" />
-                    Cancel Request
+                    Request Received
                   </>
                 )}
               </Button>
-            ) : (
-              <Button variant={variant} size={size} disabled title="Request Received">
-                <Clock className="h-4 w-4 mr-2" />
-                Request Received
-              </Button>
             )
           ) : (
-            <Button
+            <ResponsiveActionButton
+              icon={
+                isAddingFriend ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UserPlus className="h-4 w-4" />
+                )
+              }
+              label={isAddingFriend ? 'Adding...' : 'Add Friend'}
+              tooltip={isAddingFriend ? 'Adding...' : 'Add Friend'}
+              compact={compact}
               variant={variant}
               size={size}
               onClick={handleAddFriend}
               disabled={isAddingFriend}
-            >
-              {isAddingFriend ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add Friend
-                </>
-              )}
-            </Button>
+            />
           )}
         </>
       )}
@@ -319,7 +406,7 @@ export function UserActionButtons({
           variant={variant}
           size={size}
           showIcon={true}
-          showText={false}
+          showText={!compact}
         />
       )}
 

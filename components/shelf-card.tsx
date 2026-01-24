@@ -19,9 +19,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useButtonOverflow } from '@/hooks/use-button-overflow';
+import { ResponsiveActionButton } from '@/components/ui/responsive-action-button';
 
 interface ShelfCardProps {
   shelf: CustomShelf & { bookCount?: number };
@@ -242,8 +244,12 @@ export function ShelfCard({
                   You have {booksInCommon} {booksInCommon === 1 ? 'book' : 'books'} in common
                 </div>
               )}
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button
+              <div ref={quickActionsRef} className="flex items-center gap-2 flex-wrap">
+                <ResponsiveActionButton
+                  icon={<Eye className="w-3 h-3" />}
+                  label="View"
+                  tooltip="View"
+                  compact={isCompact}
                   variant="ghost"
                   size="sm"
                   className="h-7 text-xs"
@@ -251,42 +257,38 @@ export function ShelfCard({
                     e.stopPropagation();
                     onSelect(shelf);
                   }}
-                >
-                  <Eye className="w-3 h-3 mr-1" />
-                  View
-                </Button>
-                <Button
+                />
+                <ResponsiveActionButton
+                  icon={<Share2 className="w-3 h-3" />}
+                  label="Share"
+                  tooltip="Share"
+                  compact={isCompact}
                   variant="ghost"
                   size="sm"
                   className="h-7 text-xs"
                   onClick={handleShare}
-                >
-                  <Share2 className="w-3 h-3 mr-1" />
-                  Share
-                </Button>
+                />
                 {/* Only show Follow button if user is logged in */}
                 {user && (
-                  <Button
+                  <ResponsiveActionButton
+                    icon={
+                      isFollowLoading ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : isFollowing ? (
+                        <UserCheck className="w-3 h-3" />
+                      ) : (
+                        <UserPlus className="w-3 h-3" />
+                      )
+                    }
+                    label={isFollowing ? 'Following' : 'Follow'}
+                    tooltip={isFollowing ? 'Following' : 'Follow'}
+                    compact={isCompact}
                     variant="outline"
                     size="sm"
                     className="h-7 text-xs"
                     onClick={handleFollow}
                     disabled={isFollowLoading}
-                  >
-                    {isFollowLoading ? (
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    ) : isFollowing ? (
-                      <>
-                        <UserCheck className="w-3 h-3 mr-1" />
-                        Following
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-3 h-3 mr-1" />
-                        Follow
-                      </>
-                    )}
-                  </Button>
+                  />
                 )}
               </div>
             </div>

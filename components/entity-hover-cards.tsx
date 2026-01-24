@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,8 @@ import { AddFriendButton } from '@/components/add-friend-button'
 import { FollowersDisplay } from '@/components/followers-display'
 import { MutualFriendsDisplay } from '@/components/mutual-friends-display'
 import { useAuth } from '@/hooks/useAuth'
+import { useButtonOverflow } from '@/hooks/use-button-overflow'
+import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
 
 // Enterprise-grade type definitions
 type EntityType = 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
@@ -128,6 +130,8 @@ export function EntityHoverCard({
   const router = useRouter()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isHoverCardOpen, setIsHoverCardOpen] = useState(false)
+  const actionsContainerRef = useRef<HTMLDivElement>(null)
+  const isCompact = useButtonOverflow(actionsContainerRef, 350)
 
   const handleClose = () => {}
 
@@ -415,7 +419,7 @@ export function EntityHoverCard({
         {/* Action Buttons - Show for users, authors, and publishers (only when logged in) */}
         {user && showActions && (type === 'user' || type === 'author' || type === 'publisher') && (
           <div className="px-4 pb-4 border-t border-gray-100">
-            <div className="flex gap-2 mt-3">
+            <div ref={actionsContainerRef} className="flex gap-2 mt-3">
               {type === 'user' ? (
                 <AddFriendButton
                   targetUserId={entity.id}
@@ -423,6 +427,7 @@ export function EntityHoverCard({
                   className="flex-1"
                   variant="outline"
                   size="sm"
+                  compact={isCompact}
                 />
               ) : (
                 <FollowButton
@@ -431,12 +436,19 @@ export function EntityHoverCard({
                   entityName={entity.name}
                   variant="outline"
                   className="flex-1"
+                  showText={!isCompact}
                 />
               )}
-              <Button className="flex-1 flex items-center" onClick={handleMessage} size="sm">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Message
-              </Button>
+              <ResponsiveActionButton
+                icon={<MessageSquare className="h-4 w-4" />}
+                label="Message"
+                tooltip="Message"
+                compact={isCompact}
+                variant="default"
+                size="sm"
+                onClick={handleMessage}
+                className="flex-1 flex items-center"
+              />
               <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, ReactNode } from 'react'
+import { useState, useMemo, ReactNode, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ContentSection } from '@/components/ui/content-section'
 import { Filter, X } from 'lucide-react'
@@ -13,6 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useButtonOverflow } from '@/hooks/use-button-overflow'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 export interface SortOption {
   value: string
@@ -22,7 +24,7 @@ export interface SortOption {
 export interface UserListLayoutProps<T extends { id: string | number }> {
   title: string
   items: T[]
-  renderItem: (item: T) => ReactNode
+  renderItem: (item: T, compact?: boolean) => ReactNode
   searchPlaceholder?: string
   searchValue?: string
   onSearchChange?: (value: string) => void
@@ -127,10 +129,15 @@ export function UserListLayout<T extends { id: string | number }>({
 
   const hasActiveFilters = searchQuery || (sortBy && sortBy !== defaultSort)
 
+  // Detect button overflow in the grid - measure button container width inside cards
+  const gridRef = useRef<HTMLDivElement>(null)
+  const isCompact = useButtonOverflow(gridRef, 250, true) // Threshold for button container width, isGrid=true
+
   return (
-    <ContentSection
-      title={title}
-      headerRight={
+    <TooltipProvider>
+      <ContentSection
+        title={title}
+        headerRight={
         <div className="flex items-center gap-2">
           <div className="relative">
             <ReusableSearch
@@ -199,12 +206,18 @@ export function UserListLayout<T extends { id: string | number }>({
           )}
         </div>
       )}
-      <div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="overflow-x-auto min-w-0">
+        <div
+          ref={gridRef}
+          className="grid gap-4"
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))' }}
+        >
           {filteredAndSortedItems.length > 0 ? (
-            filteredAndSortedItems.map((item) => <div key={item.id}>{renderItem(item)}</div>)
+            filteredAndSortedItems.map((item) => (
+              <div key={item.id} data-card-item className="min-w-[420px]">{renderItem(item, isCompact)}</div>
+            ))
           ) : (
-            <div className="col-span-3 text-center p-4">
+            <div className="col-span-full text-center p-4">
               <p className="text-muted-foreground">
                 {searchQuery
                   ? emptySearchMessage || `No items found matching "${searchQuery}"`
@@ -215,5 +228,6 @@ export function UserListLayout<T extends { id: string | number }>({
         </div>
       </div>
     </ContentSection>
+    </TooltipProvider>
   )
 }

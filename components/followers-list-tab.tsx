@@ -43,7 +43,7 @@ export function FollowersListTab({
       defaultSort="recent"
       emptyMessage="No followers yet"
       emptySearchMessage="No followers found matching your search"
-      renderItem={(follower) => (
+      renderItem={(follower, compact) => (
         <div className="flex flex-col border rounded-lg hover:bg-accent transition-colors overflow-hidden">
           <Link
             href={follower.permalink ? `/profile/${follower.permalink}` : `/profile/${follower.id}`}
@@ -90,7 +90,7 @@ export function FollowersListTab({
               </p>
             </div>
           </Link>
-          <div className="px-3 pb-3 pt-3 border-t">
+          <div className="px-3 pb-3 pt-3 border-t" data-button-container>
             <UserActionButtons
               userId={follower.id}
               userName={follower.name}
@@ -100,6 +100,8 @@ export function FollowersListTab({
               variant="outline"
               showFollow={false}
               className="justify-center"
+              compact={compact}
+              removeSelfEntity={{ entityId, entityType }}
             />
           </div>
         </div>

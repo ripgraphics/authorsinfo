@@ -8,6 +8,7 @@ import { followEntity, unfollowEntity } from '@/app/actions/follow'
 import { useToast } from '@/hooks/use-toast'
 import { deduplicatedRequest } from '@/lib/request-utils'
 import { useAuth } from '@/hooks/useAuth'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface FollowButtonProps {
   entityId: string | number
@@ -221,6 +222,42 @@ export default function FollowButton({
     )
   }
 
+  // Data attributes for overflow detection hook
+  const buttonDataAttrs = {
+    'data-button-label': buttonText,
+    'data-button-variant': variant,
+    'data-button-has-icon': showIcon ? 'true' : 'false',
+  }
+
+  // If icon-only mode, wrap in tooltip
+  if (!showText && showIcon) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={variant}
+              size={size === 'sm' ? 'icon' : size}
+              className={`${className} transition-all duration-200 h-9 w-9`}
+              onClick={handleFollowToggle}
+              disabled={disabled || isActionLoading}
+              {...buttonDataAttrs}
+            >
+              {isActionLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ButtonIcon className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{buttonText}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
   return (
     <Button
       variant={variant}
@@ -228,6 +265,7 @@ export default function FollowButton({
       className={`${className} transition-all duration-200`}
       onClick={handleFollowToggle}
       disabled={disabled || isActionLoading}
+      {...buttonDataAttrs}
     >
       {isActionLoading ? (
         <Loader2 className="h-4 w-4 animate-spin mr-2" />

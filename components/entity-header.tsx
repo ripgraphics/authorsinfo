@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -50,6 +50,8 @@ import { useToast } from '@/hooks/use-toast'
 import { EntityTabs } from '@/components/ui/entity-tabs'
 import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
 import { createBrowserClient } from '@supabase/ssr'
+import { useButtonOverflow } from '@/hooks/use-button-overflow'
+import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
 
 export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
 
@@ -267,6 +269,9 @@ export function EntityHeader({
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+  // Button overflow detection for responsive action buttons
+  const actionsContainerRef = useRef<HTMLDivElement>(null)
+  const isCompact = useButtonOverflow(actionsContainerRef, 350)
 
   useEffect(() => {
     const fetchGroupMemberData = async () => {
@@ -1085,6 +1090,7 @@ export function EntityHeader({
                 className="entity-header__add-friend-button flex items-center"
                 variant="outline"
                 size="sm"
+                compact={isCompact}
               />
             )}
             {/* Follow button */}
@@ -1095,15 +1101,21 @@ export function EntityHeader({
                 entityName={name}
                 variant={isFollowing ? 'outline' : 'default'}
                 className="entity-header__follow-button flex items-center"
-                onFollowChange={onFollow}
+                showText={!isCompact}
               />
             )}
             {/* Message button - shown by default when isMessageable is true, but not for own profile */}
             {isMessageable && !(entityType === 'user' && user?.id === entityId) && (
-              <Button className="entity-header__message-button flex items-center" onClick={onMessage}>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Message
-              </Button>
+              <ResponsiveActionButton
+                icon={<MessageSquare className="h-4 w-4" />}
+                label="Message"
+                tooltip="Message"
+                compact={isCompact}
+                variant="default"
+                size="sm"
+                onClick={onMessage}
+                className="entity-header__message-button flex items-center"
+              />
             )}
           </>
         )}
@@ -1334,7 +1346,10 @@ export function EntityHeader({
                 )}
               </div>
 
-              <div className="entity-header__actions flex flex-wrap justify-center md:justify-start gap-2 mt-2 md:mt-0 shrink-0 md:flex-nowrap">
+              <div
+                ref={actionsContainerRef}
+                className="entity-header__actions flex flex-wrap justify-center md:justify-start gap-2 mt-2 md:mt-0 shrink-0 md:flex-nowrap"
+              >
                 {renderActions()}
               </div>
             </div>

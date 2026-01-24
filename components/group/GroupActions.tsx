@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2, UserPlus, Heart } from 'lucide-react'
 import { FollowButton } from '@/components/follow-button'
 import { joinGroup } from '@/app/actions/groups/manage-members'
 import { useAuth } from '@/hooks/useAuth'
+import { useButtonOverflow } from '@/hooks/use-button-overflow'
+import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
 
 interface GroupActionsProps {
   groupId: string
@@ -81,27 +83,31 @@ export function GroupActions({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div ref={actionsContainerRef} className="flex items-center gap-2">
       {!isMember && !isPrivate && (
-        <Button variant="default" onClick={handleJoin} disabled={isJoining}>
-          {isJoining ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Joining...
-            </>
-          ) : (
-            <>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Join Group
-            </>
-          )}
-        </Button>
+        <ResponsiveActionButton
+          icon={
+            isJoining ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <UserPlus className="h-4 w-4" />
+            )
+          }
+          label={isJoining ? 'Joining...' : 'Join Group'}
+          tooltip={isJoining ? 'Joining...' : 'Join Group'}
+          compact={isCompact}
+          variant="default"
+          size="sm"
+          onClick={handleJoin}
+          disabled={isJoining}
+        />
       )}
       <FollowButton
         entityId={groupId}
         targetType="group"
         entityName={groupName}
         variant="outline"
+        showText={!isCompact}
       />
     </div>
   )

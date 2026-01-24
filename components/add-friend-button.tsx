@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { UserPlus, Check, Clock, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface AddFriendButtonProps {
   targetUserId: string
@@ -12,6 +13,7 @@ interface AddFriendButtonProps {
   className?: string
   variant?: 'default' | 'outline' | 'secondary' | 'ghost'
   size?: 'default' | 'sm' | 'lg' | 'icon'
+  compact?: boolean
 }
 
 type FriendStatus = 'none' | 'pending' | 'accepted' | 'rejected'
@@ -22,6 +24,7 @@ export function AddFriendButton({
   className = '',
   variant = 'default',
   size = 'default',
+  compact = false,
 }: AddFriendButtonProps) {
   const [status, setStatus] = useState<FriendStatus>('none')
   const [isPending, setIsPending] = useState(false)
@@ -101,49 +104,78 @@ export function AddFriendButton({
     return null
   }
 
-  if (isChecking) {
+  const renderButton = (icon: React.ReactNode, text: string, disabled: boolean, onClick?: () => void) => {
+    if (compact) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={variant}
+                size={size === 'sm' ? 'icon' : size}
+                className={`h-9 w-9 ${className}`}
+                disabled={disabled}
+                onClick={onClick}
+              >
+                {icon}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{text}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )
+    }
+
     return (
-      <Button variant={variant} size={size} className={className} disabled>
-        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-        Loading...
+      <Button
+        variant={variant}
+        size={size}
+        className={className}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        {icon}
+        <span className="ml-2">{text}</span>
       </Button>
+    )
+  }
+
+  if (isChecking) {
+    return renderButton(
+      <Loader2 className="h-4 w-4 animate-spin" />,
+      'Loading...',
+      true
     )
   }
 
   // Don't show button if already friends
   if (status === 'accepted') {
-    return (
-      <Button variant="outline" size={size} className={className} disabled>
-        <Check className="h-4 w-4 mr-2" />
-        Friends
-      </Button>
+    return renderButton(
+      <Check className="h-4 w-4" />,
+      'Friends',
+      true
     )
   }
 
   // Show pending status if request is pending
   if (isPending) {
-    return (
-      <Button variant="outline" size={size} className={className} disabled>
-        <Clock className="h-4 w-4 mr-2" />
-        {isRequestedByMe ? 'Request Sent' : 'Request Received'}
-      </Button>
+    return renderButton(
+      <Clock className="h-4 w-4" />,
+      isRequestedByMe ? 'Request Sent' : 'Request Received',
+      true
     )
   }
 
-  return (
-    <Button
-      variant={variant}
-      size={size}
-      className={className}
-      onClick={handleAddFriend}
-      disabled={isLoading}
-    >
-      {isLoading ? (
-        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-      ) : (
-        <UserPlus className="h-4 w-4 mr-2" />
-      )}
-      Add Friend
-    </Button>
+  return renderButton(
+    isLoading ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : (
+      <UserPlus className="h-4 w-4" />
+    ),
+    'Add Friend',
+    isLoading,
+    handleAddFriend
   )
 }

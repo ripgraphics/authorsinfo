@@ -10,7 +10,6 @@ import React, { useState, useCallback } from 'react'
 import Image from 'next/image'
 import { ArrowLeftRight, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 
 const BLUR_DATA_URL =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=='
@@ -22,7 +21,7 @@ const ASPECT_MAP = {
   '16/9': 'aspect-video',
 } as const
 
-const WIDTH_PX = { 'w-40': 160, 'w-48': 192, 'w-56': 224, 'w-full': '100%' } as const
+const WIDTH_PX = { 'w-32': 128, 'w-36': 144, 'w-40': 160, 'w-48': 192, 'w-56': 224, 'w-full': '100%' } as const
 const MAX_HEIGHT_PX = 320
 
 export type LinkPreviewImageAspectRatio = keyof typeof ASPECT_MAP
@@ -120,7 +119,8 @@ export function LinkPreviewImageWithControls({
     return (
       <div
         className={cn(
-          'relative flex-shrink-0 overflow-hidden bg-muted flex items-center justify-center',
+          'relative flex-shrink-0 bg-muted flex items-center justify-center',
+          showOverlay ? 'overflow-visible' : 'overflow-hidden',
           width === 'w-full' && 'w-full',
           className
         )}
@@ -157,11 +157,9 @@ export function LinkPreviewImageWithControls({
             aria-label="Image actions"
           >
             {onSwap && (
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 type="button"
-                className="h-8 w-8 rounded-full bg-white hover:bg-white/95 text-gray-800 shadow-lg backdrop-blur-sm border border-gray-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-[#40A3D8] text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[140px] hover:justify-start hover:pl-2 hover:pr-3"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -169,15 +167,19 @@ export function LinkPreviewImageWithControls({
                 }}
                 aria-label="Change image"
               >
-                <ArrowLeftRight className="h-4 w-4" aria-hidden />
-              </Button>
+                <ArrowLeftRight className="h-4 w-4 shrink-0" aria-hidden />
+                <span
+                  className="whitespace-nowrap max-w-0 overflow-hidden opacity-0 ml-0 text-sm font-medium transition-[max-width,opacity,margin] duration-200 ease-out group-hover/btn:max-w-[100px] group-hover/btn:opacity-100 group-hover/btn:ml-1.5"
+                  aria-hidden
+                >
+                  Change Preview
+                </span>
+              </button>
             )}
             {onRemove && (
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 type="button"
-                className="h-8 w-8 rounded-full bg-white hover:bg-white/95 text-gray-800 shadow-lg backdrop-blur-sm border border-gray-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-[#40A3D8] text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[120px] hover:justify-start hover:pl-2 hover:pr-3"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -185,8 +187,14 @@ export function LinkPreviewImageWithControls({
                 }}
                 aria-label="Remove image"
               >
-                <Trash2 className="h-4 w-4" aria-hidden />
-              </Button>
+                <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+                <span
+                  className="whitespace-nowrap max-w-0 overflow-hidden opacity-0 ml-0 text-sm font-medium transition-[max-width,opacity,margin] duration-200 ease-out group-hover/btn:max-w-[80px] group-hover/btn:opacity-100 group-hover/btn:ml-1.5"
+                  aria-hidden
+                >
+                  Remove All
+                </span>
+              </button>
             )}
           </div>
         )}
@@ -218,42 +226,50 @@ export function LinkPreviewImageWithControls({
       />
       {showOverlay && (
         <div
-          className="absolute top-2 left-2 flex gap-1.5 z-10"
+          className="absolute top-2 left-2 flex gap-1.5 z-50"
           role="group"
           aria-label="Image actions"
         >
-          {onSwap && (
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              className="h-8 w-8 rounded-full bg-white hover:bg-white/95 text-gray-800 shadow-lg backdrop-blur-sm border border-gray-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onSwap()
-              }}
-              aria-label="Change image"
-            >
-              <ArrowLeftRight className="h-4 w-4" aria-hidden />
-            </Button>
-          )}
-          {onRemove && (
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              className="h-8 w-8 rounded-full bg-white hover:bg-white/95 text-gray-800 shadow-lg backdrop-blur-sm border border-gray-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onRemove()
-              }}
-              aria-label="Remove image"
-            >
-              <Trash2 className="h-4 w-4" aria-hidden />
-            </Button>
-          )}
+            {onSwap && (
+              <button
+                type="button"
+                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-[#40A3D8] text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[140px] hover:justify-start hover:pl-2 hover:pr-3"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onSwap()
+                }}
+                aria-label="Change image"
+              >
+                <ArrowLeftRight className="h-4 w-4 shrink-0" aria-hidden />
+                <span
+                  className="whitespace-nowrap max-w-0 overflow-hidden opacity-0 ml-0 text-sm font-medium transition-[max-width,opacity,margin] duration-200 ease-out group-hover/btn:max-w-[100px] group-hover/btn:opacity-100 group-hover/btn:ml-1.5"
+                  aria-hidden
+                >
+                  Change Preview
+                </span>
+              </button>
+            )}
+            {onRemove && (
+              <button
+                type="button"
+                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-[#40A3D8] text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[120px] hover:justify-start hover:pl-2 hover:pr-3"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onRemove()
+                }}
+                aria-label="Remove image"
+              >
+                <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+                <span
+                  className="whitespace-nowrap max-w-0 overflow-hidden opacity-0 ml-0 text-sm font-medium transition-[max-width,opacity,margin] duration-200 ease-out group-hover/btn:max-w-[80px] group-hover/btn:opacity-100 group-hover/btn:ml-1.5"
+                  aria-hidden
+                >
+                  Remove All
+                </span>
+              </button>
+            )}
         </div>
       )}
     </div>

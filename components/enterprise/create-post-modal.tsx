@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
@@ -36,7 +35,6 @@ import {
   Users,
   Users2,
   User,
-  X,
   ArrowLeft,
   Clock,
   Megaphone,
@@ -236,27 +234,24 @@ export function CreatePostModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="flex flex-col max-h-[85vh] overflow-hidden max-w-[500px] p-0 [&>button]:hidden">
+      <DialogContent className="flex flex-col max-h-[85vh] overflow-hidden max-w-[500px] p-0">
         {step === 'create' ? (
           <>
             {/* Header */}
             <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
               <div className="flex items-center justify-between">
-                <DialogTitle className="text-xl font-semibold">
+                <div className="h-8 w-8 flex-shrink-0" aria-hidden="true" />
+                <DialogTitle className="flex-1 text-center text-xl font-semibold">
                   Create post
                 </DialogTitle>
-                <DialogClose asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DialogClose>
+                <div className="h-8 w-8 flex-shrink-0" aria-hidden="true" />
               </div>
             </DialogHeader>
 
             {/* Scrollable body */}
             <div className="flex-1 min-h-0 overflow-y-auto">
               {/* User Info and Privacy */}
-              <div className="px-4 pt-4 flex items-center justify-between">
+              <div className="px-4 pt-4">
                 <div className="flex items-center gap-2">
                   <Avatar
                     src={currentUserAvatar}
@@ -265,44 +260,41 @@ export function CreatePostModal({
                     size="sm"
                     className="w-10 h-10"
                   />
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-1">
                     <span className="text-sm font-semibold">{currentUserName}</span>
+                    <Select value={visibility} onValueChange={(v) => setVisibility(v as any)}>
+                      <SelectTrigger className="h-7 w-[90px] text-xs py-0.5 px-2 [&>span]:min-w-0 [&>span]:truncate [&>svg]:h-5 [&>svg]:w-5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4" />
+                            Public
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="friends">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Friends
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="followers">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            Followers
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="private">
+                          <div className="flex items-center gap-2">
+                            <Lock className="h-4 w-4" />
+                            Only me
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                <Select value={visibility} onValueChange={(v) => setVisibility(v as any)}>
-                  <SelectTrigger className="w-[120px] h-9">
-                    <div className="flex items-center gap-2">
-                      {getVisibilityIcon(visibility)}
-                      <SelectValue />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
-                        Public
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="friends">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        Friends
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="followers">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Followers
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="private">
-                      <div className="flex items-center gap-2">
-                        <Lock className="h-4 w-4" />
-                        Only me
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               {/* Text Input and Link Preview */}
@@ -313,7 +305,7 @@ export function CreatePostModal({
                   placeholder="What's on your mind?"
                   maxLength={5000}
                   onLinkPreviewChange={handleLinkPreviewChange}
-                  previewImageWidth="w-40"
+                  previewImageWidth="w-32"
                 />
               </div>
 
@@ -406,11 +398,7 @@ export function CreatePostModal({
                 <DialogTitle className="text-xl font-semibold flex-1 text-center">
                   Post settings
                 </DialogTitle>
-                <DialogClose asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DialogClose>
+                <div className="h-8 w-8 flex-shrink-0" aria-hidden="true" />
               </div>
             </DialogHeader>
 

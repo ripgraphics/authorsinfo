@@ -729,7 +729,7 @@ const EnterpriseTimelineActivities = React.memo(
                 </div>
                 <div className="flex items-center gap-2">
                   {post.is_verified && (
-                    <Badge variant="default" className="bg-blue-100 text-blue-800 text-[10px]">
+                    <Badge variant="secondary" className="text-[10px]">
                       <Check className="h-3 w-3 mr-1" />
                       Verified
                     </Badge>

@@ -8,8 +8,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Textarea } from '@/components/ui/textarea'
-import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { useLinkDetection } from '@/hooks/use-link-detection'
 // No need to import extractTextWithoutUrl - we'll implement it inline
 import { EnterpriseLinkPreviewCard } from '@/components/enterprise/link-preview/enterprise-link-preview-card'
@@ -24,7 +24,7 @@ export interface PostComposerWithPreviewProps {
   maxLength?: number
   onLinkPreviewChange?: (preview: LinkPreviewMetadata | null) => void
   /** Compact layout image width when showing link preview. Default w-48. */
-  previewImageWidth?: 'w-40' | 'w-48' | 'w-56'
+  previewImageWidth?: 'w-32' | 'w-36' | 'w-40' | 'w-48' | 'w-56'
   className?: string
 }
 
@@ -43,12 +43,14 @@ export function PostComposerWithPreview({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [linkPreview, setLinkPreview] = useState<LinkPreviewMetadata | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const [previewProgress, setPreviewProgress] = useState(0)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const currentPreviewUrlRef = useRef<string | null>(null)
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Use link detection hook
+  // Use link detection hook (faster debounce for quicker preview)
   const { detectedLinks, setText } = useLinkDetection(value, {
-    debounceMs: 300,
+    debounceMs: 150,
     autoDetect: true,
     maxLinks: 1,
   })
@@ -70,34 +72,60 @@ export function PostComposerWithPreview({
     el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
   }, [])
 
-  // Fetch link preview when link is detected
+  // Simulated progress: advance 0 -> 99% smoothly (fast then slow crawl), never stop until fetch completes
+  useEffect(() => {
+    if (!isLoadingPreview) return
+    setPreviewProgress(0)
+    const intervalMs = 100
+    const id = setInterval(() => {
+      setPreviewProgress((p) => {
+        const step = p < 60 ? 6 : p < 85 ? 3 : 1
+        return Math.min(p + step, 99)
+      })
+    }, intervalMs)
+    progressIntervalRef.current = id
+    return () => {
+      clearInterval(id)
+      progressIntervalRef.current = null
+    }
+  }, [isLoadingPreview])
+
+  // Fetch link preview when link is detected (skip_image_optimization for speed)
   useEffect(() => {
     const detectedLink = detectedLinks[0]
-    
+
     if (detectedLink && detectedLink.url) {
-      // Only fetch if we don't already have this preview loaded
-      if (currentPreviewUrlRef.current === detectedLink.url) {
-        return // Already have this preview, don't refetch
-      }
-      
+      if (currentPreviewUrlRef.current === detectedLink.url) return
+
       setIsLoadingPreview(true)
       setPreviewError(null)
+      setPreviewProgress(0)
       currentPreviewUrlRef.current = detectedLink.url
-      
+
       const fetchPreview = async () => {
         try {
           const response = await fetch('/api/link-preview', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: detectedLink.url, refresh: false }),
+            body: JSON.stringify({
+              url: detectedLink.url,
+              refresh: false,
+              skip_image_optimization: true,
+            }),
           })
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`)
           }
-          
+
           const data = await response.json()
-          
+
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current)
+            progressIntervalRef.current = null
+          }
+          setPreviewProgress(100)
+
           if (data.success && data.data) {
             setLinkPreview(data.data)
             currentPreviewUrlRef.current = data.data.url
@@ -110,6 +138,11 @@ export function PostComposerWithPreview({
           }
         } catch (error) {
           console.error('Error fetching link preview:', error)
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current)
+            progressIntervalRef.current = null
+          }
+          setPreviewProgress(100)
           setPreviewError('Failed to load preview')
           setLinkPreview(null)
           currentPreviewUrlRef.current = null
@@ -118,19 +151,19 @@ export function PostComposerWithPreview({
           setIsLoadingPreview(false)
         }
       }
-      
+
       fetchPreview()
     } else {
-      // Clear preview when no link detected
       if (currentPreviewUrlRef.current) {
         setLinkPreview(null)
         currentPreviewUrlRef.current = null
         onLinkPreviewChange?.(null)
         setPreviewError(null)
+        setPreviewProgress(0)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detectedLinks]) // Only depend on detectedLinks to avoid infinite loops
+  }, [detectedLinks])
 
   // Handle text change
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -143,8 +176,6 @@ export function PostComposerWithPreview({
   const handleRemoveLink = () => {
     const detectedLink = detectedLinks[0]
     if (detectedLink) {
-      // Remove the URL from text, preserving text before and after
-      // Use the original text from the match, not the normalized URL
       const urlPattern = new RegExp(detectedLink.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
       const textWithoutUrl = value.replace(urlPattern, '').trim().replace(/\s+/g, ' ')
       onChange(textWithoutUrl)
@@ -152,6 +183,7 @@ export function PostComposerWithPreview({
     setLinkPreview(null)
     currentPreviewUrlRef.current = null
     setPreviewError(null)
+    setPreviewProgress(0)
     onLinkPreviewChange?.(null)
   }
 
@@ -190,7 +222,7 @@ export function PostComposerWithPreview({
         value={value}
         onChange={handleTextChange}
         placeholder={placeholder}
-        className="min-h-[120px] resize-none border-0 focus:ring-0 focus:outline-none text-base"
+        className="min-h-[40px] resize-none border-0 focus:ring-0 focus:outline-none text-base"
         maxLength={maxLength}
         onInput={resizeTextarea}
       />
@@ -202,7 +234,16 @@ export function PostComposerWithPreview({
 
       {/* Link Preview Card */}
       {hasLink && detectedLink && (
-        <div className="relative mt-3">
+        <div className="relative mt-3 space-y-2">
+          {isLoadingPreview && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-muted-foreground">Loading preview…</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{previewProgress}%</span>
+              </div>
+              <Progress value={previewProgress} className="h-1.5" />
+            </div>
+          )}
           {isLoadingPreview ? (
             <LinkPreviewSkeleton layout="compact" />
           ) : linkPreview ? (
@@ -215,6 +256,7 @@ export function PostComposerWithPreview({
               showSiteName={true}
               compactImageWidth={previewImageWidth}
               trackAnalytics={false}
+              disableNavigation={true}
               onRemove={handleRemoveLink}
               onRemoveImage={handleRemoveImage}
               onImageChange={(imageUrl) => {

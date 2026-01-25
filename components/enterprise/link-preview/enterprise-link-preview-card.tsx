@@ -37,8 +37,10 @@ export interface EnterpriseLinkPreviewCardProps {
   onRemoveImage?: () => void
   showImageControls?: boolean
   /** Compact layout only: image width. Default w-48. */
-  compactImageWidth?: 'w-40' | 'w-48' | 'w-56'
+  compactImageWidth?: 'w-32' | 'w-36' | 'w-40' | 'w-48' | 'w-56'
   trackAnalytics?: boolean
+  /** When true, disables navigation (renders as div instead of anchor). */
+  disableNavigation?: boolean
 }
 
 type PreviewState = 'loading' | 'loaded' | 'error'
@@ -114,6 +116,7 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
   onClick,
   onRemove,
   trackAnalytics = true,
+  disableNavigation = false,
 }: EnterpriseLinkPreviewCardProps) {
   const [metadata, setMetadata] = useState<LinkPreviewMetadata | undefined>(
     initialMetadata
@@ -390,55 +393,73 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
     showImageControls || !!onRemove || !!onImageChange || !!onRemoveImage
 
   if (layout === 'compact') {
+    const cardContent = (
+      <div className="flex items-start gap-0">
+        {displayImage ? (
+          <LinkPreviewImageWithControls
+            imageUrl={displayImage}
+            alt={displayTitle || 'Link preview image'}
+            adaptAspect
+            width={compactImageWidth}
+            maxHeight={320}
+            onSwap={compactShowImageControls ? handleSwapImage : undefined}
+            onRemove={
+              compactShowImageControls && onRemoveImage ? () => onRemoveImage() : undefined
+            }
+            showControls={compactShowImageControls}
+            unoptimized={displayImage.includes('authorsinfo.com/_next/image')}
+          />
+        ) : null}
+        {/* Content on the right */}
+        <div className="flex-1 p-4 flex flex-col justify-center min-w-0">
+          {displaySiteName && (
+            <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">
+              {displaySiteName}
+            </p>
+          )}
+          <h4 className="text-base font-semibold line-clamp-2 mb-2">
+            {displayTitle}
+          </h4>
+          {displayDescription && (
+            <p className="text-sm text-muted-foreground line-clamp-3">
+              {displayDescription}
+            </p>
+          )}
+        </div>
+      </div>
+    )
+
     return (
       <div className={cn('relative group', className)}>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          onClick={handleClick}
-          className={cn(
-            'block rounded-lg border bg-card overflow-hidden transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-            onRemove && 'pr-10'
-          )}
-          aria-label={`Open link: ${displayTitle || url}`}
-          role="link"
-          tabIndex={0}
-        >
-          <div className="flex items-start gap-0">
-            {displayImage ? (
-              <LinkPreviewImageWithControls
-                imageUrl={displayImage}
-                alt={displayTitle || 'Link preview image'}
-                adaptAspect
-                width={compactImageWidth}
-                maxHeight={320}
-                onSwap={compactShowImageControls ? handleSwapImage : undefined}
-                onRemove={
-                  compactShowImageControls && onRemoveImage ? () => onRemoveImage() : undefined
-                }
-                showControls={compactShowImageControls}
-                unoptimized={displayImage.includes('authorsinfo.com/_next/image')}
-              />
-            ) : null}
-            {/* Content on the right */}
-            <div className="flex-1 p-4 flex flex-col justify-center min-w-0">
-              {displaySiteName && (
-                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">
-                  {displaySiteName}
-                </p>
-              )}
-              <h4 className="text-base font-semibold line-clamp-2 mb-2">
-                {displayTitle}
-              </h4>
-              {displayDescription && (
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {displayDescription}
-                </p>
-              )}
-            </div>
+        {disableNavigation ? (
+          <div
+            className={cn(
+              'block rounded-lg border bg-card transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+              compactShowImageControls ? 'overflow-visible' : 'overflow-hidden',
+              onRemove && 'pr-10'
+            )}
+            aria-label={`Link preview: ${displayTitle || url}`}
+          >
+            {cardContent}
           </div>
-        </a>
+        ) : (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            onClick={handleClick}
+            className={cn(
+              'block rounded-lg border bg-card transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+              compactShowImageControls ? 'overflow-visible' : 'overflow-hidden',
+              onRemove && 'pr-10'
+            )}
+            aria-label={`Open link: ${displayTitle || url}`}
+            role="link"
+            tabIndex={0}
+          >
+            {cardContent}
+          </a>
+        )}
         {/* Remove link button (top-right corner of entire card) */}
         {onRemove && (
           <Button
@@ -670,6 +691,7 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
     prevProps.showSecurityBadge === nextProps.showSecurityBadge &&
     prevProps.compactImageWidth === nextProps.compactImageWidth &&
     prevProps.trackAnalytics === nextProps.trackAnalytics &&
+    prevProps.disableNavigation === nextProps.disableNavigation &&
     JSON.stringify(prevProps.metadata) === JSON.stringify(nextProps.metadata)
   )
 })

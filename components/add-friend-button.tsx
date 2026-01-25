@@ -105,20 +105,26 @@ export function AddFriendButton({
   }
 
   const renderButton = (icon: React.ReactNode, text: string, disabled: boolean, onClick?: () => void) => {
-    if (compact) {
+    const buttonContent = (
+      <Button
+        variant={variant}
+        size={compact ? (size === 'sm' ? 'icon' : size) : size}
+        className={compact ? `h-9 w-9 ${className}` : className}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        {icon}
+        {!compact && <span className="ml-2">{text}</span>}
+      </Button>
+    )
+
+    // Always wrap disabled buttons in tooltip, or compact buttons
+    if (disabled || compact) {
       return (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={variant}
-                size={size === 'sm' ? 'icon' : size}
-                className={`h-9 w-9 ${className}`}
-                disabled={disabled}
-                onClick={onClick}
-              >
-                {icon}
-              </Button>
+              {buttonContent}
             </TooltipTrigger>
             <TooltipContent>
               <p>{text}</p>
@@ -128,18 +134,7 @@ export function AddFriendButton({
       )
     }
 
-    return (
-      <Button
-        variant={variant}
-        size={size}
-        className={className}
-        disabled={disabled}
-        onClick={onClick}
-      >
-        {icon}
-        <span className="ml-2">{text}</span>
-      </Button>
-    )
+    return buttonContent
   }
 
   if (isChecking) {

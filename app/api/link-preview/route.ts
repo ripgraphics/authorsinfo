@@ -27,7 +27,7 @@ import type { LinkPreviewRequest, LinkPreviewResponse } from '@/types/link-previ
 export async function POST(request: NextRequest) {
   try {
     const body: LinkPreviewRequest = await request.json()
-    const { url, refresh = false, validate_security = true } = body
+    const { url, refresh = false, validate_security = true, skip_image_optimization = false } = body
 
     if (!url || typeof url !== 'string') {
       return NextResponse.json(
@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
       // Add security score
       metadata.security_score = securityScore
 
-      // Optimize image if present
-      if (metadata.image_url) {
+      // Optimize image if present (skip when skip_image_optimization for faster preview)
+      if (metadata.image_url && !skip_image_optimization) {
         try {
           const optimized = await optimizeLinkPreviewImage(
             metadata.image_url,

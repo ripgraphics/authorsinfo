@@ -42,6 +42,8 @@ export interface LinkPreviewRequest {
   url: string
   refresh?: boolean
   validate_security?: boolean
+  /** When true, skip Cloudinary image optimization for faster preview. */
+  skip_image_optimization?: boolean
 }
 
 export interface LinkPreviewResponse {

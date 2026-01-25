@@ -239,7 +239,7 @@ const EnterpriseTimelineActivities = React.memo(
     const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null)
     const [isPending, startTransition] = useTransition()
     // Composer & posting state
-    const defaultVisibility = entityType === 'user' ? 'friends' : 'public'
+    const defaultVisibility = 'public'
     const [postForm, setPostForm] = useState({
       contentType: 'text',
       visibility: defaultVisibility as 'friends' | 'followers' | 'private' | 'public',

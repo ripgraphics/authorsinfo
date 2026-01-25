@@ -23,6 +23,8 @@ export interface PostComposerWithPreviewProps {
   placeholder?: string
   maxLength?: number
   onLinkPreviewChange?: (preview: LinkPreviewMetadata | null) => void
+  /** Compact layout image width when showing link preview. Default w-48. */
+  previewImageWidth?: 'w-40' | 'w-48' | 'w-56'
   className?: string
 }
 
@@ -35,6 +37,7 @@ export function PostComposerWithPreview({
   placeholder = "What's on your mind?",
   maxLength = 5000,
   onLinkPreviewChange,
+  previewImageWidth = 'w-48',
   className,
 }: PostComposerWithPreviewProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -210,6 +213,7 @@ export function PostComposerWithPreview({
               showImage={true}
               showDescription={true}
               showSiteName={true}
+              compactImageWidth={previewImageWidth}
               trackAnalytics={false}
               onRemove={handleRemoveLink}
               onRemoveImage={handleRemoveImage}

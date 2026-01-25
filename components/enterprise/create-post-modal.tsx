@@ -236,11 +236,11 @@ export function CreatePostModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[500px] p-0 [&>button]:hidden">
+      <DialogContent className="flex flex-col max-h-[85vh] overflow-hidden max-w-[500px] p-0 [&>button]:hidden">
         {step === 'create' ? (
           <>
             {/* Header */}
-            <DialogHeader className="px-4 pt-4 pb-2 border-b">
+            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
               <div className="flex items-center justify-between">
                 <DialogTitle className="text-xl font-semibold">
                   Create post
@@ -253,128 +253,132 @@ export function CreatePostModal({
               </div>
             </DialogHeader>
 
-            {/* User Info and Privacy */}
-            <div className="px-4 pt-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Avatar
-                  src={currentUserAvatar}
-                  alt={currentUserName}
-                  name={currentUserName}
-                  size="sm"
-                  className="w-10 h-10"
-                />
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">{currentUserName}</span>
-                </div>
-              </div>
-              <Select value={visibility} onValueChange={(v) => setVisibility(v as any)}>
-                <SelectTrigger className="w-[120px] h-9">
-                  <div className="flex items-center gap-2">
-                    {getVisibilityIcon(visibility)}
-                    <SelectValue />
+            {/* Scrollable body */}
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {/* User Info and Privacy */}
+              <div className="px-4 pt-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    src={currentUserAvatar}
+                    alt={currentUserName}
+                    name={currentUserName}
+                    size="sm"
+                    className="w-10 h-10"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{currentUserName}</span>
                   </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">
+                </div>
+                <Select value={visibility} onValueChange={(v) => setVisibility(v as any)}>
+                  <SelectTrigger className="w-[120px] h-9">
                     <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
-                      Public
+                      {getVisibilityIcon(visibility)}
+                      <SelectValue />
                     </div>
-                  </SelectItem>
-                  <SelectItem value="friends">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Friends
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="followers">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Followers
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="private">
-                    <div className="flex items-center gap-2">
-                      <Lock className="h-4 w-4" />
-                      Only me
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4" />
+                        Public
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="friends">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Friends
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="followers">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Followers
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="private">
+                      <div className="flex items-center gap-2">
+                        <Lock className="h-4 w-4" />
+                        Only me
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Text Input and Link Preview */}
-            <div className="px-4 py-4 min-h-[200px]">
-              <PostComposerWithPreview
-                value={postText}
-                onChange={setPostText}
-                placeholder="What's on your mind?"
-                maxLength={5000}
-                onLinkPreviewChange={handleLinkPreviewChange}
-              />
-            </div>
+              {/* Text Input and Link Preview */}
+              <div className="px-4 py-4 min-h-[200px]">
+                <PostComposerWithPreview
+                  value={postText}
+                  onChange={setPostText}
+                  placeholder="What's on your mind?"
+                  maxLength={5000}
+                  onLinkPreviewChange={handleLinkPreviewChange}
+                  previewImageWidth="w-40"
+                />
+              </div>
 
-            {/* Add to your post section */}
-            <div className="px-4 py-3 border-t">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Add to your post
-                </span>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-50"
-                    title="Photo/Video"
-                  >
-                    <ImageIcon className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    title="Tag People"
-                  >
-                    <UserPlus className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-                    title="Camera"
-                  >
-                    <Video className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    title="Location"
-                  >
-                    <MapPin className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    title="Messenger"
-                  >
-                    <Smile className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-                    title="More"
-                  >
-                    <MoreHorizontal className="h-5 w-5" />
-                  </Button>
+              {/* Add to your post section */}
+              <div className="px-4 py-3 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Add to your post
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-50"
+                      title="Photo/Video"
+                    >
+                      <ImageIcon className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      title="Tag People"
+                    >
+                      <UserPlus className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                      title="Camera"
+                    >
+                      <Video className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Location"
+                    >
+                      <MapPin className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      title="Messenger"
+                    >
+                      <Smile className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                      title="More"
+                    >
+                      <MoreHorizontal className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Footer with Next Button */}
-            <DialogFooter className="px-4 pb-4 border-t pt-3">
+            <DialogFooter className="flex-shrink-0 px-4 pb-4 border-t pt-3">
               <Button
                 onClick={handleNext}
                 disabled={!hasContent || isPosting}
@@ -389,7 +393,7 @@ export function CreatePostModal({
           <>
             {/* Post Settings Step */}
             {/* Header with Back button */}
-            <DialogHeader className="px-4 pt-4 pb-2 border-b">
+            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -410,8 +414,10 @@ export function CreatePostModal({
               </div>
             </DialogHeader>
 
-            {/* Settings Options */}
-            <div className="px-4 py-4 space-y-0">
+            {/* Scrollable body */}
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {/* Settings Options */}
+              <div className="px-4 py-4 space-y-0">
               {/* Post audience */}
               <button
                 onClick={() => {
@@ -504,9 +510,10 @@ export function CreatePostModal({
                 />
               </div>
             </div>
+            </div>
 
             {/* Footer with Post Button */}
-            <DialogFooter className="px-4 pb-4 border-t pt-3">
+            <DialogFooter className="flex-shrink-0 px-4 pb-4 border-t pt-3">
               <Button
                 onClick={handleSubmit}
                 disabled={!hasContent || isPosting}

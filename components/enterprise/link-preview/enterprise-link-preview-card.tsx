@@ -36,6 +36,8 @@ export interface EnterpriseLinkPreviewCardProps {
   onImageChange?: (imageUrl: string) => void
   onRemoveImage?: () => void
   showImageControls?: boolean
+  /** Compact layout only: image width. Default w-48. */
+  compactImageWidth?: 'w-40' | 'w-48' | 'w-56'
   trackAnalytics?: boolean
 }
 
@@ -105,6 +107,7 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
   onImageChange,
   onRemoveImage,
   showImageControls,
+  compactImageWidth = 'w-48',
   onLoad,
   onError,
   onRefresh,
@@ -408,7 +411,7 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
                 imageUrl={displayImage}
                 alt={displayTitle || 'Link preview image'}
                 adaptAspect
-                width="w-48"
+                width={compactImageWidth}
                 maxHeight={320}
                 onSwap={compactShowImageControls ? handleSwapImage : undefined}
                 onRemove={
@@ -665,6 +668,7 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
     prevProps.showDescription === nextProps.showDescription &&
     prevProps.showSiteName === nextProps.showSiteName &&
     prevProps.showSecurityBadge === nextProps.showSecurityBadge &&
+    prevProps.compactImageWidth === nextProps.compactImageWidth &&
     prevProps.trackAnalytics === nextProps.trackAnalytics &&
     JSON.stringify(prevProps.metadata) === JSON.stringify(nextProps.metadata)
   )

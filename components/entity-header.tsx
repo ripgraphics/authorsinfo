@@ -50,7 +50,7 @@ import { useToast } from '@/hooks/use-toast'
 import { EntityTabs } from '@/components/ui/entity-tabs'
 import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
 import { createBrowserClient } from '@supabase/ssr'
-import { useButtonOverflow } from '@/hooks/use-button-overflow'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
 
 export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
@@ -269,9 +269,9 @@ export function EntityHeader({
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-  // Button overflow detection for responsive action buttons
+  // Use mobile detection for responsive action buttons (compact only on mobile devices)
   const actionsContainerRef = useRef<HTMLDivElement>(null)
-  const isCompact = useButtonOverflow(actionsContainerRef, 350)
+  const isCompact = useIsMobile()
 
   useEffect(() => {
     const fetchGroupMemberData = async () => {

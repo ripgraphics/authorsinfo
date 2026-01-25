@@ -42,20 +42,20 @@ export function LinkPreviewSkeleton({
     )
   }
 
-  // Compact layout
+  // Compact layout (portrait-style image placeholder to match LinkPreviewImageWithControls)
   if (layout === 'compact') {
     return (
       <div
         className={cn(
-          'rounded-lg border bg-card p-3',
+          'rounded-lg border bg-card overflow-hidden',
           className
         )}
       >
-        <div className="flex items-start gap-3">
-          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded bg-muted">
+        <div className="flex items-start gap-0">
+          <div className="relative w-24 aspect-[2/3] flex-shrink-0 overflow-hidden bg-muted">
             <Shimmer />
           </div>
-          <div className="min-w-0 flex-1 space-y-2">
+          <div className="min-w-0 flex-1 p-4 space-y-2">
             <div className="h-4 w-3/4 rounded bg-muted">
               <Shimmer />
             </div>

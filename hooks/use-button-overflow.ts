@@ -48,7 +48,7 @@ export function useButtonOverflow(
       measurementRef.current = measurementDiv
     }
 
-    const measureFullButtonWidth = (label: string, hasIcon: boolean = true, variant: string = 'outline', size: string = 'sm'): number => {
+    const measureFullButtonWidth = (label: string, hasIcon: boolean = true, variant: string = 'outline', size: string = 'sm', referenceButton?: HTMLElement): number => {
       const measurementDiv = measurementRef.current!
       
       // Create a temporary button element with full content matching actual button styles

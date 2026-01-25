@@ -309,6 +309,59 @@ function extractMetadataFromHtml(html: string, url: string): ExtractedMetadata {
     }
   })
 
+  // Extract all images from the page
+  const imageUrls = new Set<string>()
+  
+  // Extract from og:image (multiple can exist)
+  $('meta[property="og:image"]').each((_, element) => {
+    const content = $(element).attr('content')
+    if (content) {
+      try {
+        imageUrls.add(new URL(content, url).toString())
+      } catch {
+        imageUrls.add(content)
+      }
+    }
+  })
+  
+  // Extract from twitter:image
+  $('meta[name="twitter:image"]').each((_, element) => {
+    const content = $(element).attr('content')
+    if (content) {
+      try {
+        imageUrls.add(new URL(content, url).toString())
+      } catch {
+        imageUrls.add(content)
+      }
+    }
+  })
+  
+  // Extract from img tags (prioritize larger images)
+  $('img').each((_, element) => {
+    const src = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-lazy-src')
+    if (src) {
+      try {
+        const absoluteUrl = new URL(src, url).toString()
+        // Filter out very small images (likely icons) and data URIs
+        if (!absoluteUrl.startsWith('data:') && !absoluteUrl.includes('icon') && !absoluteUrl.includes('logo')) {
+          const width = parseInt($(element).attr('width') || '0', 10)
+          const height = parseInt($(element).attr('height') || '0', 10)
+          // Only include images that are reasonably sized (at least 100x100 or no size specified)
+          if (width === 0 || height === 0 || (width >= 100 && height >= 100)) {
+            imageUrls.add(absoluteUrl)
+          }
+        }
+      } catch {
+        // Skip invalid URLs
+      }
+    }
+  })
+  
+  // Store all images in metadata (will be added to LinkPreviewMetadata later)
+  if (imageUrls.size > 0) {
+    metadata.all_images = Array.from(imageUrls)
+  }
+
   return metadata
 }
 
@@ -409,11 +462,24 @@ export async function extractLinkMetadata(
       extracted.html_description ||
       undefined
 
+    // Set primary image (og:image or twitter:image)
     metadata.image_url = extracted.og_image
       ? resolveUrl(extracted.og_image, url)
       : extracted.twitter_image
         ? resolveUrl(extracted.twitter_image, url)
         : undefined
+
+    // Store all available images
+    if (extracted.all_images && extracted.all_images.length > 0) {
+      metadata.images = extracted.all_images.map(img => resolveUrl(img, url))
+      // Ensure primary image is first in the array if it exists
+      if (metadata.image_url && !metadata.images.includes(metadata.image_url)) {
+        metadata.images.unshift(metadata.image_url)
+      }
+    } else if (metadata.image_url) {
+      // If no all_images but we have a primary image, use that
+      metadata.images = [metadata.image_url]
+    }
 
     metadata.site_name =
       extracted.og_site_name || extracted.twitter_site || domain

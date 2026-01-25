@@ -57,6 +57,8 @@ export function ShelfCard({
   const [booksInCommon, setBooksInCommon] = useState<number | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const quickActionsRef = useRef<HTMLDivElement>(null);
+  const isCompact = useButtonOverflow(quickActionsRef, 350, false);
 
   useEffect(() => {
     if (!isOwnEntity && shelf.isPublic && user) {

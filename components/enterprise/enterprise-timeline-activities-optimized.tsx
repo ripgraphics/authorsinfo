@@ -89,6 +89,8 @@ import { createBrowserClient } from '@supabase/ssr'
 import { SophisticatedPhotoGrid } from '../photo-gallery/sophisticated-photo-grid'
 import PostButton from '../ui/post-button'
 import { FeedPost } from '@/types/feed'
+import { CreatePostModal } from './create-post-modal'
+import type { LinkPreviewMetadata } from '@/types/link-preview'
 
 // ============================================================================
 // PERFORMANCE OPTIMIZED INTERFACES
@@ -249,6 +251,8 @@ const EnterpriseTimelineActivities = React.memo(
     const [isUploading, setIsUploading] = useState(false)
     // Top post composer state (two-state, like comment composer)
     const [isTopComposerActive, setIsTopComposerActive] = useState(false)
+    // Modal state for post creation
+    const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false)
     // Permissions and connections
     const [userConnections, setUserConnections] = useState<{
       friends: string[]
@@ -914,6 +918,136 @@ const EnterpriseTimelineActivities = React.memo(
       setIsTopComposerActive(true)
     }, [])
 
+    // Handler for modal submission (with link preview metadata)
+    const handleModalPostSubmit = useCallback(
+      async (data: {
+        text: string
+        link_url?: string
+        link_preview_metadata?: LinkPreviewMetadata
+        image_url?: string
+        visibility: string
+      }) => {
+        if (!user) return false
+        const trimmed = data.text.trim()
+        const hasContent = trimmed.length > 0 || data.link_url || data.image_url
+        if (!hasContent) return false
+
+        // Only allow posting to user timelines where permitted; allow entity posts otherwise
+        if (memoizedEntityType === 'user') {
+          const check = await canUserPostOnTimeline(user.id, memoizedUserId)
+          if (!check.canPost) {
+            toast({
+              title: 'Access denied',
+              description: check.reason || 'Cannot post here',
+              variant: 'destructive',
+            })
+            return false
+          }
+        }
+        setIsPosting(true)
+        try {
+          const now = new Date().toISOString()
+          
+          // Determine content type
+          let contentType = 'text'
+          if (data.image_url) {
+            contentType = 'image'
+          } else if (data.link_url) {
+            contentType = 'link'
+          }
+
+          // Build content data with link preview
+          const contentData: any = {
+            text: trimmed,
+            content_type: contentType,
+          }
+
+          // Add link preview metadata if available
+          if (data.link_url && data.link_preview_metadata) {
+            contentData.links = [
+              {
+                id: data.link_preview_metadata.id || crypto.randomUUID(),
+                url: data.link_url,
+                title: data.link_preview_metadata.title,
+                description: data.link_preview_metadata.description,
+                thumbnail_url: data.link_preview_metadata.thumbnail_url,
+                domain: data.link_preview_metadata.domain,
+                preview_metadata: data.link_preview_metadata,
+              },
+            ]
+          }
+
+          // Use schema-validated insert via server action
+          const { createActivityWithValidation } =
+            await import('@/app/actions/create-activity-with-validation')
+          const result = await createActivityWithValidation({
+            user_id: user.id,
+            activity_type: 'post_created',
+            visibility: data.visibility,
+            content_type: contentType,
+            text: trimmed,
+            content_summary: trimmed.substring(0, 100),
+            image_url: data.image_url || null,
+            link_url: data.link_url || null,
+            hashtags: [],
+            data: contentData,
+            entity_type: memoizedEntityType,
+            entity_id: memoizedUserId,
+            metadata: { privacy_level: data.visibility },
+            publish_status: 'published',
+            published_at: now,
+            created_at: now,
+            updated_at: now,
+          })
+
+          if (!result.success) {
+            const errorMessage = result.error || 'Failed to create post'
+            if (result.removedColumns && result.removedColumns.length > 0) {
+              console.warn('Removed non-existent columns:', result.removedColumns)
+            }
+            throw new Error(errorMessage)
+          }
+
+          if (result.warnings && result.warnings.length > 0) {
+            console.warn('Post creation warnings:', result.warnings)
+          }
+
+          setPostForm({
+            contentType: 'text',
+            visibility: defaultVisibility,
+            imageUrl: '',
+            linkUrl: '',
+            hashtags: '',
+          })
+          setIsTopComposerActive(false)
+          // Clear cache and refresh the timeline to show the new post
+          cacheRef.current.clear()
+          await fetchActivities(1, false)
+          toast({ title: 'Posted', description: 'Your post is live.' })
+          return true
+        } catch (e: any) {
+          console.error('Failed to create post:', e)
+          toast({
+            title: 'Failed to post',
+            description: e?.message || 'Try again',
+            variant: 'destructive',
+          })
+          return false
+        } finally {
+          setIsPosting(false)
+        }
+      },
+      [
+        user,
+        memoizedEntityType,
+        memoizedUserId,
+        canUserPostOnTimeline,
+        fetchActivities,
+        toast,
+        defaultVisibility,
+      ]
+    )
+
     const handleCreatePost = useCallback(
       async (content: string) => {
         if (!user) return false
@@ -1102,7 +1236,7 @@ const EnterpriseTimelineActivities = React.memo(
                 />
                 {!isTopComposerActive ? (
                   <button
-                    onClick={focusTopComposer}
+                    onClick={() => setIsCreatePostModalOpen(true)}
                     className="flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 cursor-text"
                     style={{ transition: 'none' }}
                     data-no-secondary-hover
@@ -1214,6 +1348,19 @@ const EnterpriseTimelineActivities = React.memo(
             </CardContent>
           </Card>
         )}
+
+        {/* Create Post Modal */}
+        <CreatePostModal
+          isOpen={isCreatePostModalOpen}
+          onClose={() => setIsCreatePostModalOpen(false)}
+          entityType={memoizedEntityType}
+          entityId={memoizedUserId}
+          defaultVisibility={defaultVisibility}
+          onPostCreated={() => {
+            setIsCreatePostModalOpen(false)
+          }}
+          onSubmit={handleModalPostSubmit}
+        />
       </div>
     )
   }

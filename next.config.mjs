@@ -31,6 +31,18 @@ const nextConfig = {
         port: '',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'authorsinfo.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.authorsinfo.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60,

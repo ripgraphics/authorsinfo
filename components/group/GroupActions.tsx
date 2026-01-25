@@ -28,6 +28,8 @@ export function GroupActions({
   const { user } = useAuth()
   const [isJoining, setIsJoining] = useState(false)
   const { toast } = useToast()
+  const actionsContainerRef = useRef<HTMLDivElement>(null)
+  const isCompact = useButtonOverflow(actionsContainerRef, 350, false)
 
   const handleJoin = async () => {
     setIsJoining(true)

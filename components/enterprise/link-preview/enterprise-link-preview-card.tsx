@@ -6,10 +6,10 @@
 
 'use client'
 
-import React, { useState, useEffect, memo } from 'react'
+import React, { useState, useEffect, memo, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ExternalLink, Globe, Lock, AlertTriangle, RefreshCw } from 'lucide-react'
+import { ExternalLink, Globe, Lock, AlertTriangle, RefreshCw, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,7 @@ import type { LinkPreviewMetadata } from '@/types/link-preview'
 import { LinkPreviewSkeleton } from './link-preview-skeleton'
 import { LinkPreviewError } from './link-preview-error'
 import { VideoLinkPreview } from './video-link-preview'
+import { LinkPreviewImageWithControls } from './link-preview-image-with-controls'
 
 export interface EnterpriseLinkPreviewCardProps {
   url: string
@@ -31,6 +32,10 @@ export interface EnterpriseLinkPreviewCardProps {
   onError?: (error: Error) => void
   onRefresh?: () => void
   onClick?: () => void
+  onRemove?: () => void
+  onImageChange?: (imageUrl: string) => void
+  onRemoveImage?: () => void
+  showImageControls?: boolean
   trackAnalytics?: boolean
 }
 
@@ -97,10 +102,14 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
   showSiteName = true,
   showSecurityBadge = true,
   className,
+  onImageChange,
+  onRemoveImage,
+  showImageControls,
   onLoad,
   onError,
   onRefresh,
   onClick,
+  onRemove,
   trackAnalytics = true,
 }: EnterpriseLinkPreviewCardProps) {
   const [metadata, setMetadata] = useState<LinkPreviewMetadata | undefined>(
@@ -111,6 +120,47 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
   )
   const [error, setError] = useState<Error | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
+  // Extract original URL from Next.js optimized URLs
+  const extractOriginalUrl = (url: string): string => {
+    try {
+      // If it's a Next.js optimized URL, extract the original
+      if (url.includes('/_next/image?url=')) {
+        const urlObj = new URL(url)
+        const originalUrl = urlObj.searchParams.get('url')
+        if (originalUrl) {
+          return decodeURIComponent(originalUrl)
+        }
+      }
+      return url
+    } catch {
+      return url
+    }
+  }
+
+  // Get all available images - must be called before any conditional returns
+  const availableImages = useMemo(() => {
+    if (!metadata) return []
+    const { images, image_url, thumbnail_url } = metadata
+    const imageList = images && images.length > 0 ? images : (image_url ? [image_url] : (thumbnail_url ? [thumbnail_url] : []))
+    // Extract original URLs from any Next.js optimized URLs
+    return imageList.map(extractOriginalUrl)
+  }, [metadata?.images, metadata?.image_url, metadata?.thumbnail_url])
+  
+  // Reset image index when metadata changes
+  useEffect(() => {
+    if (metadata) {
+      setSelectedImageIndex(0)
+    }
+  }, [metadata?.url])
+
+  // Reset image index when available images change
+  useEffect(() => {
+    if (selectedImageIndex >= availableImages.length && availableImages.length > 0) {
+      setSelectedImageIndex(0)
+    }
+  }, [availableImages.length, selectedImageIndex])
 
   // Track view when metadata is loaded
   useEffect(() => {
@@ -288,10 +338,20 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
     security_score,
   } = metadata
 
-  const displayImage = showImage ? (image_url || thumbnail_url) : null
+  const displayImage = showImage && availableImages.length > 0 ? availableImages[selectedImageIndex] : null
   const displayTitle = title || formatDomain(domain)
   const displayDescription = showDescription ? description : undefined
   const displaySiteName = showSiteName ? (site_name || formatDomain(domain)) : undefined
+  const hasMultipleImages = availableImages.length > 1
+
+  // Swap image: cycle to next when multiple; no-op when single (parent may use for "replace" later)
+  const handleSwapImage = () => {
+    if (hasMultipleImages) {
+      const newIndex = selectedImageIndex < availableImages.length - 1 ? selectedImageIndex + 1 : 0
+      setSelectedImageIndex(newIndex)
+      onImageChange?.(availableImages[newIndex])
+    }
+  }
 
   // Minimal layout
   if (layout === 'minimal') {
@@ -322,53 +382,76 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
     )
   }
 
-  // Compact layout
+  // Compact layout (horizontal: image on left, description on right)
+  const compactShowImageControls =
+    showImageControls || !!onRemove || !!onImageChange || !!onRemoveImage
+
   if (layout === 'compact') {
     return (
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-        onClick={handleClick}
-        className={cn(
-          'block rounded-lg border bg-card p-3 transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-          className
-        )}
-        aria-label={`Open link: ${displayTitle || url}`}
-        role="link"
-        tabIndex={0}
-      >
-        <div className="flex items-start gap-3">
-          {displayImage && (
-            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded">
-              <Image
-                src={displayImage}
-                alt={displayTitle}
-                fill
-                className="object-cover"
-                sizes="64px"
-              />
-            </div>
+      <div className={cn('relative group', className)}>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          onClick={handleClick}
+          className={cn(
+            'block rounded-lg border bg-card overflow-hidden transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+            onRemove && 'pr-10'
           )}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="line-clamp-2 text-sm font-semibold">
+          aria-label={`Open link: ${displayTitle || url}`}
+          role="link"
+          tabIndex={0}
+        >
+          <div className="flex items-start gap-0">
+            {displayImage ? (
+              <LinkPreviewImageWithControls
+                imageUrl={displayImage}
+                alt={displayTitle || 'Link preview image'}
+                aspectRatio="2/3"
+                width="w-48"
+                onSwap={compactShowImageControls ? handleSwapImage : undefined}
+                onRemove={
+                  compactShowImageControls && onRemoveImage ? () => onRemoveImage() : undefined
+                }
+                showControls={compactShowImageControls}
+                unoptimized={displayImage.includes('authorsinfo.com/_next/image')}
+              />
+            ) : null}
+            {/* Content on the right */}
+            <div className="flex-1 p-4 flex flex-col justify-center min-w-0">
+              {displaySiteName && (
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">
+                  {displaySiteName}
+                </p>
+              )}
+              <h4 className="text-base font-semibold line-clamp-2 mb-2">
                 {displayTitle}
               </h4>
-              {link_type && (
-                <Badge variant={getLinkTypeBadgeVariant(link_type)} className="text-xs">
-                  {link_type}
-                </Badge>
+              {displayDescription && (
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {displayDescription}
+                </p>
               )}
             </div>
-            {displaySiteName && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                {displaySiteName}
-              </p>
-            )}
           </div>
-        </div>
-      </a>
+        </a>
+        {/* Remove link button (top-right corner of entire card) */}
+        {onRemove && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onRemove()
+            }}
+            aria-label="Remove link"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     )
   }
 
@@ -502,6 +585,7 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
               className="object-cover"
               sizes="(max-width: 640px) 128px, 160px"
               loading="lazy"
+              unoptimized={displayImage?.includes('authorsinfo.com/_next/image')}
               placeholder="blur"
               blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />

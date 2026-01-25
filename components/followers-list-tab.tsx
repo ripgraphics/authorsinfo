@@ -101,7 +101,7 @@ export function FollowersListTab({
               showFollow={false}
               className="justify-center"
               compact={compact}
-              removeSelfEntity={{ entityId, entityType }}
+              removeSelfEntity={{ entityId, entityType: entityType as 'user' | 'group' | 'author' | 'book' | 'publisher' }}
             />
           </div>
         </div>

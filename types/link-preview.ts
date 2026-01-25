@@ -9,6 +9,7 @@ export interface LinkPreviewMetadata {
   description?: string
   image_url?: string
   thumbnail_url?: string
+  images?: string[] // Array of all available images from the page
   favicon_url?: string
   site_name?: string
   domain: string
@@ -113,6 +114,9 @@ export interface ExtractedMetadata {
   product_currency?: string
   product_availability?: string
   product_condition?: string
+
+  // All images found on the page
+  all_images?: string[]
 }
 
 export interface LinkPreviewOptions {

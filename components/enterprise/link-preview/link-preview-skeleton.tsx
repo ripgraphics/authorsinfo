@@ -68,7 +68,7 @@ export function LinkPreviewSkeleton({
     )
   }
 
-  // Vertical layout
+  // Vertical layout — full-width image placeholder (matches adaptAspect full-image)
   if (layout === 'vertical') {
     return (
       <div
@@ -77,7 +77,7 @@ export function LinkPreviewSkeleton({
           className
         )}
       >
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+        <div className="relative w-full aspect-[4/3] overflow-hidden bg-muted">
           <Shimmer />
         </div>
         <div className="p-4 space-y-3">
@@ -103,7 +103,7 @@ export function LinkPreviewSkeleton({
     )
   }
 
-  // Horizontal layout (default)
+  // Horizontal layout (default) — portrait-style image to match full-image display
   return (
     <div
       className={cn(
@@ -111,8 +111,8 @@ export function LinkPreviewSkeleton({
         className
       )}
     >
-      <div className="flex">
-        <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden bg-muted sm:h-40 sm:w-40">
+      <div className="flex items-start">
+        <div className="relative w-40 aspect-[2/3] flex-shrink-0 overflow-hidden bg-muted">
           <Shimmer />
         </div>
         <div className="flex flex-1 flex-col p-4 space-y-3">

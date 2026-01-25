@@ -407,8 +407,9 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
               <LinkPreviewImageWithControls
                 imageUrl={displayImage}
                 alt={displayTitle || 'Link preview image'}
-                aspectRatio="2/3"
+                adaptAspect
                 width="w-48"
+                maxHeight={320}
                 onSwap={compactShowImageControls ? handleSwapImage : undefined}
                 onRemove={
                   compactShowImageControls && onRemoveImage ? () => onRemoveImage() : undefined
@@ -467,23 +468,23 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
         <a
           href={url}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer nofollow"
           onClick={handleClick}
-          className="block"
+          className="block rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label={`Open link: ${displayTitle || url}`}
+          tabIndex={0}
         >
           {displayImage && (
-            <div className="relative aspect-video w-full overflow-hidden bg-muted">
-              <Image
-                src={displayImage}
-                alt={displayTitle || 'Link preview image'}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                loading="lazy"
-                placeholder="blur"
-                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-              />
-            </div>
+            <LinkPreviewImageWithControls
+              imageUrl={displayImage}
+              alt={displayTitle || 'Link preview image'}
+              adaptAspect
+              width="w-full"
+              maxHeight={320}
+              showControls={false}
+              unoptimized={displayImage.includes('authorsinfo.com/_next/image')}
+              className="w-full rounded-t-lg"
+            />
           )}
           <div className="p-4">
             <div className="flex items-start justify-between gap-2">
@@ -559,7 +560,7 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
     )
   }
 
-  // Horizontal layout (default)
+  // Horizontal layout (default) — full image, portrait aspect, no overlay
   return (
     <div
       className={cn(
@@ -572,24 +573,22 @@ export const EnterpriseLinkPreviewCard = memo(function EnterpriseLinkPreviewCard
         target="_blank"
         rel="noopener noreferrer nofollow"
         onClick={handleClick}
-        className="flex"
+        className="flex items-start rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={`Open link: ${displayTitle || url}`}
         role="link"
+        tabIndex={0}
       >
         {displayImage && (
-          <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden bg-muted sm:h-40 sm:w-40">
-            <Image
-              src={displayImage}
-              alt={displayTitle || 'Link preview image'}
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) 128px, 160px"
-              loading="lazy"
-              unoptimized={displayImage?.includes('authorsinfo.com/_next/image')}
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-            />
-          </div>
+          <LinkPreviewImageWithControls
+            imageUrl={displayImage}
+            alt={displayTitle || 'Link preview image'}
+            adaptAspect
+            width="w-40"
+            maxHeight={320}
+            showControls={false}
+            unoptimized={displayImage.includes('authorsinfo.com/_next/image')}
+            className="rounded-l-lg"
+          />
         )}
         <div className="flex flex-1 flex-col p-4">
           <div className="flex items-start justify-between gap-2">

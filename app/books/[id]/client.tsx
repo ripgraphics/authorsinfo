@@ -1585,7 +1585,7 @@ export function ClientBookPage({
                                 </span>
                               </EntityHoverCard>
                               <span> (Author)</span>
-                              {index < authors.length - 1 && <span className="mx-2">•</span>}
+                              {index < authors.length - 1 && <span className="mx-2">|</span>}
                             </span>
                           ))}
                         </div>
@@ -1593,28 +1593,72 @@ export function ClientBookPage({
                     )}
 
                     {/* Publisher(s) - Full Width */}
-                    {publisher && (
-                      <div className="book-details__publishers-section">
-                        <h3 className="font-medium text-lg">Publisher(s)</h3>
-                        <div className="text-muted-foreground">
-                          <EntityHoverCard
-                            type="publisher"
-                            entity={{
-                              id: publisher.id,
-                              name: publisher.name,
-                              publisher_image: publisher.publisher_image,
-                              logo_url: publisher.publisher_image?.url,
-                              bookCount: publisherBooksCount,
-                              authorCount: publisherAuthorCount,
-                              followersCount: publisherFollowersCount,
-                              mutualFriendsCount: publisherMutualFriendsCount,
-                            }}
-                          >
-                            <span className="text-muted-foreground hover:text-primary transition-colors">
-                              {publisher.name}
-                            </span>
-                          </EntityHoverCard>
+                    {(() => {
+                      // Convert single publisher to array for consistent handling
+                      const publishersArray = publisher ? (Array.isArray(publisher) ? publisher : [publisher]) : []
+                      return publishersArray.length > 0 ? (
+                        <div className="book-details__publishers-section">
+                          <div className="text-muted-foreground">
+                            {publishersArray.map((pub, index) => (
+                              <span key={pub.id}>
+                                <EntityHoverCard
+                                  type="publisher"
+                                  entity={{
+                                    id: pub.id,
+                                    name: pub.name,
+                                    publisher_image: pub.publisher_image,
+                                    logo_url: pub.publisher_image?.url,
+                                    bookCount: publisherBooksCount,
+                                    authorCount: publisherAuthorCount,
+                                    followersCount: publisherFollowersCount,
+                                    mutualFriendsCount: publisherMutualFriendsCount,
+                                  }}
+                                >
+                                  <span className="text-black hover:text-primary transition-colors font-semibold">
+                                    {pub.name}
+                                  </span>
+                                </EntityHoverCard>
+                                <span> (Publisher)</span>
+                                {index < publishersArray.length - 1 && <span className="mx-2">|</span>}
+                              </span>
+                            ))}
+                          </div>
                         </div>
+                      ) : null
+                    })()}
+
+                    {/* Synopsis and Overview - Full Width */}
+                    {book.synopsis && (
+                      <div className="book-details__synopsis-section">
+                        <h3 className="font-medium text-lg">Synopsis</h3>
+                        <Collapsible open={showFullAbout} onOpenChange={setShowFullAbout}>
+                          {/* Show truncated content initially */}
+                          <div
+                            className={`text-muted-foreground max-w-none synopsis-content prose prose-sm ${
+                              !showFullAbout ? 'max-h-60 overflow-hidden' : 'hidden'
+                            }`}
+                            dangerouslySetInnerHTML={{ __html: book.synopsis }}
+                          />
+
+                          {/* Show full content when expanded */}
+                          <CollapsibleContent className="text-muted-foreground max-w-none synopsis-content prose prose-sm">
+                            <div dangerouslySetInnerHTML={{ __html: book.synopsis }} />
+                          </CollapsibleContent>
+
+                          {needsTruncation && (
+                            <div className="flex justify-end mt-2">
+                              <CollapsibleTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-primary hover:bg-primary/10 hover:text-primary"
+                                >
+                                  {showFullAbout ? 'View Less' : 'View More'}
+                                </Button>
+                              </CollapsibleTrigger>
+                            </div>
+                          )}
+                        </Collapsible>
                       </div>
                     )}
 
@@ -1813,41 +1857,6 @@ export function ClientBookPage({
                         )}
                       </div>
                     </div>
-
-                    {/* Synopsis and Overview - Full Width */}
-                    {book.synopsis && (
-                      <div className="book-details__synopsis-section">
-                        <h3 className="font-medium text-lg">Synopsis</h3>
-                        <Collapsible open={showFullAbout} onOpenChange={setShowFullAbout}>
-                          {/* Show truncated content initially */}
-                          <div
-                            className={`text-muted-foreground max-w-none synopsis-content prose prose-sm ${
-                              !showFullAbout ? 'max-h-60 overflow-hidden' : 'hidden'
-                            }`}
-                            dangerouslySetInnerHTML={{ __html: book.synopsis }}
-                          />
-
-                          {/* Show full content when expanded */}
-                          <CollapsibleContent className="text-muted-foreground max-w-none synopsis-content prose prose-sm">
-                            <div dangerouslySetInnerHTML={{ __html: book.synopsis }} />
-                          </CollapsibleContent>
-
-                          {needsTruncation && (
-                            <div className="flex justify-end mt-2">
-                              <CollapsibleTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-primary hover:bg-primary/10 hover:text-primary"
-                                >
-                                  {showFullAbout ? 'View Less' : 'View More'}
-                                </Button>
-                              </CollapsibleTrigger>
-                            </div>
-                          )}
-                        </Collapsible>
-                      </div>
-                    )}
 
                     {book.overview && (
                       <div className="book-details__overview-section">

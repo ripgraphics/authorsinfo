@@ -142,9 +142,27 @@ export async function POST(request: NextRequest) {
       // Process mentions
       for (const mention of mentions) {
         const metadata: Record<string, any> = {}
-        if (mention.entityId) {
+        
+        // For user mentions, look up the user to get permalink
+        if (mention.type === 'user') {
+          const { data: users } = await supabase
+            .from('users')
+            .select('id, permalink, name')
+            .or(`name.ilike.%${mention.name}%,permalink.ilike.%${mention.name}%`)
+            .is('deleted_at', null)
+            .limit(1)
+            .single()
+          
+          if (users) {
+            const user = users as any
+            metadata.entity_id = user.id
+            metadata.entity_type = 'user'
+            metadata.permalink = user.permalink || user.id // Store permalink for correct routing
+          }
+        } else if (mention.entityId) {
           metadata.entity_id = mention.entityId
         }
+        
         if (mention.entityType) {
           metadata.entity_type = mention.entityType
         }

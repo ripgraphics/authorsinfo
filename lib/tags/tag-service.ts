@@ -490,25 +490,84 @@ export async function findOrCreateTag(
 ): Promise<string | null> {
   const supabase = await createClient()
 
-  // Generate slug
-  const slug = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
+  // For user tags, if permalink is in metadata, use it as slug (preserves dots)
+  // Otherwise generate slug from name
+  let slug: string
+  if (type === 'user' && metadata?.permalink) {
+    slug = metadata.permalink.toLowerCase()
+  } else {
+    // Generate slug from name (removes special chars including dots)
+    slug = name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+  }
 
-  // Try to find existing tag
-  const { data: existing } = await supabase
+  // Try to find existing tag by slug
+  let { data: existing } = await supabase
     .from('tags')
-    .select('id')
+    .select('id, metadata')
     .eq('slug', slug)
     .eq('type', type)
     .is('deleted_at', null)
     .single()
 
+  // For user tags, also try to find by entity_id in metadata (to handle existing tags with old slug format)
+  if (!existing && type === 'user' && metadata?.entity_id) {
+    // Search for tags with matching entity_id in metadata
+    const { data: tagsByEntity } = await supabase
+      .from('tags')
+      .select('id, metadata, slug')
+      .eq('type', 'user')
+      .is('deleted_at', null)
+      .limit(10)
+    
+    // Filter in memory (Supabase JSONB queries can be tricky)
+    const matchingTag = tagsByEntity?.find((tag: any) => {
+      const tagMetadata = tag.metadata as Record<string, any>
+      return tagMetadata?.entity_id === metadata.entity_id
+    })
+    
+    if (matchingTag) {
+      existing = matchingTag
+      // Update slug and metadata if permalink is provided
+      if (metadata.permalink && matchingTag.slug !== metadata.permalink.toLowerCase()) {
+        await supabase
+          .from('tags')
+          .update({
+            slug: metadata.permalink.toLowerCase(),
+            metadata: {
+              ...(matchingTag.metadata as Record<string, any> || {}),
+              ...metadata,
+            },
+          })
+          .eq('id', matchingTag.id)
+      }
+    }
+  }
+
   if (existing) {
+    // If metadata is provided and tag exists, update metadata (especially for user tags to store permalink)
+    if (metadata && Object.keys(metadata).length > 0 && type === 'user' && metadata.permalink) {
+      const existingMetadata = (existing.metadata as Record<string, any>) || {}
+      // Only update if permalink is missing or different
+      if (!existingMetadata.permalink || existingMetadata.permalink !== metadata.permalink) {
+        await supabase
+          .from('tags')
+          .update({
+            metadata: {
+              ...existingMetadata,
+              ...metadata,
+            },
+            // Also update slug to match permalink if it's a user tag
+            ...(type === 'user' && metadata.permalink ? { slug: metadata.permalink.toLowerCase() } : {}),
+          })
+          .eq('id', existing.id)
+      }
+    }
     return existing.id
   }
 

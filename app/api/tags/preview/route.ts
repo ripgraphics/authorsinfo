@@ -90,17 +90,18 @@ export async function GET(request: NextRequest) {
             .single()
           preview.avatarUrl = (image as any)?.url || null
         }
-      }
 
-      // Get follower count (if you have a follows table)
-      const { count: followerCount } = await supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('following_id', userId)
+        // Get follower count (if you have a follows table)
+        const { count: followerCount } = await supabase
+          .from('follows')
+          .select('*', { count: 'exact', head: true })
+          .eq('following_id', userId)
 
-      preview.metadata = {
-        ...preview.metadata,
-        followers: followerCount || 0,
+        preview.metadata = {
+          ...preview.metadata,
+          permalink: user.permalink || user.id, // Store permalink for correct routing
+          followers: followerCount || 0,
+        }
       }
     } else if (tagType === 'entity' && tagData.metadata?.entity_id && tagData.metadata?.entity_type) {
       const entityId = tagData.metadata.entity_id

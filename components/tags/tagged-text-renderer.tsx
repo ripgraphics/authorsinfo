@@ -8,6 +8,7 @@
 
 import React, { useMemo } from 'react'
 import { TagDisplay } from './tag-display'
+import { TagPreviewData } from './tag-preview-card'
 import { cn } from '@/lib/utils'
 
 export interface TaggedTextRendererProps {
@@ -25,6 +26,7 @@ export interface TaggedTextRendererProps {
     entity_id?: string
     entity_type?: string
     avatar_url?: string
+    tag_metadata?: Record<string, any>
   }>
   /** Callback when a tag is clicked */
   onTagClick?: (tag: { type: string; slug: string; name: string }) => void
@@ -133,6 +135,16 @@ export function TaggedTextRenderer({
         const tagSlug = tagging?.tag_slug || segment.slug || segment.content.toLowerCase()
         const tagName = tagging?.tag_name || segment.content
         const avatarUrl = tagging?.avatar_url
+        const tagMetadata = tagging?.tag_metadata
+
+        // Create preview data with metadata for user tags to get correct permalink
+        const previewData: TagPreviewData | undefined = tagMetadata ? {
+          id: tagging?.tag_id || '',
+          name: tagName,
+          slug: tagSlug,
+          type: tagType as TagPreviewData['type'],
+          metadata: tagMetadata,
+        } : undefined
 
         return (
           <TagDisplay
@@ -142,6 +154,7 @@ export function TaggedTextRenderer({
             type={tagType}
             avatarUrl={avatarUrl}
             showPreview={showPreviews}
+            previewData={previewData}
             onClick={
               onTagClick
                 ? () => onTagClick({ type: tagType, slug: tagSlug, name: tagName })

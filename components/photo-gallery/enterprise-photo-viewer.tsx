@@ -186,6 +186,12 @@ export function EnterprisePhotoViewer({
   const [photoData, setPhotoData] = useState<any>(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
+  // Swipe gesture state
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const minSwipeDistance = 50
+
   // Form state for editing
   const [editForm, setEditForm] = useState({
     alt_text: '',
@@ -856,6 +862,11 @@ export function EnterprisePhotoViewer({
   }, [handleKeyDown])
 
   const handleImageClick = (e: React.MouseEvent) => {
+    // Don't trigger click if user was dragging
+    if (isDragging) {
+      return
+    }
+    
     if (isTagging) {
       const rect = e.currentTarget.getBoundingClientRect()
       const x = ((e.clientX - rect.left) / rect.width) * 100
@@ -865,6 +876,79 @@ export function EnterprisePhotoViewer({
       // Navigate to next image when not tagging (wraps to first photo when on last)
       onIndexChange((currentIndex + 1) % photos.length)
     }
+  }
+
+  // Touch/swipe handlers for mobile
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+    setIsDragging(false)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+    setIsDragging(true)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe && photos.length > 1) {
+      // Swipe left - go to next photo
+      onIndexChange((currentIndex + 1) % photos.length)
+    }
+    if (isRightSwipe && photos.length > 1) {
+      // Swipe right - go to previous photo
+      onIndexChange((currentIndex - 1 + photos.length) % photos.length)
+    }
+
+    // Reset state
+    setTouchStart(null)
+    setTouchEnd(null)
+    setIsDragging(false)
+  }
+
+  // Mouse drag handlers for desktop
+  const onMouseDown = (e: React.MouseEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.clientX)
+    setIsDragging(false)
+  }
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (touchStart !== null) {
+      setTouchEnd(e.clientX)
+      setIsDragging(true)
+    }
+  }
+
+  const onMouseUp = () => {
+    if (!touchStart || !touchEnd) return
+
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe && photos.length > 1) {
+      onIndexChange((currentIndex + 1) % photos.length)
+    }
+    if (isRightSwipe && photos.length > 1) {
+      onIndexChange((currentIndex - 1 + photos.length) % photos.length)
+    }
+
+    setTouchStart(null)
+    setTouchEnd(null)
+    setIsDragging(false)
+  }
+
+  const onMouseLeave = () => {
+    setTouchStart(null)
+    setTouchEnd(null)
+    setIsDragging(false)
   }
 
   if (!photo) return null
@@ -1004,12 +1088,22 @@ export function EnterprisePhotoViewer({
 
             {/* Main Image */}
             <div
-              className={`relative w-full h-full flex items-center justify-center ${isTagging ? 'cursor-crosshair' : 'cursor-pointer'}`}
-              onClick={handleImageClick}
+              className={`relative w-full h-full flex items-center justify-center select-none ${isTagging ? 'cursor-crosshair' : isDragging ? 'cursor-grabbing' : 'cursor-pointer'}`}
+              onClick={isDragging ? undefined : handleImageClick}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={onMouseUp}
+              onMouseLeave={onMouseLeave}
+              style={{ touchAction: 'pan-y' }}
               title={
                 isTagging
                   ? 'Click to add tag'
-                  : 'Click to go to next image'
+                  : isDragging
+                  ? 'Release to navigate'
+                  : 'Click to go to next image or drag to navigate'
               }
             >
               <img

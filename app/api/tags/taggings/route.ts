@@ -155,26 +155,15 @@ export async function POST(request: NextRequest) {
 
       const metadata: Record<string, any> = {}
       
-      // For user tags, look up the user to get permalink
+      // For user tags, look up the user to get UUID
       if (tagData.type === 'user') {
         if (tagData.entityId) {
           metadata.entity_id = tagData.entityId
-          // Fetch user's permalink
-          const { data: userData } = await supabase
-            .from('users')
-            .select('id, permalink')
-            .eq('id', tagData.entityId)
-            .single()
-          
-          if (userData) {
-            const user = userData as any
-            metadata.permalink = user.permalink || user.id
-          }
         } else {
           // Try to find user by name
           const { data: userData } = await supabase
             .from('users')
-            .select('id, permalink')
+            .select('id')
             .or(`name.ilike.%${tagData.name}%,permalink.ilike.%${tagData.name}%`)
             .is('deleted_at', null)
             .limit(1)
@@ -183,7 +172,6 @@ export async function POST(request: NextRequest) {
           if (userData) {
             const user = userData as any
             metadata.entity_id = user.id
-            metadata.permalink = user.permalink || user.id
           }
         }
         metadata.entity_type = 'user'

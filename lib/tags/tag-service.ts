@@ -490,21 +490,14 @@ export async function findOrCreateTag(
 ): Promise<string | null> {
   const supabase = await createClient()
 
-  // For user tags, if permalink is in metadata, use it as slug (preserves dots)
-  // Otherwise generate slug from name
-  let slug: string
-  if (type === 'user' && metadata?.permalink) {
-    slug = metadata.permalink.toLowerCase()
-  } else {
-    // Generate slug from name (removes special chars including dots)
-    slug = name
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-  }
+  // Generate slug from name (removes special chars including dots)
+  const slug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
 
   // Try to find existing tag by slug
   let { data: existing } = await supabase
@@ -533,12 +526,11 @@ export async function findOrCreateTag(
     
     if (matchingTag) {
       existing = matchingTag
-      // Update slug and metadata if permalink is provided
-      if (metadata.permalink && matchingTag.slug !== metadata.permalink.toLowerCase()) {
+      // Update metadata if entity_id is provided
+      if (metadata.entity_id) {
         await supabase
           .from('tags')
           .update({
-            slug: metadata.permalink.toLowerCase(),
             metadata: {
               ...(matchingTag.metadata as Record<string, any> || {}),
               ...metadata,
@@ -550,11 +542,11 @@ export async function findOrCreateTag(
   }
 
   if (existing) {
-    // If metadata is provided and tag exists, update metadata (especially for user tags to store permalink)
-    if (metadata && Object.keys(metadata).length > 0 && type === 'user' && metadata.permalink) {
+    // If metadata is provided and tag exists, update metadata (especially for user tags to store entity_id)
+    if (metadata && Object.keys(metadata).length > 0 && type === 'user' && metadata.entity_id) {
       const existingMetadata = (existing.metadata as Record<string, any>) || {}
-      // Only update if permalink is missing or different
-      if (!existingMetadata.permalink || existingMetadata.permalink !== metadata.permalink) {
+      // Only update if entity_id is missing or different
+      if (!existingMetadata.entity_id || existingMetadata.entity_id !== metadata.entity_id) {
         await supabase
           .from('tags')
           .update({
@@ -562,8 +554,6 @@ export async function findOrCreateTag(
               ...existingMetadata,
               ...metadata,
             },
-            // Also update slug to match permalink if it's a user tag
-            ...(type === 'user' && metadata.permalink ? { slug: metadata.permalink.toLowerCase() } : {}),
           })
           .eq('id', existing.id)
       }

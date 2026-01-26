@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
 
         preview.metadata = {
           ...preview.metadata,
-          permalink: user.permalink || user.id, // Store permalink for correct routing
+          entity_id: user.id, // Store UUID for correct routing
           followers: followerCount || 0,
         }
       }

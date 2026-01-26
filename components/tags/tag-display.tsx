@@ -40,56 +40,17 @@ export function TagDisplay({
   const [showPreviewCard, setShowPreviewCard] = useState(false)
   const [preview, setPreview] = useState<TagPreviewData | null>(previewData || null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
-  const [userPermalink, setUserPermalink] = useState<string | null>(null)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const tagRef = useRef<HTMLSpanElement>(null)
 
   const prefix = type === 'topic' ? '#' : '@'
   
-  // For user tags, fetch permalink if not in metadata
-  useEffect(() => {
-    if (type === 'user' && !userPermalink) {
-      const metadata = preview?.metadata || previewData?.metadata
-      const entityId = metadata?.entity_id
-      
-      // If we have permalink in metadata, use it
-      if (metadata?.permalink) {
-        setUserPermalink(metadata.permalink)
-      } 
-      // If we have entity_id but no permalink, fetch it
-      else if (entityId && entityId !== slug) {
-        // Only fetch if entityId is a UUID (not already a permalink)
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entityId)
-        if (isUUID) {
-          fetch(`/api/users/${entityId}`)
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.user?.permalink) {
-                setUserPermalink(data.user.permalink)
-              }
-            })
-            .catch(() => {
-              // Silently fail - will use slug as fallback
-            })
-        }
-      }
-      // If slug contains a dot, it might be a permalink already
-      else if (slug.includes('.')) {
-        setUserPermalink(slug)
-      }
-    }
-  }, [type, preview, previewData, userPermalink, slug])
-  
   // Compute href reactively based on current preview/metadata
-  // This ensures we use the correct permalink when it becomes available
+  // Uses entity_id (UUID) from metadata for user tags
   const href = useMemo(() => {
     const metadata = preview?.metadata || previewData?.metadata
-    // Use fetched permalink if available
-    const effectiveMetadata = userPermalink && type === 'user' 
-      ? { ...metadata, permalink: userPermalink }
-      : metadata
-    return getTagHref(type, slug, effectiveMetadata)
-  }, [type, slug, preview, previewData, userPermalink])
+    return getTagHref(type, slug, metadata)
+  }, [type, slug, preview, previewData])
 
   const handleMouseEnter = async () => {
     if (!showPreview) return
@@ -200,9 +161,9 @@ function getTagHref(
 ): string | null {
   switch (type) {
     case 'user':
-      // Priority: 1) permalink from metadata, 2) slug (which might be permalink if from autocomplete), 3) entity_id
-      const userPermalink = metadata?.permalink || (slug.includes('.') ? slug : null) || metadata?.entity_id || slug
-      return `/profile/${userPermalink}`
+      // Use entity_id (UUID) from metadata for user tags, fallback to slug if not available
+      const userId = metadata?.entity_id || slug
+      return `/profile/${userId}`
     case 'entity':
       // Entity type would need to be passed separately to determine the correct route
       // For now, return a generic route

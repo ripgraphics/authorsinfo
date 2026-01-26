@@ -82,6 +82,7 @@ import { EngagementDisplay } from '@/components/enterprise/engagement-display'
 import EntityCommentComposer from '@/components/entity-comment-composer'
 import dynamic from 'next/dynamic'
 import { extractLinks, extractFirstLink } from '@/lib/link-preview/link-extractor'
+import { TaggedTextRenderer } from '@/components/tags/tagged-text-renderer'
 
 // Code splitting: Lazy load link preview components
 const EnterpriseLinkPreviewCard = dynamic(
@@ -1408,7 +1409,11 @@ export default function EntityFeedCard({
             <div className="enterprise-feed-card-text prose prose-sm max-w-none">
               <div className="enterprise-feed-card-text-preview">
                 {displayText ? (
-                  <div dangerouslySetInnerHTML={{ __html: displayText }} />
+                  <TaggedTextRenderer
+                    text={displayText}
+                    showPreviews={true}
+                    className="text-foreground"
+                  />
                 ) : (
                   <div className="text-muted-foreground">No text content available</div>
                 )}
@@ -1477,7 +1482,11 @@ export default function EntityFeedCard({
 
             {displayText && (
               <div className="enterprise-feed-card-photo-caption mt-3">
-                <p className="text-sm text-muted-foreground">{displayText}</p>
+                <TaggedTextRenderer
+                  text={displayText}
+                  showPreviews={true}
+                  className="text-sm text-muted-foreground"
+                />
               </div>
             )}
           </div>
@@ -1703,7 +1712,11 @@ export default function EntityFeedCard({
         if (allLinks.length === 0) {
           return (
             <div className="enterprise-feed-card-link-content">
-              <p className="text-sm text-muted-foreground">{displayText}</p>
+              <TaggedTextRenderer
+                text={displayText}
+                showPreviews={true}
+                className="text-sm text-muted-foreground"
+              />
             </div>
           )
         }
@@ -1747,7 +1760,11 @@ export default function EntityFeedCard({
       default:
         return (
           <div className="enterprise-feed-card-default-content">
-            <p className="text-sm text-muted-foreground">{displayText}</p>
+            <TaggedTextRenderer
+              text={displayText}
+              showPreviews={true}
+              className="text-sm text-muted-foreground"
+            />
           </div>
         )
     }
@@ -1877,6 +1894,18 @@ export default function EntityFeedCard({
                 >
                   <currentSafetyConfig.icon className="h-3 w-3 mr-1" />
                   {currentSafetyConfig.label}
+                </Badge>
+              )}
+
+              {/* Cross-post Badge */}
+              {post.metadata?.cross_post && (
+                <Badge variant="secondary" className="enterprise-feed-card-cross-post">
+                  <Share2 className="h-3 w-3 mr-1" />
+                  Cross-posted from{' '}
+                  {post.metadata.cross_post.origin_entity_type
+                    ? post.metadata.cross_post.origin_entity_type.charAt(0).toUpperCase() +
+                      post.metadata.cross_post.origin_entity_type.slice(1)
+                    : 'another timeline'}
                 </Badge>
               )}
 

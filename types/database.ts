@@ -1019,6 +1019,231 @@ export type Database = {
         }
         Relationships: []
       }
+      tags: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          type: 'user' | 'entity' | 'topic' | 'collaborator' | 'location' | 'taxonomy'
+          status: 'active' | 'archived' | 'blocked' | 'pending'
+          created_by: string | null
+          metadata: Json
+          usage_count: number
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+          default_locale: string
+          localized_names: Json
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          type: 'user' | 'entity' | 'topic' | 'collaborator' | 'location' | 'taxonomy'
+          status?: 'active' | 'archived' | 'blocked' | 'pending'
+          created_by?: string | null
+          metadata?: Json
+          usage_count?: number
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+          default_locale?: string
+          localized_names?: Json
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          type?: 'user' | 'entity' | 'topic' | 'collaborator' | 'location' | 'taxonomy'
+          status?: 'active' | 'archived' | 'blocked' | 'pending'
+          created_by?: string | null
+          metadata?: Json
+          usage_count?: number
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+          default_locale?: string
+          localized_names?: Json
+        }
+        Relationships: []
+      }
+      tag_aliases: {
+        Row: {
+          id: string
+          tag_id: string
+          alias: string
+          alias_slug: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tag_id: string
+          alias: string
+          alias_slug: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tag_id?: string
+          alias?: string
+          alias_slug?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'tag_aliases_tag_id_fkey'
+            columns: ['tag_id']
+            referencedRelation: 'tags'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      taggings: {
+        Row: {
+          id: string
+          tag_id: string
+          entity_type: string
+          entity_id: string
+          tagged_by: string | null
+          context: 'post' | 'comment' | 'profile' | 'message' | 'photo' | 'activity' | 'book' | 'author' | 'group' | 'event'
+          position_start: number | null
+          position_end: number | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tag_id: string
+          entity_type: string
+          entity_id: string
+          tagged_by?: string | null
+          context: 'post' | 'comment' | 'profile' | 'message' | 'photo' | 'activity' | 'book' | 'author' | 'group' | 'event'
+          position_start?: number | null
+          position_end?: number | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tag_id?: string
+          entity_type?: string
+          entity_id?: string
+          tagged_by?: string | null
+          context?: 'post' | 'comment' | 'profile' | 'message' | 'photo' | 'activity' | 'book' | 'author' | 'group' | 'event'
+          position_start?: number | null
+          position_end?: number | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'taggings_tag_id_fkey'
+            columns: ['tag_id']
+            referencedRelation: 'tags'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      tag_policies: {
+        Row: {
+          id: string
+          entity_type: string
+          entity_id: string | null
+          allow_user_mentions: boolean
+          allow_entity_mentions: boolean
+          allow_hashtags: boolean
+          require_approval: boolean
+          blocked_tag_ids: string[]
+          allowed_tag_types: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          entity_type: string
+          entity_id?: string | null
+          allow_user_mentions?: boolean
+          allow_entity_mentions?: boolean
+          allow_hashtags?: boolean
+          require_approval?: boolean
+          blocked_tag_ids?: string[]
+          allowed_tag_types?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          entity_type?: string
+          entity_id?: string | null
+          allow_user_mentions?: boolean
+          allow_entity_mentions?: boolean
+          allow_hashtags?: boolean
+          require_approval?: boolean
+          blocked_tag_ids?: string[]
+          allowed_tag_types?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tag_audit_log: {
+        Row: {
+          id: string
+          tag_id: string | null
+          tagging_id: string | null
+          action: 'create' | 'update' | 'delete' | 'block' | 'unblock' | 'merge' | 'approve' | 'reject'
+          actor_id: string | null
+          entity_type: string | null
+          entity_id: string | null
+          old_value: Json | null
+          new_value: Json | null
+          reason: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tag_id?: string | null
+          tagging_id?: string | null
+          action: 'create' | 'update' | 'delete' | 'block' | 'unblock' | 'merge' | 'approve' | 'reject'
+          actor_id?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          old_value?: Json | null
+          new_value?: Json | null
+          reason?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tag_id?: string | null
+          tagging_id?: string | null
+          action?: 'create' | 'update' | 'delete' | 'block' | 'unblock' | 'merge' | 'approve' | 'reject'
+          actor_id?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          old_value?: Json | null
+          new_value?: Json | null
+          reason?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'tag_audit_log_tag_id_fkey'
+            columns: ['tag_id']
+            referencedRelation: 'tags'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'tag_audit_log_tagging_id_fkey'
+            columns: ['tagging_id']
+            referencedRelation: 'taggings'
+            referencedColumns: ['id']
+          }
+        ]
+      }
       [key: string]: {
         Row: Record<string, any>
         Insert: Record<string, any>

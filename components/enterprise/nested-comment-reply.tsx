@@ -2,12 +2,13 @@
 
 import React, { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Avatar } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { Reply, Send, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { TaggedTextRenderer } from '@/components/tags/tagged-text-renderer'
+import { TagEnabledTextarea } from '@/components/tags/tag-enabled-textarea'
 
 interface NestedCommentReplyProps {
   parentComment: {
@@ -208,7 +209,12 @@ export function NestedCommentReply({
                 {new Date(parentComment.created_at).toLocaleDateString()}
               </span>
             </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300">{parentComment.content}</p>
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              <TaggedTextRenderer
+                text={parentComment.content}
+                showPreviews={false}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -223,13 +229,17 @@ export function NestedCommentReply({
             size="sm"
           />
           <div className="flex-1">
-            <Textarea
+            <TagEnabledTextarea
               value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
+              onChange={setReplyContent}
               onKeyDown={handleKeyDown}
               placeholder={`Reply to ${parentComment.user.name}...`}
-              className="min-h-[80px] resize-none"
               disabled={isSubmitting}
+              minHeight={80}
+              maxHeight={200}
+              allowMentions={true}
+              allowHashtags={true}
+              textareaClassName="min-h-[80px] resize-none border rounded-md"
             />
             <div className="flex items-center justify-between mt-2">
               <span className="text-xs text-gray-500">

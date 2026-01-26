@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Reply, MoreHorizontal, Heart, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { NestedCommentReply } from './nested-comment-reply'
+import { TaggedTextRenderer } from '@/components/tags/tagged-text-renderer'
 
 interface CommentUser {
   id: string
@@ -159,9 +160,12 @@ export function NestedCommentThread({
 
             {/* Comment content */}
             <div className="mb-3">
-              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                {comment.content}
-              </p>
+              <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                <TaggedTextRenderer
+                  text={comment.content}
+                  showPreviews={true}
+                />
+              </div>
             </div>
 
             {/* Comment actions */}

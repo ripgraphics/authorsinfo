@@ -1,11 +1,17 @@
 'use client'
 
 import React, { useState, useCallback, useEffect } from 'react'
-import { Avatar } from '@/components/ui/avatar'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
 import { Button } from '@/components/ui/button'
-import { Heart, X, User, ThumbsUp, Smile, Star, AlertTriangle, Zap } from 'lucide-react'
+import { Heart, User, ThumbsUp, Smile, Star, AlertTriangle, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ReactionUser {
@@ -166,54 +172,43 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
     }
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent
         className={cn(
-          'bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl',
+          'flex flex-col max-h-[90vh] overflow-hidden max-w-2xl w-full p-0 gap-0 mx-4',
           className
         )}
       >
-        {/* Modal Header */}
-        <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center shadow-xs',
-                  `bg-gradient-to-r ${getReactionColor()}`
-                )}
-              >
-                {customReactionIcon || <Heart className="h-5 w-5 text-white" />}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {title} ({reactionCount})
-                </h3>
-                <p className="text-sm text-gray-500">{description}</p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+        <DialogHeader className="flex-shrink-0 flex items-center justify-between px-4 py-4 border-b border-border bg-muted">
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                'w-10 h-10 rounded-full flex items-center justify-center shadow-xs',
+                `bg-gradient-to-r ${getReactionColor()}`
+              )}
             >
-              <X className="h-5 w-5" />
-            </button>
+              {customReactionIcon || <Heart className="h-5 w-5 text-white" />}
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-semibold text-foreground">
+                {title} ({reactionCount})
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                {description}
+              </DialogDescription>
+            </div>
           </div>
-        </div>
+        </DialogHeader>
 
-        {/* Modal Content */}
-        <div className="flex flex-col h-[calc(90vh-140px)]">
-          {/* Reactions List */}
-          <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
             {!isLoading && !error && reactions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reactions.map((reaction) => (
                   <div
                     key={reaction.id}
-                    className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-xl transition-all duration-200 border border-gray-100 hover:border-gray-200"
+                    className="flex items-center gap-3 p-4 hover:bg-accent/50 rounded-xl transition-all duration-200 border border-border hover:border-input"
                   >
                     {/* User Avatar */}
                     <div className="relative">
@@ -238,15 +233,15 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
                             type="user"
                             id={reaction.user.id}
                             name={reaction.user.name}
-                            className="text-sm font-semibold text-gray-900 block truncate"
+                            className="text-sm font-semibold text-foreground block truncate"
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             {reaction.user.location || 'Location not set'}
                           </p>
                           {showReactionTypes && reaction.reaction_type && (
                             <div className="flex items-center gap-1 mt-1">
                               {getReactionIcon(reaction.reaction_type)}
-                              <span className="text-xs text-gray-400 capitalize">
+                              <span className="text-xs text-muted-foreground capitalize">
                                 {reaction.reaction_type}
                               </span>
                             </div>
@@ -270,22 +265,22 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
               </div>
             ) : !isLoading && !error ? (
               <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
+                <div className="text-muted-foreground mb-4">
                   <Heart className="h-16 w-16 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No reactions yet</h3>
-                <p className="text-gray-500">Be the first to react to this content!</p>
+                <h3 className="text-lg font-medium text-foreground mb-2">No reactions yet</h3>
+                <p className="text-muted-foreground">Be the first to react to this content!</p>
               </div>
             ) : null}
 
             {/* Error State */}
             {error && (
               <div className="text-center py-12">
-                <div className="text-red-400 mb-4">
+                <div className="text-destructive mb-4">
                   <AlertTriangle className="h-16 w-16 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-red-900 mb-2">Error loading reactions</h3>
-                <p className="text-red-500">{error}</p>
+                <h3 className="text-lg font-medium text-foreground mb-2">Error loading reactions</h3>
+                <p className="text-muted-foreground">{error}</p>
                 <Button variant="outline" onClick={fetchReactions} className="mt-4">
                   Try again
                 </Button>
@@ -296,12 +291,12 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
           {/* Loading State */}
           {isLoading && (
             <div className="px-4 py-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-              <p className="text-gray-500">Loading reactions...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3" />
+              <p className="text-muted-foreground">Loading reactions...</p>
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

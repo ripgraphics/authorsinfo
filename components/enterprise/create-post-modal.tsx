@@ -17,13 +17,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Image as ImageIcon,
   Smile,
   MapPin,
@@ -39,12 +32,23 @@ import {
   Clock,
   Megaphone,
   ChevronRight,
+  MessageSquare,
+  Briefcase,
 } from 'lucide-react'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import { PostComposerWithPreview } from './post-composer-with-preview'
 import { Switch } from '@/components/ui/switch'
+import { TagAndCollaborateView, type TaggedEntity } from './tag-and-collaborate-view'
 import type { LinkPreviewMetadata } from '@/types/link-preview'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+
+export type CreatePostView = 'create' | 'settings' | 'add-to-post' | 'post-audience' | 'tag-and-collaborate'
+
+// Re-export TaggedEntity for consumers of this module
+export type { TaggedEntity }
 
 export interface CreatePostModalProps {
   isOpen: boolean
@@ -59,6 +63,7 @@ export interface CreatePostModalProps {
     link_preview_metadata?: LinkPreviewMetadata
     image_url?: string
     visibility: string
+    tagged_users?: TaggedEntity[]
   }) => Promise<boolean>
 }
 
@@ -98,6 +103,56 @@ function getVisibilityLabel(visibility: string): string {
   }
 }
 
+const AUDIENCE_OPTIONS: Array<{
+  value: 'public' | 'friends' | 'followers' | 'private'
+  icon: React.ReactNode
+  label: string
+  explanation: string
+}> = [
+  {
+    value: 'public',
+    icon: <Globe className="h-5 w-5" />,
+    label: 'Public',
+    explanation: 'Anyone on or off the app. Your post will show up in Feed, on your profile and in search results.',
+  },
+  {
+    value: 'friends',
+    icon: <Users className="h-5 w-5" />,
+    label: 'Friends',
+    explanation: 'Only people you\'ve added as friends can see your post.',
+  },
+  {
+    value: 'followers',
+    icon: <User className="h-5 w-5" />,
+    label: 'Followers',
+    explanation: 'Only people who follow you can see your post.',
+  },
+  {
+    value: 'private',
+    icon: <Lock className="h-5 w-5" />,
+    label: 'Only me',
+    explanation: 'Only you can see your post.',
+  },
+]
+
+const DEFAULT_VISIBILITY_STORAGE_KEY = 'posts_default_visibility'
+
+const ADD_TO_POST_OPTIONS: Array<{
+  id: string
+  icon: React.ReactNode
+  label: string
+  iconClassName: string
+}> = [
+  { id: 'photo-video', icon: <ImageIcon className="h-6 w-6" />, label: 'Photo/video', iconClassName: 'text-green-600' },
+  { id: 'live-video', icon: <Video className="h-6 w-6" />, label: 'Live video', iconClassName: 'text-red-600' },
+  { id: 'tag-people', icon: <UserPlus className="h-6 w-6" />, label: 'Tag people', iconClassName: 'text-blue-600' },
+  { id: 'check-in', icon: <MapPin className="h-6 w-6" />, label: 'Check in', iconClassName: 'text-red-600' },
+  { id: 'feeling', icon: <Smile className="h-6 w-6" />, label: 'Feeling/activity', iconClassName: 'text-yellow-600' },
+  { id: 'gif', icon: <span className="text-[10px] font-bold leading-none">GIF</span>, label: 'GIF', iconClassName: 'text-gray-700' },
+  { id: 'get-messages', icon: <MessageSquare className="h-6 w-6" />, label: 'Get messages', iconClassName: 'text-blue-600' },
+  { id: 'create-job', icon: <Briefcase className="h-6 w-6" />, label: 'Create job', iconClassName: 'text-gray-600' },
+]
+
 /**
  * Create Post Modal
  */
@@ -111,7 +166,7 @@ export function CreatePostModal({
   onSubmit,
 }: CreatePostModalProps) {
   const { user } = useAuth()
-  const [step, setStep] = useState<'create' | 'settings'>('create')
+  const [view, setView] = useState<CreatePostView>('create')
   const [postText, setPostText] = useState('')
   const [visibility, setVisibility] = useState<'public' | 'friends' | 'followers' | 'private'>(
     defaultVisibility
@@ -120,7 +175,14 @@ export function CreatePostModal({
   const [detectedLinkUrl, setDetectedLinkUrl] = useState<string | null>(null)
   const [isPosting, setIsPosting] = useState(false)
   const [boostPost, setBoostPost] = useState(false)
+  const [setAsDefaultAudience, setSetAsDefaultAudience] = useState(false)
+  const [tagged, setTagged] = useState<TaggedEntity[]>([])
+  const returnViewRef = useRef<CreatePostView>('create')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const visibilityBeforeAudienceRef = useRef<'public' | 'friends' | 'followers' | 'private'>(
+    defaultVisibility
+  )
+  const audienceDoneRef = useRef(false)
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -129,15 +191,15 @@ export function CreatePostModal({
       setLinkPreview(null)
       setDetectedLinkUrl(null)
       setVisibility(defaultVisibility)
-      setStep('create')
+      setView('create')
       setBoostPost(false)
+      setSetAsDefaultAudience(false)
       // Focus textarea when modal opens
       setTimeout(() => {
         textareaRef.current?.focus()
       }, 100)
     } else {
-      // Reset to first step when modal closes
-      setStep('create')
+      setView('create')
     }
   }, [isOpen, defaultVisibility])
 
@@ -175,13 +237,13 @@ export function CreatePostModal({
     const hasContent = captionText.trim().length > 0 || detectedLinkUrl || linkPreview
 
     if (hasContent) {
-      setStep('settings')
+      setView('settings')
     }
   }
 
   // Handle Back button (go back to create step)
   const handleBack = () => {
-    setStep('create')
+    setView('create')
   }
 
   // Handle submit (final post)
@@ -195,18 +257,36 @@ export function CreatePostModal({
 
     setIsPosting(true)
     try {
+      // Build text with inline tags from tagged users (if not already mentioned)
+      let finalText = captionText
+      if (tagged.length > 0) {
+        // Add mentions for tagged users that aren't already in the text
+        const existingMentions = captionText.match(/@\w+/g) || []
+        const existingMentionSlugs = existingMentions.map((m) => m.substring(1).toLowerCase())
+        
+        const newMentions = tagged
+          .filter((t) => t.type === 'user' || t.type === 'profile' || t.type === 'page')
+          .filter((t) => !existingMentionSlugs.includes(t.label.toLowerCase().replace(/\s+/g, '')))
+          .map((t) => `@${t.label.replace(/\s+/g, '')}`)
+        
+        if (newMentions.length > 0) {
+          finalText = `${captionText}\n\n${newMentions.join(' ')}`
+        }
+      }
+
       const success = await onSubmit({
-        text: captionText,
+        text: finalText,
         link_url: detectedLinkUrl || undefined,
         link_preview_metadata: linkPreview || undefined,
         visibility,
+        tagged_users: tagged.length > 0 ? tagged : undefined,
       })
 
       if (success) {
         setPostText('')
         setLinkPreview(null)
         setDetectedLinkUrl(null)
-        setStep('create')
+        setView('create')
         onPostCreated?.()
         onClose()
       }
@@ -227,15 +307,50 @@ export function CreatePostModal({
     }
   }
 
+  const handlePostAudienceDone = () => {
+    if (setAsDefaultAudience && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(DEFAULT_VISIBILITY_STORAGE_KEY, visibility)
+      } catch {
+        /* ignore */
+      }
+    }
+    audienceDoneRef.current = true
+    setView(returnViewRef.current)
+  }
+
+  const handlePostAudienceCancel = () => {
+    setVisibility(visibilityBeforeAudienceRef.current)
+    setView(returnViewRef.current)
+  }
+
+  const openTagAndCollaborate = (from: CreatePostView) => {
+    returnViewRef.current = from
+    setView('tag-and-collaborate')
+  }
+
+  const openAddToPost = () => {
+    returnViewRef.current = 'create'
+    setView('add-to-post')
+  }
+
+  const openPostAudience = (from: CreatePostView) => {
+    returnViewRef.current = from
+    visibilityBeforeAudienceRef.current = visibility
+    setSetAsDefaultAudience(visibility === defaultVisibility)
+    setView('post-audience')
+  }
+
   const captionText = getCaptionText()
   const hasContent = captionText.trim().length > 0 || detectedLinkUrl || linkPreview
   const currentUserName = user?.name || 'User'
   const currentUserAvatar = user?.avatar_url || undefined
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="flex flex-col max-h-[85vh] overflow-hidden max-w-[500px] p-0">
-        {step === 'create' ? (
+        {view === 'create' && (
           <>
             {/* Header */}
             <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
@@ -262,37 +377,14 @@ export function CreatePostModal({
                   />
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-semibold">{currentUserName}</span>
-                    <Select value={visibility} onValueChange={(v) => setVisibility(v as any)}>
-                      <SelectTrigger className="h-7 w-[90px] text-xs py-0.5 px-2 [&>span]:min-w-0 [&>span]:truncate [&>svg]:h-5 [&>svg]:w-5">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="public">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4" />
-                            Public
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="friends">
-                          <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4" />
-                            Friends
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="followers">
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            Followers
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="private">
-                          <div className="flex items-center gap-2">
-                            <Lock className="h-4 w-4" />
-                            Only me
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => openPostAudience('create')}
+                      className="flex items-center gap-1 rounded-md border border-input bg-background h-7 w-[90px] text-xs py-0 px-2 ring-offset-background hover:bg-accent/50 focus:outline-none focus:ring-1 focus:ring-ring/25 focus:ring-offset-0 shrink-0 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0"
+                    >
+                      {getVisibilityIcon(visibility)}
+                      <span className="min-w-0 truncate">{getVisibilityLabel(visibility)}</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -312,9 +404,13 @@ export function CreatePostModal({
               {/* Add to your post section */}
               <div className="px-4 py-3 border-t">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <button
+                    type="button"
+                    onClick={openAddToPost}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded"
+                  >
                     Add to your post
-                  </span>
+                  </button>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
@@ -329,6 +425,7 @@ export function CreatePostModal({
                       size="icon"
                       className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                       title="Tag People"
+                      onClick={() => openTagAndCollaborate('create')}
                     >
                       <UserPlus className="h-5 w-5" />
                     </Button>
@@ -381,7 +478,9 @@ export function CreatePostModal({
               </Button>
             </DialogFooter>
           </>
-        ) : (
+        )}
+
+        {view === 'settings' && (
           <>
             {/* Post Settings Step */}
             {/* Header with Back button */}
@@ -408,9 +507,7 @@ export function CreatePostModal({
               <div className="px-4 py-4 space-y-0">
               {/* Post audience */}
               <button
-                onClick={() => {
-                  // Could open a sub-modal or inline editor for audience selection
-                }}
+                onClick={() => openPostAudience('settings')}
                 className="w-full flex items-center justify-between p-3 hover:bg-accent rounded-lg transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -429,6 +526,7 @@ export function CreatePostModal({
 
               {/* Tag and collaborate */}
               <button
+                onClick={() => openTagAndCollaborate('settings')}
                 className="w-full flex items-center justify-between p-3 hover:bg-accent rounded-lg transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -520,7 +618,147 @@ export function CreatePostModal({
             </DialogFooter>
           </>
         )}
+
+        {view === 'add-to-post' && (
+          <>
+            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => setView('create')} className="h-8 w-8 shrink-0" aria-label="Back">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <DialogTitle className="text-lg font-semibold flex-1">Add to your post</DialogTitle>
+              </div>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+              <div className="grid grid-cols-2 gap-2">
+                {ADD_TO_POST_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() =>
+                      opt.id === 'tag-people'
+                        ? openTagAndCollaborate('add-to-post')
+                        : setView('create')
+                    }
+                    className={cn(
+                      'flex items-center gap-3 p-3 rounded-lg border border-transparent',
+                      'hover:bg-accent/50 hover:border-input transition-colors text-left',
+                      'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted',
+                        opt.iconClassName
+                      )}
+                    >
+                      {opt.icon}
+                    </div>
+                    <span className="text-sm font-medium truncate">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {view === 'post-audience' && (
+          <>
+            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={handlePostAudienceCancel} className="h-8 w-8 shrink-0" aria-label="Back">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <DialogTitle className="text-lg font-semibold flex-1">Post audience</DialogTitle>
+              </div>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4">
+              <div>
+                <p className="text-sm font-medium mb-1">Who can see your post?</p>
+                <p className="text-sm text-muted-foreground">
+                  Your post will show up in Feed, on your profile and in search results. Your default
+                  audience is set to {getVisibilityLabel(defaultVisibility)}, but you can change the
+                  audience of this specific post.
+                </p>
+              </div>
+              <RadioGroup
+                value={visibility}
+                onValueChange={(v) => setVisibility(v as typeof visibility)}
+                className="space-y-2"
+              >
+                {AUDIENCE_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.value}
+                    onClick={() => setVisibility(opt.value)}
+                    className={cn(
+                      'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                      visibility === opt.value
+                        ? 'border-primary bg-primary/5'
+                        : 'border-input hover:bg-accent/50'
+                    )}
+                  >
+                    <RadioGroupItem value={opt.value} className="mt-0.5 shrink-0" />
+                    <div className="flex gap-3 min-w-0 flex-1">
+                      <div className="p-1.5 rounded-full bg-muted shrink-0 [&_svg]:h-4 [&_svg]:w-4">
+                        {opt.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-sm font-medium block">{opt.label}</span>
+                        <span className="text-xs text-muted-foreground block">{opt.explanation}</span>
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </RadioGroup>
+              <div className="flex items-center gap-2 pt-2">
+                <Checkbox
+                  id="set-default-audience"
+                  checked={setAsDefaultAudience}
+                  onCheckedChange={(c) => setSetAsDefaultAudience(!!c)}
+                />
+                <Label htmlFor="set-default-audience" className="text-sm font-medium cursor-pointer">
+                  Set as default audience
+                </Label>
+              </div>
+            </div>
+            <DialogFooter className="flex-shrink-0 px-4 pb-4 pt-3 border-t gap-2 sm:gap-0">
+              <Button variant="ghost" onClick={handlePostAudienceCancel}>Cancel</Button>
+              <Button onClick={handlePostAudienceDone}>Done</Button>
+            </DialogFooter>
+          </>
+        )}
+
+        {view === 'tag-and-collaborate' && (
+          <>
+            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
+              <div className="flex items-center justify-between gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setView(returnViewRef.current)}
+                  className="h-8 w-8 shrink-0"
+                  aria-label="Back"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <DialogTitle className="text-lg font-semibold flex-1 text-center">
+                  Tag and collaborate
+                </DialogTitle>
+                <div className="h-8 w-8 shrink-0" aria-hidden="true" />
+              </div>
+            </DialogHeader>
+            <div className="flex-1 min-h-0">
+              <TagAndCollaborateView
+                tagged={tagged}
+                onTaggedChange={setTagged}
+                suggestions={[]}
+                className="flex-1 min-h-0 h-full"
+              />
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
+    </>
   )
 }

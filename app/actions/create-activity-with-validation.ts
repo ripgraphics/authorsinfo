@@ -27,6 +27,7 @@ export interface CreateActivityParams {
 export interface CreateActivityResult {
   success: boolean
   activity?: any
+  user_post_id?: string
   error?: string
   warnings?: string[]
   removedColumns?: string[]
@@ -171,7 +172,7 @@ export async function createActivityWithValidation(
     // Remove 'text' as it's now 'content'
     delete (postPayload as any).text;
 
-    const { payload, removedColumns, warnings } = await validateAndFilterPayload(
+    const { payload: entityPayload, removedColumns, warnings } = await validateAndFilterPayload(
       'posts',
       postPayload
     )
@@ -181,12 +182,51 @@ export async function createActivityWithValidation(
       console.warn(`Removed non-existent columns from posts insert:`, removedColumns)
     }
 
+    const entityType = params.entity_type || 'user'
+    const entityId = params.entity_id || params.user_id
+    const shouldCrossPostToUser = !(entityType === 'user' && entityId === params.user_id)
+
+    let userPayload: Record<string, any> | null = null
+    const combinedWarnings = [...warnings]
+    const combinedRemovedColumns = [...removedColumns]
+    if (shouldCrossPostToUser) {
+      const existingMetadata =
+        entityPayload.metadata && typeof entityPayload.metadata === 'object'
+          ? entityPayload.metadata
+          : {}
+      const crossPostMetadata = {
+        ...existingMetadata,
+        cross_post: {
+          origin_entity_type: entityType,
+          origin_entity_id: entityId,
+        },
+      }
+
+      const crossPostDraft = {
+        ...entityPayload,
+        entity_type: 'user',
+        entity_id: params.user_id,
+        metadata: crossPostMetadata,
+      }
+
+      const crossPostResult = await validateAndFilterPayload('posts', crossPostDraft)
+      userPayload = crossPostResult.payload
+      if (crossPostResult.removedColumns.length > 0) {
+        console.warn(`Removed non-existent columns from cross-post insert:`, crossPostResult.removedColumns)
+        combinedRemovedColumns.push(...crossPostResult.removedColumns)
+      }
+      if (crossPostResult.warnings.length > 0) {
+        console.warn(`Cross-post insert warnings:`, crossPostResult.warnings)
+        combinedWarnings.push(...crossPostResult.warnings)
+      }
+    }
+
     // Note: Engagement counts are calculated dynamically from 
     // engagement tables which are the single source of truth.
 
-    // Insert the filtered payload (no cached count columns)
-    const { data: activity, error } = await (supabase.from('posts') as any)
-      .insert([payload])
+    // Insert the filtered payload(s) (no cached count columns)
+    const { data: entityPost, error } = await (supabase.from('posts') as any)
+      .insert([entityPayload])
       .select()
       .single()
 
@@ -206,16 +246,30 @@ export async function createActivityWithValidation(
       return {
         success: false,
         error: errorMessage,
-        warnings: warnings.length > 0 ? warnings : undefined,
-        removedColumns: removedColumns.length > 0 ? removedColumns : undefined,
+        warnings: combinedWarnings.length > 0 ? combinedWarnings : undefined,
+        removedColumns: combinedRemovedColumns.length > 0 ? combinedRemovedColumns : undefined,
+      }
+    }
+
+    let userPost: any | undefined
+    if (shouldCrossPostToUser && userPayload) {
+      const { data: crossPost, error: crossPostError } = await (supabase.from('posts') as any)
+        .insert([userPayload])
+        .select()
+        .single()
+      if (crossPostError) {
+        console.warn('Cross-post insert failed:', crossPostError)
+      } else {
+        userPost = crossPost
       }
     }
 
     return {
       success: true,
-      activity,
-      warnings: warnings.length > 0 ? warnings : undefined,
-      removedColumns: removedColumns.length > 0 ? removedColumns : undefined,
+      activity: entityPost,
+      user_post_id: userPost?.id,
+      warnings: combinedWarnings.length > 0 ? combinedWarnings : undefined,
+      removedColumns: combinedRemovedColumns.length > 0 ? combinedRemovedColumns : undefined,
     }
   } catch (error) {
     console.error('Unexpected error creating activity:', error)

@@ -1,17 +1,17 @@
 /**
  * Post Composer with Live Link Preview
  * Text input with real-time link detection and preview
+ * Enhanced with inline tag autocomplete for mentions (@) and hashtags (#)
  * Phase 1: Create Post Modal with Live Link Preview
  */
 
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useLinkDetection } from '@/hooks/use-link-detection'
-// No need to import extractTextWithoutUrl - we'll implement it inline
+import { TagEnabledTextarea, type ExtractedTag } from '@/components/tags/tag-enabled-textarea'
 import { EnterpriseLinkPreviewCard } from '@/components/enterprise/link-preview/enterprise-link-preview-card'
 import { LinkPreviewSkeleton } from '@/components/enterprise/link-preview/link-preview-skeleton'
 import type { LinkPreviewMetadata } from '@/types/link-preview'
@@ -23,9 +23,12 @@ export interface PostComposerWithPreviewProps {
   placeholder?: string
   maxLength?: number
   onLinkPreviewChange?: (preview: LinkPreviewMetadata | null) => void
+  onTagsExtracted?: (tags: ExtractedTag[]) => void
   /** Compact layout image width when showing link preview. Default w-48. */
   previewImageWidth?: 'w-32' | 'w-36' | 'w-40' | 'w-48' | 'w-56'
   className?: string
+  /** Enable inline tag autocomplete. Default true. */
+  enableTagAutocomplete?: boolean
 }
 
 /**
@@ -37,8 +40,10 @@ export function PostComposerWithPreview({
   placeholder = "What's on your mind?",
   maxLength = 5000,
   onLinkPreviewChange,
+  onTagsExtracted,
   previewImageWidth = 'w-48',
   className,
+  enableTagAutocomplete = true,
 }: PostComposerWithPreviewProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [linkPreview, setLinkPreview] = useState<LinkPreviewMetadata | null>(null)
@@ -60,7 +65,7 @@ export function PostComposerWithPreview({
     setText(value)
   }, [value, setText])
 
-  // Auto-resize textarea
+  // Auto-resize textarea (only used when TagEnabledTextarea auto-resize is disabled)
   const resizeTextarea = useCallback(() => {
     const el = textareaRef.current
     if (!el) return
@@ -71,6 +76,11 @@ export function PostComposerWithPreview({
     el.style.height = `${newHeight}px`
     el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
   }, [])
+
+  // Handle extracted tags from TagEnabledTextarea
+  const handleTagsExtracted = useCallback((tags: ExtractedTag[]) => {
+    onTagsExtracted?.(tags)
+  }, [onTagsExtracted])
 
   // Simulated progress: advance 0 -> 99% smoothly (fast then slow crawl), never stop until fetch completes
   useEffect(() => {
@@ -165,11 +175,9 @@ export function PostComposerWithPreview({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detectedLinks])
 
-  // Handle text change
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value.slice(0, maxLength)
-    onChange(newValue)
-    resizeTextarea()
+  // Handle text change from TagEnabledTextarea
+  const handleTextChange = (newValue: string) => {
+    onChange(newValue.slice(0, maxLength))
   }
 
   // Handle remove link
@@ -216,15 +224,21 @@ export function PostComposerWithPreview({
 
   return (
     <div className={cn('space-y-3', className)}>
-      {/* Text Input */}
-      <Textarea
-        ref={textareaRef}
+      {/* Text Input with Tag Autocomplete */}
+      <TagEnabledTextarea
         value={value}
         onChange={handleTextChange}
+        onTagsExtracted={enableTagAutocomplete ? handleTagsExtracted : undefined}
         placeholder={placeholder}
-        className="min-h-[40px] resize-none border-0 focus:ring-0 focus:outline-none text-base"
         maxLength={maxLength}
-        onInput={resizeTextarea}
+        autoResize={true}
+        minHeight={40}
+        maxHeight={200}
+        allowMentions={true}
+        allowHashtags={true}
+        allowEntities={true}
+        showSuggestions={enableTagAutocomplete}
+        textareaClassName="min-h-[40px] resize-none border-0 focus:ring-0 focus:outline-none text-base"
       />
 
       {/* Character Counter */}

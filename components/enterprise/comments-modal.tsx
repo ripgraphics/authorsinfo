@@ -1,6 +1,13 @@
 'use client'
 
 import React, { useState, useCallback, useEffect } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { Avatar } from '@/components/ui/avatar'
 import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
@@ -8,8 +15,6 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import {
   MessageCircle,
-  X,
-  User,
   Heart,
   Reply,
   MoreHorizontal,
@@ -19,6 +24,8 @@ import {
   Send,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { TaggedTextRenderer } from '@/components/tags/tagged-text-renderer'
+import { TagEnabledTextarea } from '@/components/tags/tag-enabled-textarea'
 
 export interface Comment {
   id: string
@@ -210,43 +217,32 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent
         className={cn(
-          'bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl',
+          'flex flex-col max-h-[90vh] overflow-hidden max-w-2xl w-full p-0 gap-0 mx-4',
           className
         )}
       >
-        {/* Modal Header */}
-        <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <MessageCircle className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {title} ({commentCount})
-                </h3>
-                <p className="text-sm text-gray-500">{description}</p>
-              </div>
+        <DialogHeader className="flex-shrink-0 flex items-center justify-between px-4 py-4 border-b border-border bg-muted">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+              <MessageCircle className="h-5 w-5 text-primary" />
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div>
+              <DialogTitle className="text-lg font-semibold text-foreground">
+                {title} ({commentCount})
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                {description}
+              </DialogDescription>
+            </div>
           </div>
-        </div>
+        </DialogHeader>
 
-        {/* Modal Content */}
-        <div className="flex flex-col h-[calc(90vh-140px)]">
-          {/* Comments List */}
-          <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
             {!isLoading && !error && comments.length > 0 ? (
               <div className="space-y-4">
                 {comments.map((comment) => (
@@ -261,27 +257,30 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                         size="sm"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                        <div className="bg-muted rounded-2xl px-4 py-3">
                           <div className="flex items-center justify-between mb-2">
                             <EntityName
                               type="user"
                               id={comment.user.id}
                               name={comment.user.name}
-                              className="text-sm font-semibold text-gray-900"
+                              className="text-sm font-semibold text-foreground"
                             />
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-muted-foreground">
                               {formatDate(comment.created_at)}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-800 leading-relaxed">
-                            {comment.comment_text}
-                          </p>
+                          <div className="text-sm text-foreground leading-relaxed">
+                            <TaggedTextRenderer
+                              text={comment.comment_text}
+                              showPreviews={true}
+                            />
+                          </div>
                         </div>
 
                         {/* Comment Actions */}
                         <div className="flex items-center gap-4 mt-2 ml-2">
                           <button
-                            className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors"
                             onClick={() => handleCommentLike(comment.id)}
                           >
                             <Heart
@@ -294,14 +293,14 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                           </button>
                           {showReplies && (
                             <button
-                              className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors"
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                               onClick={() => setReplyingTo(comment.id)}
                             >
                               <Reply className="h-3 w-3" />
                               Reply
                             </button>
                           )}
-                          <button className="text-xs text-gray-500 hover:text-gray-700 transition-colors">
+                          <button className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                             <MoreHorizontal className="h-3 w-3" />
                           </button>
                         </div>
@@ -310,12 +309,16 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                         {replyingTo === comment.id && (
                           <div className="mt-3 ml-4">
                             <div className="flex gap-2">
-                              <Textarea
+                              <TagEnabledTextarea
                                 value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
+                                onChange={setReplyText}
                                 placeholder="Write a reply..."
-                                className="min-h-[60px] text-sm resize-none"
                                 disabled={isSubmitting}
+                                minHeight={60}
+                                maxHeight={120}
+                                allowMentions={true}
+                                allowHashtags={true}
+                                textareaClassName="min-h-[60px] text-sm resize-none border rounded-md"
                               />
                               <Button
                                 size="sm"
@@ -342,27 +345,30 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                                   size="xs"
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <div className="bg-gray-50 rounded-xl px-3 py-2">
+                                  <div className="bg-muted/50 rounded-xl px-3 py-2">
                                     <div className="flex items-center justify-between mb-1">
                                       <EntityName
                                         type="user"
                                         id={reply.user.id}
                                         name={reply.user.name}
-                                        className="text-xs font-medium text-gray-900"
+                                        className="text-xs font-medium text-foreground"
                                       />
-                                      <span className="text-xs text-gray-400">
+                                      <span className="text-xs text-muted-foreground">
                                         {formatDate(reply.created_at)}
                                       </span>
                                     </div>
-                                    <p className="text-xs text-gray-700 leading-relaxed">
-                                      {reply.comment_text}
-                                    </p>
+                                    <div className="text-xs text-foreground leading-relaxed">
+                                      <TaggedTextRenderer
+                                        text={reply.comment_text}
+                                        showPreviews={true}
+                                      />
+                                    </div>
                                   </div>
 
                                   {/* Reply Actions */}
                                   <div className="flex items-center gap-3 mt-1 ml-2">
                                     <button
-                                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors"
+                                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors"
                                       onClick={() => handleCommentLike(reply.id)}
                                     >
                                       <Heart
@@ -386,22 +392,22 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
               </div>
             ) : !isLoading && !error ? (
               <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
+                <div className="text-muted-foreground mb-4">
                   <MessageCircle className="h-16 w-16 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No comments yet</h3>
-                <p className="text-gray-500">Be the first to comment on this content!</p>
+                <h3 className="text-lg font-medium text-foreground mb-2">No comments yet</h3>
+                <p className="text-muted-foreground">Be the first to comment on this content!</p>
               </div>
             ) : null}
 
             {/* Error State */}
             {error && (
               <div className="text-center py-12">
-                <div className="text-red-400 mb-4">
+                <div className="text-destructive mb-4">
                   <MessageCircle className="h-16 w-16 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-red-900 mb-2">Error loading comments</h3>
-                <p className="text-red-500">{error}</p>
+                <h3 className="text-lg font-medium text-foreground mb-2">Error loading comments</h3>
+                <p className="text-muted-foreground">{error}</p>
                 <Button variant="outline" onClick={fetchComments} className="mt-4">
                   Try again
                 </Button>
@@ -411,7 +417,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
           {/* Comment Input Section */}
           {allowCommenting && currentUserId && (
-            <div className="border-t border-gray-200 px-4 py-4 bg-gray-50">
+            <div className="flex-shrink-0 border-t border-border px-4 py-4 bg-muted">
               <div className="flex gap-3">
                 <Avatar
                   src={currentUserAvatar || '/placeholder.svg?height=32&width=32'}
@@ -420,12 +426,16 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                   className="w-8 h-8 flex-shrink-0"
                 />
                 <div className="flex-1 space-y-3">
-                  <Textarea
+                  <TagEnabledTextarea
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={setNewComment}
                     placeholder="Write a comment..."
-                    className="min-h-[80px] resize-none"
                     disabled={isSubmitting}
+                    minHeight={80}
+                    maxHeight={200}
+                    allowMentions={true}
+                    allowHashtags={true}
+                    textareaClassName="min-h-[80px] resize-none border rounded-md"
                   />
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -455,12 +465,12 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
           {/* Loading State */}
           {isLoading && (
             <div className="px-4 py-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-              <p className="text-gray-500">Loading comments...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3" />
+              <p className="text-muted-foreground">Loading comments...</p>
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

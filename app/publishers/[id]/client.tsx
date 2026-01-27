@@ -129,11 +129,11 @@ export function ClientPublisherPage({
   const publisherStats = [
     {
       icon: <BookOpen className="h-4 w-4 mr-1" />,
-      text: `${booksCount} books published`,
+      text: `${booksCount} ${booksCount === 1 ? 'book' : 'books'} published`,
     },
     {
       icon: <Users className="h-4 w-4 mr-1" />,
-      text: `${followersCount} followers`,
+      text: `${followersCount} ${followersCount === 1 ? 'follower' : 'followers'}`,
     },
   ]
 

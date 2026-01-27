@@ -421,7 +421,7 @@ export function BooksSection({
         {books && books.length > 0 ? (
           <div className="books-section__with-content">
             <p className="books-section__count mb-4">
-              This publisher has published {booksCount} books.
+              This publisher has published {booksCount} {booksCount === 1 ? 'book' : 'books'}.
             </p>
             <div className="books-section__grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {books.slice(0, 8).map((book) => (

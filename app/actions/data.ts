@@ -273,53 +273,49 @@ export async function getBookById(id: string): Promise<Book | null> {
   }
 }
 
+// Update the getBooksByAuthorId function to handle all authors correctly
+// Prioritizes book_authors join table over books.author_id to support all author relationships
 export async function getBooksByAuthorId(authorId: string, limit = 10): Promise<Book[]> {
   try {
-    // Try with single author_id field
+    // Step 1: Always check book_authors join table first (for all author relationships)
+    const { data: bookAuthors, error: bookAuthorsError } = await supabaseAdmin
+      .from('book_authors')
+      .select('book_id')
+      .eq('author_id', authorId)
+      .limit(limit)
+
+    // Step 2: If entries exist in book_authors, use those
+    if (!bookAuthorsError && bookAuthors && bookAuthors.length > 0) {
+      const bookIds = bookAuthors.map((item: { book_id: string }) => item.book_id)
+
+      // Get the books
+      const { data: books, error: booksError } = await supabaseAdmin
+        .from('books')
+        .select('*')
+        .in('id', bookIds)
+        .limit(limit)
+
+      if (!booksError && books) {
+        return books as Book[]
+      }
+
+      if (booksError) {
+        console.error('Error fetching books from book_authors:', booksError)
+      }
+    }
+
+    // Step 3: Fallback to books.author_id (for backward compatibility)
     const { data, error } = await supabaseAdmin
       .from('books')
       .select('*')
       .eq('author_id', authorId)
       .limit(limit)
 
-    if (error) {
-      console.error('Error fetching books by author with author_id:', error)
-
-      // If that fails, try with book_authors join table
-      try {
-        const { data: bookAuthors, error: bookAuthorsError } = await supabaseAdmin
-          .from('book_authors')
-          .select('book_id')
-          .eq('author_id', authorId)
-          .limit(limit)
-
-        if (bookAuthorsError || !bookAuthors || bookAuthors.length === 0) {
-          console.error('Error fetching from book_authors:', bookAuthorsError)
-          return []
-        }
-
-        // Extract book IDs
-        const bookIds = bookAuthors.map((item: { book_id: string }) => item.book_id)
-
-        // Get the books
-        const { data: books, error: booksError } = await supabaseAdmin
-          .from('books')
-          .select('*')
-          .in('id', bookIds)
-
-        if (booksError) {
-          console.error('Error fetching books by author IDs:', booksError)
-          return []
-        }
-
-        return books as Book[]
-      } catch (joinTableError) {
-        console.error('Error with join table approach:', joinTableError)
-        return []
-      }
+    if (!error && data) {
+      return data as Book[]
     }
 
-    return data as Book[]
+    return []
   } catch (error) {
     console.error('Error fetching books by author:', error)
     return []
@@ -461,62 +457,47 @@ export async function getAuthorById(id: string): Promise<Author | null> {
   }
 }
 
-// Update the getAuthorsByBookId function to handle connection errors better
+// Update the getAuthorsByBookId function to handle multiple authors correctly
+// Prioritizes book_authors join table over books.author_id to support multiple authors
 export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
   try {
-    // Since author_ids doesn't exist, let's check if there's a single author_id field
-    const { data: book, error: bookError } = await supabaseAdmin
-      .from('books')
-      .select('author_id') // Try with singular author_id instead of author_ids array
-      .eq('id', bookId)
-      .single()
+    // Step 1: Always check book_authors join table first (for multiple authors)
+    const { data: bookAuthors, error: bookAuthorsError } = await supabaseAdmin
+      .from('book_authors')
+      .select('author_id')
+      .eq('book_id', bookId)
 
-    if (bookError) {
-      console.error('Error fetching book author_id:', bookError)
+    // Step 2: If entries exist in book_authors, use those (handles multiple authors)
+    if (!bookAuthorsError && bookAuthors && bookAuthors.length > 0) {
+      const authorIds = bookAuthors.map((item: { author_id: string }) => item.author_id)
 
-      // If that fails, let's try to see if there's a book_authors join table
-      try {
-        const { data: bookAuthors, error: bookAuthorsError } = await supabaseAdmin
-          .from('book_authors') // Assuming there might be a join table
-          .select('author_id')
-          .eq('book_id', bookId)
+      // Fetch full author records with images
+      const { data: authors, error: authorsError } = await supabaseAdmin
+        .from('authors')
+        .select(`
+          *,
+          author_image:author_image_id(id, url, alt_text)
+        `)
+        .in('id', authorIds)
 
-        if (bookAuthorsError || !bookAuthors || bookAuthors.length === 0) {
-          console.error('Error fetching from book_authors:', bookAuthorsError)
-          return []
-        }
-
-        // Extract author IDs from the join table
-        const authorIds = bookAuthors.map((item: { author_id: string }) => item.author_id)
-
-        // Get the authors with author_image relation
-        const { data: authors, error: authorsError } = await supabaseAdmin
-          .from('authors')
-          .select(`
-            *,
-            author_image:author_image_id(id, url, alt_text)
-          `)
-          .in('id', authorIds)
-
-        if (authorsError) {
-          console.error('Error fetching authors by book:', authorsError)
-          return []
-        }
-
+      if (!authorsError && authors) {
         return authors as Author[]
-      } catch (joinTableError) {
-        console.error('Error with join table approach:', joinTableError)
-        return []
+      }
+
+      // If there was an error fetching authors, log it but continue to fallback
+      if (authorsError) {
+        console.error('Error fetching authors from book_authors:', authorsError)
       }
     }
 
-    // If we got here, we found a single author_id
-    if (!book || !book.author_id) {
-      return []
-    }
+    // Step 3: Fallback to books.author_id (for backward compatibility with single-author books)
+    const { data: book, error: bookError } = await supabaseAdmin
+      .from('books')
+      .select('author_id')
+      .eq('id', bookId)
+      .single()
 
-    // Get the author with author_image relation
-    try {
+    if (!bookError && book?.author_id) {
       const { data: author, error: authorError } = await supabaseAdmin
         .from('authors')
         .select(`
@@ -526,19 +507,110 @@ export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
         .eq('id', book.author_id)
         .single()
 
-      if (authorError) {
-        console.error('Error fetching author by book:', authorError)
-        return []
+      if (!authorError && author) {
+        return [author] as Author[]
       }
 
-      // Return as an array with the single author
-      return [author] as Author[]
-    } catch (error) {
-      console.error('Error fetching author data:', error)
-      return []
+      if (authorError) {
+        console.error('Error fetching author from books.author_id:', authorError)
+      }
     }
+
+    return []
   } catch (error) {
     console.error('Error fetching authors by book:', error)
+    return []
+  }
+}
+
+/**
+ * Get all unique authors who have published books with a specific publisher
+ * Uses book_authors join table to support multiple authors per book
+ * 
+ * @param publisherId - The publisher's UUID
+ * @returns Array of Author objects with author_image relation
+ */
+export async function getAuthorsByPublisherId(publisherId: string): Promise<Author[]> {
+  try {
+    // Step 1: Get all book IDs for this publisher
+    const { data: publisherBooks, error: booksError } = await supabaseAdmin
+      .from('books')
+      .select('id')
+      .eq('publisher_id', publisherId)
+
+    if (booksError) {
+      console.error('Error fetching publisher books for authors:', booksError)
+      return []
+    }
+
+    if (!publisherBooks || publisherBooks.length === 0) {
+      return []
+    }
+
+    const bookIds = publisherBooks.map((book: { id: string }) => book.id)
+
+    // Step 2: Get all unique author IDs from book_authors join table
+    const { data: bookAuthors, error: bookAuthorsError } = await supabaseAdmin
+      .from('book_authors')
+      .select('author_id')
+      .in('book_id', bookIds)
+
+    if (bookAuthorsError) {
+      console.error('Error fetching book_authors for publisher:', bookAuthorsError)
+      return []
+    }
+
+    if (!bookAuthors || bookAuthors.length === 0) {
+      return []
+    }
+
+    // Extract unique author IDs using Set to avoid duplicates
+    const authorIds = Array.from(new Set(bookAuthors.map((ba: { author_id: string }) => ba.author_id)))
+
+    if (authorIds.length === 0) {
+      return []
+    }
+
+    // Step 3: Fetch full author records with images
+    const { data: authors, error: authorsError } = await supabaseAdmin
+      .from('authors')
+      .select(`
+        *,
+        author_image:author_image_id(id, url, alt_text)
+      `)
+      .in('id', authorIds)
+
+    if (authorsError) {
+      console.error('Error fetching authors by publisher:', authorsError)
+      return []
+    }
+
+    if (!authors) {
+      return []
+    }
+
+    // Map to Author type with proper type safety
+    return authors.map((author: any) => ({
+      id: String(author.id),
+      name: author.name,
+      bio: author.bio ?? undefined,
+      created_at: author.created_at,
+      updated_at: author.updated_at,
+      author_image: author.author_image
+        ? {
+            id: author.author_image.id,
+            url: author.author_image.url,
+            alt_text: author.author_image.alt_text,
+          }
+        : null,
+      cover_image_id: author.cover_image_id ?? undefined,
+      nationality: author.nationality ?? undefined,
+      website: author.website ?? undefined,
+      permalink: author.permalink ?? undefined,
+      birth_date: author.birth_date ?? undefined,
+    })) as Author[]
+  } catch (error) {
+    console.error('Unexpected error fetching authors by publisher:', error)
     return []
   }
 }

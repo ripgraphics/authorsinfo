@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { ExpandableSection } from '@/components/ui/expandable-section'
 import { ContactInfo } from '@/types/contact'
 import { getContactInfo } from '@/utils/contactInfo'
+import { ClientAuthorsList } from '@/app/authors/components/ClientAuthorsList'
+import type { Author } from '@/types/book'
 
 interface PublisherData {
   id?: string | number
@@ -446,6 +448,58 @@ export function BooksSection({
         ) : (
           <p className="books-section__empty-message text-muted-foreground italic">
             No books have been published yet.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// Published Authors Section
+export function AuthorsSection({
+  authors,
+  authorsCount,
+}: {
+  authors?: Author[]
+  authorsCount?: number
+}) {
+  const hasAuthors = authors && authors.length > 0
+  const displayCount = authorsCount || 0
+
+  return (
+    <Card className="authors-section mb-6" id="authors">
+      <div className="authors-section__header flex flex-col space-y-1.5 p-4 border-b">
+        <h3 className="authors-section__title text-xl font-semibold">Published Authors</h3>
+      </div>
+      <CardContent className="authors-section__content p-4">
+        {hasAuthors ? (
+          <div className="authors-section__with-content">
+            <p className="authors-section__count mb-4">
+              This publisher has published {displayCount} {displayCount === 1 ? 'author' : 'authors'}.
+            </p>
+            <ClientAuthorsList
+              initialAuthors={authors.map((author) => ({
+                id: author.id,
+                name: author.name,
+                nationality: author.nationality ?? undefined,
+                birth_date: author.birth_date ?? undefined,
+                author_image: author.author_image
+                  ? {
+                      id: author.author_image.id,
+                      url: author.author_image.url,
+                      alt_text: author.author_image.alt_text || author.name || 'Author',
+                    }
+                  : null,
+              }))}
+              initialTotalCount={displayCount}
+              page={1}
+              pageSize={12}
+              searchValue=""
+            />
+          </div>
+        ) : (
+          <p className="authors-section__empty-message text-muted-foreground italic">
+            No authors have published with this publisher yet.
           </p>
         )}
       </CardContent>

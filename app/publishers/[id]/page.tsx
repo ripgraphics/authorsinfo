@@ -2,6 +2,7 @@ import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Publisher } from '@/types/database'
+import type { Author } from '@/types/book'
 import { ClientPublisherPage } from './client'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -128,6 +129,19 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
     .select('*', { count: 'exact', head: true })
     .eq('publisher_id', id)
 
+  // Get publisher authors with error handling
+  let authors: Author[] = []
+  let authorsCount = 0
+  try {
+    const { getAuthorsByPublisherId } = await import('@/app/actions/data')
+    authors = await getAuthorsByPublisherId(id)
+    authorsCount = authors.length
+  } catch (error) {
+    console.error('Error fetching publisher authors:', error)
+    authors = []
+    authorsCount = 0
+  }
+
   return (
     <ClientPublisherPage
       publisher={publisher}
@@ -138,6 +152,8 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
       followersCount={followersCount}
       books={books}
       booksCount={totalBooksCount || 0}
+      authors={authors}
+      authorsCount={authorsCount}
     />
   )
 }

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { EntityHeader, TabConfig } from '@/components/entity-header'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
+import type { Author } from '@/types/book'
 import {
   BookOpen,
   Users,
@@ -40,6 +41,7 @@ import {
   ContactSection,
   LocationSection,
   BooksSection,
+  AuthorsSection,
 } from './components/AboutSections'
 import { useToast } from '@/components/ui/use-toast'
 import { FollowersList } from '@/components/followers-list'
@@ -62,6 +64,8 @@ interface ClientPublisherPageProps {
   followersCount?: number
   books?: any[]
   booksCount?: number
+  authors?: Author[]
+  authorsCount?: number
 }
 
 export function ClientPublisherPage({
@@ -73,6 +77,8 @@ export function ClientPublisherPage({
   followersCount = 0,
   books = [],
   booksCount = 0,
+  authors = [],
+  authorsCount = 0,
 }: ClientPublisherPageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -265,6 +271,10 @@ export function ClientPublisherPage({
               books={books}
               booksCount={booksCount}
               onViewAllBooks={() => handleTabChange('books')}
+            />
+            <AuthorsSection
+              authors={authors}
+              authorsCount={authorsCount}
             />
           </div>
         </div>

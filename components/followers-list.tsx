@@ -61,7 +61,7 @@ export function FollowersList({
         </div>
         {mutualFriendsCount !== undefined && mutualFriendsCount > 0 && (
           <div className="followers-list__mutual-friends">
-            <MutualFriendsDisplay count={mutualFriendsCount} variant="compact" />
+            <MutualFriendsDisplay count={mutualFriendsCount} variant="compact" className="text-xs" />
           </div>
         )}
       </div>

@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
-import { useCurrentUserAvatar, useCurrentUserName } from '@/components/user-avatar'
+import EntityAvatar from '@/components/entity-avatar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
@@ -63,8 +63,7 @@ export function EngagementActions({
 }: EngagementActionsProps) {
   const { user } = useAuth()
   const { toast } = useToast()
-  const currentUserAvatar = useCurrentUserAvatar()
-  const currentUserName = useCurrentUserName()
+  const currentUserName = (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'User'
 
   // State for engagement data
   const [engagementCount, setEngagementCount] = useState(initialEngagementCount)
@@ -236,7 +235,7 @@ export function EngagementActions({
           user: {
             id: user.id,
             name: currentUserName,
-            avatar_url: currentUserAvatar,
+            avatar_url: (user as any)?.avatar_url || null,
           },
         })
       }
@@ -372,23 +371,13 @@ export function EngagementActions({
           <div className="engagement-comment-input-container flex items-start gap-3">
             {/* User Avatar */}
             <div className="engagement-comment-avatar flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                {currentUserAvatar ? (
-                  <div className="relative h-full w-full overflow-hidden rounded-full">
-                    <Image
-                      src={currentUserAvatar}
-                      alt="User avatar"
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  </div>
-                ) : (
-                  <span className="text-sm font-medium text-gray-600">
-                    {currentUserName?.[0] || 'U'}
-                  </span>
-                )}
-              </div>
+              <EntityAvatar
+                type="user"
+                id={user?.id || 'current-user'}
+                name={currentUserName}
+                size="sm"
+                className="w-8 h-8"
+              />
             </div>
 
             {/* Comment Input Area */}

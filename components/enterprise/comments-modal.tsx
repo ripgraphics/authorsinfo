@@ -61,7 +61,6 @@ export interface CommentsModalProps {
   onCommentLike?: (commentId: string) => Promise<void>
   onCommentReply?: (commentId: string, replyText: string) => Promise<void>
   currentUserId?: string
-  currentUserAvatar?: string
   currentUserName?: string
   showReplies?: boolean
   maxComments?: number
@@ -83,7 +82,6 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   onCommentLike,
   onCommentReply,
   currentUserId,
-  currentUserAvatar,
   currentUserName,
   showReplies = true,
   maxComments = 100,
@@ -419,10 +417,11 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
           {allowCommenting && currentUserId && (
             <div className="flex-shrink-0 border-t border-border px-4 py-4 bg-muted">
               <div className="flex gap-3">
-                <Avatar
-                  src={currentUserAvatar || '/placeholder.svg?height=32&width=32'}
-                  alt={`${currentUserName || 'User'} avatar`}
+                <EntityAvatar
+                  type="user"
+                  id={currentUserId || 'current-user'}
                   name={currentUserName || 'User'}
+                  size="sm"
                   className="w-8 h-8 flex-shrink-0"
                 />
                 <div className="flex-1 space-y-3">

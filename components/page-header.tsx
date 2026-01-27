@@ -29,13 +29,13 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { FriendRequestNotification } from './friend-request-notification'
-import { Avatar } from '@/components/ui/avatar'
 import { Navigation } from '@/components/navigation'
 import { SearchModal } from '@/components/search-modal'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
-import { useCurrentUserAvatar, useCurrentUserName } from '@/components/user-avatar'
+import EntityAvatar from '@/components/entity-avatar'
+import { Avatar } from '@/components/ui/avatar'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 import { usePathname } from 'next/navigation'
 
@@ -55,8 +55,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, loading } = useAuth()
-  const currentUserAvatar = useCurrentUserAvatar()
-  const currentUserName = useCurrentUserName()
+  const currentUserName = (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'User'
 
   const handleSignOut = async () => {
     const supabase = createBrowserClient(
@@ -124,10 +123,10 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
                   size="icon"
                   className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground p-0"
                 >
-                  <Avatar
-                    src={currentUserAvatar || undefined}
-                    alt={currentUserName || 'User'}
-                    name={currentUserName || ''}
+                  <EntityAvatar
+                    type="user"
+                    id={user?.id || 'current-user'}
+                    name={currentUserName}
                   />
                 </Button>
               </DropdownMenuTrigger>
@@ -199,7 +198,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
                 className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground p-0"
                 onClick={() => router.push('/login')}
               >
-                <Avatar name="" />
+                <Avatar name="" size="sm" />
               </Button>
             )
           )}

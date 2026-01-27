@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { AuthorAvatar } from '@/components/author-avatar'
+import EntityAvatar from '@/components/entity-avatar'
 import { EntityHeader, TabConfig } from '@/components/entity-header'
 import {
   Dialog,
@@ -165,6 +165,7 @@ export function ClientBookPage({
   const { fetchShelves } = useShelfStore()
   const [canEdit, setCanEdit] = useState(false)
   const [moreBooks, setMoreBooks] = useState<any[]>([])
+  const [showAllAuthors, setShowAllAuthors] = useState(false)
   const [bookData, setBookData] = useState(book)
   const [isCoverImageModalOpen, setIsCoverImageModalOpen] = useState(false)
   const [isHoveringCover, setIsHoveringCover] = useState(false)
@@ -1567,27 +1568,51 @@ export function ClientBookPage({
                       <div className="book-details__authors-section">
                         <div className="text-muted-foreground">
                           <span>by </span>
-                          {authors.map((author, index) => (
-                            <span key={author.id}>
-                              <EntityHoverCard
-                                type="author"
-                                entity={{
-                                  id: author.id,
-                                  name: author.name,
-                                  author_image: author.author_image || undefined,
-                                  bookCount: authorBookCounts[author.id] || 0,
-                                  followersCount: authorFollowersCounts[author.id],
-                                  mutualFriendsCount: authorMutualFriendsCounts[author.id],
-                                }}
-                              >
-                                <span className="text-black hover:text-primary transition-colors font-semibold">
-                                  {author.name}
-                                </span>
-                              </EntityHoverCard>
-                              <span> (Author)</span>
-                              {index < authors.length - 1 && <span className="mx-2">|</span>}
-                            </span>
-                          ))}
+                          {(() => {
+                            const displayedAuthors = showAllAuthors ? authors : authors.slice(0, 4)
+                            const hasMoreAuthors = authors.length > 4 && !showAllAuthors
+                            
+                            return (
+                              <>
+                                {displayedAuthors.map((author, index) => {
+                                  const isLastInDisplayed = index === displayedAuthors.length - 1
+                                  
+                                  return (
+                                    <span key={author.id}>
+                                      <EntityHoverCard
+                                        type="author"
+                                        entity={{
+                                          id: author.id,
+                                          name: author.name,
+                                          author_image: author.author_image || undefined,
+                                          bookCount: authorBookCounts[author.id] || 0,
+                                          followersCount: authorFollowersCounts[author.id],
+                                          mutualFriendsCount: authorMutualFriendsCounts[author.id],
+                                        }}
+                                      >
+                                        <span className="text-black hover:text-primary transition-colors font-semibold">
+                                          {author.name}
+                                        </span>
+                                      </EntityHoverCard>
+                                      <span> (Author)</span>
+                                      {!isLastInDisplayed && <span className="mx-2">|</span>}
+                                      {isLastInDisplayed && hasMoreAuthors && <span className="mx-2">|</span>}
+                                    </span>
+                                  )
+                                })}
+                                {hasMoreAuthors && (
+                                  <span className="mx-2">
+                                    <button
+                                      onClick={() => setShowAllAuthors(true)}
+                                      className="text-primary hover:text-primary/80 underline font-semibold transition-colors cursor-pointer"
+                                    >
+                                      +{authors.length - 4} More Author{authors.length - 4 !== 1 ? 's' : ''}
+                                    </button>
+                                  </span>
+                                )}
+                              </>
+                            )
+                          })()}
                         </div>
                       </div>
                     )}

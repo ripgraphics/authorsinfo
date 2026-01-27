@@ -247,7 +247,6 @@ export default function EntityFeedCard({
   // Use hooks for current user data
   const currentUserDisplayName =
     (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'You'
-  const currentUserAvatar = (user as any)?.avatar_url || undefined
 
   // Single-comment preview helpers
   const firstCommentTextRef = useRef<HTMLDivElement>(null)
@@ -2377,7 +2376,6 @@ export default function EntityFeedCard({
                               entityType={'post'}
                               currentUserId={user?.id}
                               currentUserName={currentUserDisplayName}
-                              currentUserAvatar={currentUserAvatar}
                               parentCommentId={firstReply.id}
                               placeholder={`Reply to ${firstReply.user?.name || 'reply'}`}
                               onSubmitted={() => {
@@ -2402,7 +2400,6 @@ export default function EntityFeedCard({
             entityType={'post'}
             currentUserId={user?.id}
             currentUserName={currentUserDisplayName}
-            currentUserAvatar={currentUserAvatar}
             focusControl={composerFocusTick}
             rootClassName=""
             containerClassName="bg-white px-0 pt-3"
@@ -3077,7 +3074,6 @@ export default function EntityFeedCard({
                                     entityType={'post'}
                                     currentUserId={user?.id}
                                     currentUserName={currentUserDisplayName}
-                                    currentUserAvatar={currentUserAvatar}
                                     parentCommentId={comment.id}
                                     placeholder={`Reply to ${comment.user?.name || 'comment'}`}
                                     onSubmitted={() => {
@@ -3111,7 +3107,6 @@ export default function EntityFeedCard({
                     entityType={'post'}
                     currentUserId={user?.id}
                     currentUserName={currentUserDisplayName}
-                    currentUserAvatar={currentUserAvatar}
                     containerClassName=""
                     rowClassName="flex items-center gap-3"
                     avatarClassName="w-8 h-8 flex-shrink-0"

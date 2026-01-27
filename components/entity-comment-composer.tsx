@@ -13,7 +13,6 @@ interface EntityCommentComposerProps {
   entityType: string
   currentUserId?: string
   currentUserName: string
-  currentUserAvatar?: string | null
   focusControl?: number
   onSubmitted?: () => void
   parentCommentId?: string
@@ -41,7 +40,6 @@ export default function EntityCommentComposer({
   entityType,
   currentUserId,
   currentUserName,
-  currentUserAvatar,
   focusControl,
   onSubmitted,
   parentCommentId,
@@ -162,7 +160,6 @@ export default function EntityCommentComposer({
             type="user"
             id={currentUserId || 'current-user'}
             name={currentUserName || 'You'}
-            src={currentUserAvatar || undefined}
             size="sm"
             className={avatarClassName}
           />

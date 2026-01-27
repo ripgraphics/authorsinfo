@@ -26,17 +26,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/useAuth'
-import { useCurrentUserAvatar, useCurrentUserName } from '@/components/user-avatar'
+import EntityAvatar from '@/components/entity-avatar'
+import { Avatar } from '@/components/ui/avatar'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 
 export function AdminHeader() {
   const [searchOpen, setSearchOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const { user, loading } = useAuth()
-  const currentUserAvatar = useCurrentUserAvatar()
-  const currentUserName = useCurrentUserName()
+  const currentUserName = (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'User'
 
   return (
     <>
@@ -83,10 +82,10 @@ export function AdminHeader() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative rounded-full p-0">
-                  <Avatar
-                    src={currentUserAvatar || undefined}
-                    alt={currentUserName || 'User'}
-                    name={currentUserName || ''}
+                  <EntityAvatar
+                    type="user"
+                    id={user?.id || 'current-user'}
+                    name={currentUserName}
                   />
                 </Button>
               </DropdownMenuTrigger>

@@ -15,7 +15,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Avatar } from '@/components/ui/avatar'
+import EntityAvatar from '@/components/entity-avatar'
 import {
   Image as ImageIcon,
   Smile,
@@ -344,7 +344,6 @@ export function CreatePostModal({
   const captionText = getCaptionText()
   const hasContent = captionText.trim().length > 0 || detectedLinkUrl || linkPreview
   const currentUserName = user?.name || 'User'
-  const currentUserAvatar = user?.avatar_url || undefined
 
   return (
     <>
@@ -368,9 +367,9 @@ export function CreatePostModal({
               {/* User Info and Privacy */}
               <div className="px-4 pt-4">
                 <div className="flex items-center gap-2">
-                  <Avatar
-                    src={currentUserAvatar}
-                    alt={currentUserName}
+                  <EntityAvatar
+                    type="user"
+                    id={user?.id || 'current-user'}
                     name={currentUserName}
                     size="sm"
                     className="w-10 h-10"

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Author } from '@/types/book'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AuthorAvatar } from '@/components/author-avatar'
+import EntityAvatar from '@/components/entity-avatar'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { Pencil } from 'lucide-react'
 
@@ -57,10 +57,11 @@ export function AboutAuthor({
             <div key={author.id} className="author-profile flex flex-col items-center text-center">
               {/* Author Image */}
               <div className="mb-3">
-                <AuthorAvatar
+                <EntityAvatar
+                  type="author"
                   id={author.id}
                   name={author.name}
-                  imageUrl={getAuthorImageUrl(author)}
+                  src={getAuthorImageUrl(author)}
                   size="md"
                   className="mx-auto hover:border-blue-500 transition-colors"
                 />

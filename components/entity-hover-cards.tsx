@@ -182,10 +182,13 @@ export function EntityHoverCard({
         // Extract image URL - handle null, undefined, and empty strings
         const authorImageUrl = authorEntity.author_image?.url?.trim()
         
+        // Proper pluralization: "1 Book" vs "2 Books"
+        const bookText = authorEntity.bookCount === 1 ? 'book' : 'books'
+        
         // Build subtitle - keep it simple, we'll show followers/mutual friends separately
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
-          countText: `${authorEntity.bookCount} books`,
+          countText: `${authorEntity.bookCount} ${bookText}`,
           href: `/authors/${entity.id}`,
           imageUrl: authorImageUrl && authorImageUrl !== '' ? authorImageUrl : undefined,
           subtitle: undefined,

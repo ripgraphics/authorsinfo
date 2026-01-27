@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { Search, Filter } from 'lucide-react'
-import { PublisherAvatar } from '@/components/publisher-avatar'
+import EntityAvatar from '@/components/entity-avatar'
 import {
   Pagination,
   PaginationContent,

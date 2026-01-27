@@ -105,6 +105,7 @@ interface ClientAuthorPageProps {
   }
   followers?: any[]
   followersCount?: number
+  authorMutualFriendsCount?: number
   books?: any[]
   booksCount?: number
   activities?: any[]
@@ -175,6 +176,7 @@ export function ClientAuthorPage({
   params,
   followers = [],
   followersCount = 0,
+  authorMutualFriendsCount = 0,
   books = [],
   booksCount = 0,
   photos = [],
@@ -795,6 +797,7 @@ export function ClientAuthorPage({
                 entityId={params.id}
                 entityType="author"
                 onViewMore={() => setActiveTab('followers')}
+                mutualFriendsCount={authorMutualFriendsCount}
               />
             </div>
 

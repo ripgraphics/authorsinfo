@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 import { ContentSection } from '@/components/ui/content-section'
 import { Card, CardContent } from '@/components/ui/card'
+import { MutualFriendsDisplay } from '@/components/mutual-friends-display'
 
 interface Follower {
   id: string
@@ -21,6 +22,7 @@ interface FollowersListProps {
   entityType: string
   onViewMore?: () => void
   className?: string
+  mutualFriendsCount?: number
 }
 
 export function FollowersList({
@@ -30,6 +32,7 @@ export function FollowersList({
   entityType,
   onViewMore,
   className,
+  mutualFriendsCount,
 }: FollowersListProps) {
   const router = useRouter()
 
@@ -56,6 +59,11 @@ export function FollowersList({
             </div>
           </div>
         </div>
+        {mutualFriendsCount !== undefined && mutualFriendsCount > 0 && (
+          <div className="followers-list__mutual-friends">
+            <MutualFriendsDisplay count={mutualFriendsCount} variant="compact" />
+          </div>
+        )}
       </div>
       <div className="followers-list__grid grid grid-cols-3 gap-2">
         {followers.slice(-9).map((follower) => (

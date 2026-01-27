@@ -760,6 +760,18 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
 
   const totalBooksCount = allBookIds.size
 
+  // Get mutual friends count for the author
+  let authorMutualFriendsCount = 0
+  if (currentUserId) {
+    try {
+      const { getMutualFriendsCount } = await import('@/lib/follows-server')
+      authorMutualFriendsCount = await getMutualFriendsCount(authorId, 'author', currentUserId)
+    } catch (error) {
+      console.error(`Error fetching mutual friends count for author ${authorId}:`, error)
+      authorMutualFriendsCount = 0
+    }
+  }
+
   return (
     <ClientAuthorPage
       author={author}
@@ -768,6 +780,7 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
       params={{ id: authorId }}
       followers={followers.followers}
       followersCount={followers.count}
+      authorMutualFriendsCount={authorMutualFriendsCount}
       books={books}
       booksCount={totalBooksCount || books.length}
       activities={activities}

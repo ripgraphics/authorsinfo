@@ -1,3 +1,17 @@
+/**
+ * @deprecated This component is deprecated. Use EnterpriseEngagementActions instead.
+ * 
+ * This enhanced engagement actions component provides reaction popup functionality.
+ * It has been superseded by EnterpriseEngagementActions which provides:
+ * - Full reaction system with engagement context
+ * - Better state management
+ * - Advanced features (bookmark, view tracking, analytics)
+ * - More comprehensive API
+ * 
+ * Migration: Replace imports from './enhanced-engagement-actions' with './enterprise-engagement-actions'
+ * and use EnterpriseEngagementActions component instead.
+ */
+
 'use client'
 
 import Image from 'next/image'
@@ -52,6 +66,9 @@ interface EnhancedEngagementActionsProps {
   className?: string
 }
 
+/**
+ * @deprecated Use EnterpriseEngagementActions instead
+ */
 export function EnhancedEngagementActions({
   entityId,
   entityType,

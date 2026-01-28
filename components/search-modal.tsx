@@ -12,15 +12,28 @@ import {
 import { ReusableSearch } from '@/components/ui/reusable-search'
 import { Button } from '@/components/ui/button'
 
+interface SearchModalProps {
+  open: boolean
+  onOpenChange?: (open: boolean) => void
+  onClose?: () => void
+}
+
 export function SearchModal({
   open,
   onOpenChange,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
+  onClose,
+}: SearchModalProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Support both prop patterns for backward compatibility
+  const handleOpenChange = (newOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(newOpen)
+    } else if (onClose && !newOpen) {
+      onClose()
+    }
+  }
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value)
@@ -30,13 +43,17 @@ export function SearchModal({
     e.preventDefault()
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
-      onOpenChange(false)
+      if (onOpenChange) {
+        onOpenChange(false)
+      } else if (onClose) {
+        onClose()
+      }
       setSearchQuery('')
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Search</DialogTitle>

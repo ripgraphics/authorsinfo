@@ -1,3 +1,17 @@
+/**
+ * @deprecated This component is deprecated. Use EnterpriseEngagementActions instead.
+ * 
+ * This basic engagement actions component provides simple like/comment/share functionality.
+ * It has been superseded by EnterpriseEngagementActions which provides:
+ * - Reaction system with multiple reaction types
+ * - Engagement context integration
+ * - Advanced features (bookmark, view tracking, analytics)
+ * - Better performance and state management
+ * 
+ * Migration: Replace imports from './engagement-actions' with './enterprise-engagement-actions'
+ * and use EnterpriseEngagementActions component instead.
+ */
+
 'use client'
 
 import React, { useState, useCallback, useEffect } from 'react'
@@ -19,6 +33,7 @@ import {
   Smile,
   Image as ImageIcon,
   Share2,
+  Loader2,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -48,6 +63,9 @@ interface EngagementActionsProps {
   className?: string
 }
 
+/**
+ * @deprecated Use EnterpriseEngagementActions instead
+ */
 export function EngagementActions({
   entityId,
   entityType,
@@ -126,8 +144,6 @@ export function EngagementActions({
     setLoading('like')
 
     try {
-      console.log('🔍 Attempting to like/unlike:', { entityId, entityType })
-
       const response = await fetch('/api/engagement/like', {
         method: 'POST',
         headers: {
@@ -139,66 +155,43 @@ export function EngagementActions({
         }),
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+      const data = await response.json()
 
-      const result = await response.json()
-      console.log('✅ Like response:', result)
+      if (response.ok && data.success) {
+        const wasLiked = isLikedState
+        setLikedState(!wasLiked)
+        setEngagementCount((prev) => (wasLiked ? prev - 1 : prev + 1))
 
-      // Toggle the like state
-      const newLikeState = !isLikedState
-      setLikedState(newLikeState)
+        if (onEngagement) {
+          await onEngagement('like', entityId, entityType)
+        }
 
-      // Update the count
-      if (newLikeState) {
-        setEngagementCount((prev) => prev + 1)
+        toast({
+          title: wasLiked ? 'Unliked' : 'Liked',
+          description: wasLiked ? 'You unliked this post' : 'You liked this post',
+        })
       } else {
-        setEngagementCount((prev) => Math.max(0, prev - 1))
+        throw new Error(data.error || 'Failed to toggle like')
       }
-
-      toast({
-        title: newLikeState ? 'Post liked!' : 'Post unliked',
-        description: newLikeState ? 'You liked this post' : 'You unliked this post',
-        variant: 'default',
-      })
     } catch (error) {
-      console.error('❌ Error toggling like:', error)
+      console.error('Error toggling like:', error)
       toast({
         title: 'Error',
-        description: 'Failed to like post. Please try again.',
+        description: 'Failed to toggle like. Please try again.',
         variant: 'destructive',
       })
     } finally {
       setLoading(null)
     }
-  }, [user, entityId, entityType, isLikedState, toast])
+  }, [entityId, entityType, isLikedState, user, toast, onEngagement])
 
   // Handle comment submission
-  const handleSubmitComment = useCallback(async () => {
-    if (!user) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please log in to comment',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    if (!commentText.trim()) {
-      toast({
-        title: 'Comment required',
-        description: 'Please enter a comment',
-        variant: 'destructive',
-      })
-      return
-    }
+  const handleCommentSubmit = useCallback(async () => {
+    if (!user || !commentText.trim()) return
 
     setIsSubmittingComment(true)
 
     try {
-      console.log('🔍 Submitting comment:', { entityId, entityType, commentText })
-
       const response = await fetch('/api/engagement/comment', {
         method: 'POST',
         headers: {
@@ -211,42 +204,31 @@ export function EngagementActions({
         }),
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+      const data = await response.json()
 
-      const result = await response.json()
-      console.log('✅ Comment response:', result)
+      if (response.ok && data.success) {
+        setCommentText('')
+        setShowCommentInput(false)
+        setCommentCountState((prev) => prev + 1)
+        setCommentedState(true)
 
-      // Update comment count
-      setCommentCountState((prev) => prev + 1)
-      setCommentedState(true)
+        if (onCommentAdded) {
+          onCommentAdded(data.comment)
+        }
 
-      // Clear comment input
-      setCommentText('')
-      setShowCommentInput(false)
+        if (onEngagement) {
+          await onEngagement('comment', entityId, entityType)
+        }
 
-      // Notify parent component
-      if (onCommentAdded) {
-        onCommentAdded({
-          id: result.comment_id || `comment-${Date.now()}`,
-          content: commentText.trim(),
-          created_at: new Date().toISOString(),
-          user: {
-            id: user.id,
-            name: currentUserName,
-            avatar_url: (user as any)?.avatar_url || null,
-          },
+        toast({
+          title: 'Comment posted',
+          description: 'Your comment has been added',
         })
+      } else {
+        throw new Error(data.error || 'Failed to post comment')
       }
-
-      toast({
-        title: 'Comment posted!',
-        description: 'Your comment has been added',
-        variant: 'default',
-      })
     } catch (error) {
-      console.error('❌ Error posting comment:', error)
+      console.error('Error posting comment:', error)
       toast({
         title: 'Error',
         description: 'Failed to post comment. Please try again.',
@@ -255,10 +237,10 @@ export function EngagementActions({
     } finally {
       setIsSubmittingComment(false)
     }
-  }, [user, entityId, entityType, commentText, onCommentAdded, toast])
+  }, [entityId, entityType, commentText, user, toast, onCommentAdded, onEngagement])
 
   // Handle share action
-  const handleShare = useCallback(() => {
+  const handleShare = useCallback(async () => {
     if (!user) {
       toast({
         title: 'Authentication required',
@@ -268,64 +250,55 @@ export function EngagementActions({
       return
     }
 
-    // For now, just show a toast - implement actual sharing logic later
-    toast({
-      title: 'Share feature',
-      description: 'Sharing functionality coming soon!',
-      variant: 'default',
-    })
-  }, [user, toast])
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Check this out!',
+          text: 'I found this interesting post',
+          url: window.location.href,
+        })
 
-  // Format engagement count for display
-  const formatEngagementCount = (count: number) => {
-    if (count === 0) return ''
-    if (count === 1) return '1 like'
-    if (count < 1000) return `${count} likes`
-    if (count < 1000000) return `${(count / 1000).toFixed(1)}K likes`
-    return `${(count / 1000000).toFixed(1)}M likes`
-  }
+        if (onEngagement) {
+          await onEngagement('share', entityId, entityType)
+        }
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(window.location.href)
+        toast({
+          title: 'Link copied',
+          description: 'Link copied to clipboard',
+        })
 
-  // Format comment count for display
-  const formatCommentCount = (count: number) => {
-    if (count === 0) return ''
-    if (count === 1) return '1 comment'
-    return `${count} comments`
-  }
+        if (onEngagement) {
+          await onEngagement('share', entityId, entityType)
+        }
+      }
+    } catch (error) {
+      console.error('Error sharing:', error)
+    }
+  }, [entityId, entityType, user, toast, onEngagement])
 
   return (
-    <div className={cn('enterprise-engagement-actions', className)}>
-      {/* Reactions Display Row */}
-      {(engagementCount > 0 || commentCountState > 0) && (
-        <div className="engagement-reactions-display flex items-center justify-between px-4 py-2 border-b border-gray-100">
-          <div className="engagement-reactions-left flex items-center gap-2">
-            {/* Like reactions */}
-            {engagementCount > 0 && (
-              <div className="engagement-reactions-likes flex items-center gap-1">
-                <div className="engagement-reaction-icon bg-blue-500 text-white rounded-full p-1">
-                  <ThumbsUp className="h-3 w-3" />
-                </div>
-                <span className="engagement-reaction-count text-sm text-gray-600">
-                  {formatEngagementCount(engagementCount)}
-                </span>
-              </div>
-            )}
-
-            {/* Comment count */}
-            {commentCountState > 0 && (
-              <div className="engagement-comment-count text-sm text-gray-600 hover:underline cursor-pointer">
-                {formatCommentCount(commentCountState)}
-              </div>
-            )}
-          </div>
-
-          {/* Right side - could add share count here */}
-          <div className="engagement-reactions-right">
-            {/* Future: Add share count if needed */}
-          </div>
+    <div className={`engagement-actions-container ${className}`}>
+      {/* Engagement Stats Bar */}
+      <div className="engagement-stats-bar flex items-center justify-between px-4 py-2 border-b border-gray-100">
+        <div className="engagement-stats flex items-center gap-4 text-sm text-gray-600">
+          {engagementCount > 0 && (
+            <div className="engagement-count flex items-center gap-1">
+              <ThumbsUp className="h-4 w-4" />
+              <span>{engagementCount}</span>
+            </div>
+          )}
+          {commentCountState > 0 && (
+            <div className="comment-count flex items-center gap-1">
+              <MessageSquare className="h-4 w-4" />
+              <span>{commentCountState}</span>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Action Buttons Row */}
+      {/* Engagement Action Buttons */}
       <div className="engagement-action-buttons flex items-center justify-between px-4 py-2 border-b border-gray-100">
         <Button
           variant="ghost"
@@ -381,59 +354,41 @@ export function EngagementActions({
             </div>
 
             {/* Comment Input Area */}
-            <div className="engagement-comment-input-area flex-1">
-              <div className="engagement-comment-input-wrapper relative">
-                <Textarea
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="engagement-comment-textarea min-h-[40px] max-h-32 resize-none border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={1}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSubmitComment()
-                    }
-                  }}
-                />
-
-                {/* Comment Action Icons */}
-                <div className="engagement-comment-actions absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="engagement-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
-                    title="Add emoji"
-                  >
-                    <Smile className="h-4 w-4" />
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="engagement-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
-                    title="Add photo"
-                  >
-                    <ImageIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Comment Submit Button */}
-              <div className="engagement-comment-submit mt-2 flex justify-end">
+            <div className="engagement-comment-input-area flex-1 space-y-2">
+              <Textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Write a comment..."
+                className="min-h-[80px] resize-none"
+                disabled={isSubmittingComment}
+              />
+              <div className="engagement-comment-actions flex items-center justify-end gap-2">
                 <Button
-                  onClick={handleSubmitComment}
-                  disabled={!commentText.trim() || isSubmittingComment}
+                  variant="ghost"
                   size="sm"
-                  className="engagement-comment-submit-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => {
+                    setShowCommentInput(false)
+                    setCommentText('')
+                  }}
+                  disabled={isSubmittingComment}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleCommentSubmit}
+                  disabled={!commentText.trim() || isSubmittingComment}
                 >
                   {isSubmittingComment ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Posting...
-                    </div>
+                    </>
                   ) : (
-                    'Post'
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Post
+                    </>
                   )}
                 </Button>
               </div>

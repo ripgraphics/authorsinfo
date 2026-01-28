@@ -1,3 +1,33 @@
+/**
+ * Enterprise Engagement Actions Component
+ * 
+ * This is the primary and recommended engagement actions component for the application.
+ * It provides comprehensive engagement features including:
+ * - Multiple reaction types (like, love, laugh, etc.)
+ * - Engagement context integration
+ * - Comment system
+ * - Share functionality
+ * - Bookmark support
+ * - View tracking
+ * - Analytics (optional)
+ * - Customizable variants and features
+ * 
+ * Use this component instead of EngagementActions or EnhancedEngagementActions.
+ * 
+ * @example
+ * ```tsx
+ * <EnterpriseEngagementActions
+ *   entityId={post.id}
+ *   entityType="post"
+ *   initialEngagementCount={post.like_count}
+ *   commentCount={post.comment_count}
+ *   isLiked={post.is_liked}
+ *   variant="default"
+ *   enableQuickReactions={true}
+ * />
+ * ```
+ */
+
 'use client'
 
 import React, { useState, useCallback, useEffect, useRef } from 'react'

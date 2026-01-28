@@ -1,3 +1,12 @@
+/**
+ * Basic Timeline Presentation Component
+ * 
+ * This is a simple, reusable presentation component for displaying timeline items.
+ * It's used in groups for displaying activity timelines.
+ * 
+ * For full-featured timeline with posting, engagement, and analytics, use EnterpriseTimelineActivities.
+ */
+
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Heart, MessageSquare, Share2, Ellipsis } from 'lucide-react'

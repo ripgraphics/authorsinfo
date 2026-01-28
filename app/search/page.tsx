@@ -23,7 +23,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   if (query) {
     // Search in ISBNDB
     if (type === 'books' || type === 'all') {
-      isbndbBooks = await searchBooks(query)
+      try {
+        isbndbBooks = await searchBooks(query)
+      } catch (error) {
+        // Error is already logged in searchBooks, just continue with empty array
+        console.warn('ISBNDB search failed, continuing with local search only')
+        isbndbBooks = []
+      }
     }
 
     // Fetch recent items from database (will be filtered client-side)

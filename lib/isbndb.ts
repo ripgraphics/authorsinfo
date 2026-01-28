@@ -20,18 +20,26 @@ async function makeApiRequest(url: string, options: RequestInit = {}): Promise<R
     ...options,
     headers: {
       Authorization: ISBNDB_API_KEY!,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
       ...options.headers,
     },
   })
 
   if (response.status === 403) {
+    const errorText = await response.text().catch(() => 'Unknown error')
     throw new Error(
-      'ISBNDB API key is invalid or has expired. Please check your API key configuration.'
+      `ISBNDB API key is invalid, expired, or lacks permissions (403). Please verify your NEXT_PUBLIC_ISBNDB_API_KEY environment variable. Response: ${errorText}`
     )
   }
 
   if (response.status === 429) {
     throw new Error('ISBNDB API rate limit exceeded. Please wait before making more requests.')
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error')
+    throw new Error(`ISBNDB API error (${response.status}): ${errorText}`)
   }
 
   return response
@@ -76,20 +84,29 @@ export interface Publisher {
 
 export async function searchBooks(query: string): Promise<Book[]> {
   try {
-    const response = await fetch(`${BASE_URL}/books/${query}`, {
-      headers: {
-        Authorization: ISBNDB_API_KEY!,
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`ISBNDB API error: ${response.status}`)
+    // Check if API key is available
+    if (!ISBNDB_API_KEY) {
+      console.warn('ISBNDB_API_KEY not set. Book search feature is disabled.')
+      return []
     }
+
+    // Use makeApiRequest for better error handling
+    const response = await makeApiRequest(`${BASE_URL}/books/${encodeURIComponent(query)}`)
 
     const data = await response.json()
     return data.books || []
   } catch (error) {
-    console.error('Error searching books:', error)
+    // Log the error with more context
+    if (error instanceof Error) {
+      if (error.message.includes('403') || error.message.includes('invalid') || error.message.includes('expired')) {
+        console.error('ISBNDB API authentication error:', error.message)
+        console.error('Please check your NEXT_PUBLIC_ISBNDB_API_KEY environment variable.')
+      } else {
+        console.error('Error searching books:', error.message)
+      }
+    } else {
+      console.error('Error searching books:', error)
+    }
     return []
   }
 }

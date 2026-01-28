@@ -6,7 +6,7 @@ import { MessageCircle, UserMinus, UserPlus, Clock, Loader2, MoreHorizontal } fr
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import FollowButton from '@/components/FollowButton'
+import { FollowButton } from '@/components/follow-button'
 import { unfollowEntity } from '@/app/actions/follow'
 import { cn } from '@/lib/utils'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'

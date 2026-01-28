@@ -1,3 +1,13 @@
+/**
+ * @deprecated This component is deprecated and unused.
+ * 
+ * This component is a wrapper around EnterpriseTimelineActivities with additional filtering.
+ * However, it's not imported anywhere in the codebase.
+ * 
+ * Use EnterpriseTimelineActivities directly instead, which provides all the same features
+ * and more, with better performance.
+ */
+
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
@@ -38,6 +48,9 @@ interface EnhancedUserTimelineProps {
   privacySettings?: any
 }
 
+/**
+ * @deprecated Use EnterpriseTimelineActivities directly instead
+ */
 export function EnhancedUserTimeline({
   userId,
   isOwnProfile,

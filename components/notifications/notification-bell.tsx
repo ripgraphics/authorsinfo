@@ -11,11 +11,16 @@ import { Badge } from '@/components/ui/badge';
 import useNotificationStore from '@/lib/stores/notification-store';
 
 interface NotificationBellProps {
+  showCount?: boolean;
   onClick?: () => void;
   className?: string;
 }
 
-export function NotificationBell({ onClick, className }: NotificationBellProps) {
+export function NotificationBell({
+  showCount = true,
+  onClick,
+  className,
+}: NotificationBellProps) {
   const { unreadCount, fetchNotifications, notificationsLoading } =
     useNotificationStore();
 
@@ -40,7 +45,7 @@ export function NotificationBell({ onClick, className }: NotificationBellProps) 
       disabled={notificationsLoading}
     >
       <Bell className="h-5 w-5" />
-      {unreadCount > 0 && (
+      {showCount && unreadCount > 0 && (
         <Badge
           variant="destructive"
           className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"

@@ -21,11 +21,16 @@ import { LoadingSpinner } from '@/components/skeleton-loaders';
 import type { Notification, NotificationType } from '@/types/notifications';
 
 interface NotificationCenterProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  className?: string;
 }
 
-export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
+export function NotificationCenter({
+  isOpen = true,
+  onClose,
+  className,
+}: NotificationCenterProps) {
   const {
     notifications,
     unreadCount,
@@ -165,7 +170,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
+      <DialogContent className={`max-w-2xl max-h-[80vh] ${className || ''}`}>
         <DialogHeader>
           <DialogTitle>Notifications</DialogTitle>
           <DialogDescription>

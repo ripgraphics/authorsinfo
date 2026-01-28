@@ -1,3 +1,15 @@
+/**
+ * @deprecated This component is deprecated and unused.
+ * 
+ * Use EnterpriseTimelineActivities instead, which provides:
+ * - Better performance and optimization
+ * - More comprehensive features
+ * - Better state management
+ * - Support for all entity types
+ * 
+ * This component is not imported anywhere in the codebase.
+ */
+
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -36,6 +48,9 @@ interface TimelineActivitiesProps {
   userName: string
 }
 
+/**
+ * @deprecated Use EnterpriseTimelineActivities instead
+ */
 export function TimelineActivities({ userId, userAvatarUrl, userName }: TimelineActivitiesProps) {
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)

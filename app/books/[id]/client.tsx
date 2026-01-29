@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { PageHeader } from '@/components/page-header'
@@ -30,7 +30,6 @@ import {
   Share2,
   Star,
   Clock,
-  BookMarked,
   Heart,
   Globe,
   Tag,
@@ -49,7 +48,6 @@ import {
   MapPin,
   Camera,
   UserPlus,
-  Plus,
 } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { FollowersList } from '@/components/followers-list'
@@ -80,9 +78,7 @@ import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
 import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
 import { EntityMetadata } from '@/types/entity'
 import { getTabsForEntity } from '@/lib/tabContentRegistry'
-import { ShelfCreateDialog } from '@/components/shelf-create-dialog'
-import { ShelfBookStatusModal, ReadingStatus } from '@/components/shelf-book-status-modal'
-import { useShelfStore } from '@/lib/stores/shelf-store'
+import { AddToShelfButton } from '@/components/add-to-shelf-button'
 
 interface Follower {
   id: string
@@ -158,11 +154,6 @@ export function ClientBookPage({
   const [needsTruncation, setNeedsTruncation] = useState(false)
   const [needsTimelineTruncation, setNeedsTimelineTruncation] = useState(false)
   const [currentReadingStatus, setCurrentReadingStatus] = useState<string | null>(null)
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
-  const [isShelfCreateDialogOpen, setIsShelfCreateDialogOpen] = useState(false)
-  const [isAddToShelfDialogOpen, setIsAddToShelfDialogOpen] = useState(false)
-  const [isPageInputModalOpen, setIsPageInputModalOpen] = useState(false)
-  const { fetchShelves } = useShelfStore()
   const [canEdit, setCanEdit] = useState(false)
   const [moreBooks, setMoreBooks] = useState<any[]>([])
   const [showAllAuthors, setShowAllAuthors] = useState(false)
@@ -483,175 +474,25 @@ export function ClientBookPage({
     }
   }, [book.synopsis, book.overview])
 
-  // Check current reading status on component mount
-  useEffect(() => {
-    const checkReadingStatus = async () => {
-      if (!user) {
-        setCurrentReadingStatus(null)
-        return
-      }
-
-      try {
-        const response = await fetch(`/api/reading-status?bookId=${params.id}`)
-        if (response.ok) {
-          const data = await response.json()
-          setCurrentReadingStatus(data.status)
-        }
-      } catch (error) {
-        console.error('Error checking reading status:', error)
-      }
-    }
-
-    checkReadingStatus()
-  }, [user, params.id])
-
-  // Handle reading status update
-  const handleReadingStatusUpdate = async (status: string) => {
+  const checkReadingStatus = useCallback(async () => {
     if (!user) {
-      alert('Please log in to add books to your shelf')
+      setCurrentReadingStatus(null)
       return
     }
-
-    // If status is "currently_reading", show page input modal
-    if (status === 'currently_reading') {
-      setIsAddToShelfDialogOpen(false)
-      setIsPageInputModalOpen(true)
-      return
-    }
-
-    // For other statuses, update directly and close dialog
-    await updateReadingStatus(status)
-    setIsAddToShelfDialogOpen(false)
-  }
-
-  // Update reading status with optional current page
-  const updateReadingStatus = async (status: string, currentPage?: number) => {
-    setIsUpdatingStatus(true)
     try {
-      const requestBody: any = {
-        bookId: params.id,
-        status: status,
-      }
-
-      // If status is in_progress and we have current page, include it
-      if (status === 'currently_reading' && currentPage !== undefined) {
-        requestBody.currentPage = currentPage
-      }
-
-      const response = await fetch('/api/reading-status', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      })
-
+      const response = await fetch(`/api/reading-status?bookId=${params.id}`)
       if (response.ok) {
         const data = await response.json()
         setCurrentReadingStatus(data.status)
-        // Show success message with book title
-        const statusMap: Record<string, string> = {
-          want_to_read: 'Want to Read',
-          currently_reading: 'Currently Reading',
-          read: 'Read',
-          on_hold: 'On Hold',
-          abandoned: 'Abandoned',
-          remove: 'removed from',
-        }
-        const statusDisplayName = statusMap[status] || status.replace('_', ' ')
-        const actionText = status === 'remove' ? 'removed from' : 'added to'
-        const pageText = currentPage !== undefined ? ` (Page ${currentPage})` : ''
-        toast({
-          title: 'Success!',
-          description: `"${book.title}" ${actionText} ${statusDisplayName} shelf${pageText}`,
-        })
-      } else {
-        const error = await response.json()
-        toast({
-          title: 'Error',
-          description: error.error || `Failed to update reading status for "${book.title}"`,
-          variant: 'destructive',
-        })
       }
     } catch (error) {
-      console.error('Error updating reading status:', error)
-      toast({
-        title: 'Error',
-        description: `An error occurred while updating reading status for "${book.title}"`,
-        variant: 'destructive',
-      })
-    } finally {
-      setIsUpdatingStatus(false)
+      console.error('Error checking reading status:', error)
     }
-  }
+  }, [user, params.id])
 
-  // Handle page input modal confirmation
-  const handlePageInputConfirm = async (status: ReadingStatus, currentPage?: number) => {
-    await updateReadingStatus('currently_reading', currentPage)
-    setIsPageInputModalOpen(false)
-  }
-
-  // Helper function to get display name for status
-  const getStatusDisplayName = (status: string) => {
-    const statusMap: Record<string, string> = {
-      not_started: 'Want to Read',
-      in_progress: 'Currently Reading',
-      completed: 'Read',
-      on_hold: 'On Hold',
-      abandoned: 'Abandoned',
-    }
-    return statusMap[status] || status
-  }
-
-  // Handle removing from shelf
-  const handleRemoveFromShelf = async () => {
-    if (!user) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in to manage your shelves',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    setIsUpdatingStatus(true)
-    try {
-      const response = await fetch('/api/reading-status', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bookId: params.id,
-        }),
-      })
-
-      if (response.ok) {
-        setCurrentReadingStatus(null)
-        setIsAddToShelfDialogOpen(false)
-        toast({
-          title: 'Success!',
-          description: `"${book.title}" has been removed from your shelves`,
-        })
-      } else {
-        const error = await response.json()
-        toast({
-          title: 'Error',
-          description: error.error || `Failed to remove "${book.title}" from shelf`,
-          variant: 'destructive',
-        })
-      }
-    } catch (error) {
-      console.error('Error removing from shelf:', error)
-      toast({
-        title: 'Error',
-        description: `An error occurred while removing "${book.title}" from shelf`,
-        variant: 'destructive',
-      })
-    } finally {
-      setIsUpdatingStatus(false)
-    }
-  }
+  useEffect(() => {
+    checkReadingStatus()
+  }, [checkReadingStatus])
 
   // Extract public ID from Cloudinary URL (including folder path)
   const getPublicIdFromUrl = (url: string): string | null => {
@@ -1392,154 +1233,18 @@ export function ClientBookPage({
                 {/* Book Events Section */}
                 <BookEventsSection bookId={params.id} className="book-page__events-section" />
 
-                {/* Add to Shelf Section */}
+                {/* Add to Shelf Section - single reusable component */}
                 <div className="book-page__shelf-section space-y-4 w-full mt-6">
-                  <Dialog open={isAddToShelfDialogOpen} onOpenChange={setIsAddToShelfDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="default"
-                        className="book-page__shelf-button w-full"
-                        disabled={isUpdatingStatus}
-                      >
-                        <BookMarked className="h-4 w-4" />
-                        {currentReadingStatus
-                          ? `On Shelf (${getStatusDisplayName(currentReadingStatus)})`
-                          : 'Add to Shelf'}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-lg p-4">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {currentReadingStatus ? 'Update Reading Status' : 'Add Book to Shelf'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-2">
-                        <button
-                          onClick={() => handleReadingStatusUpdate('want_to_read')}
-                          disabled={isUpdatingStatus}
-                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                            currentReadingStatus === 'not_started'
-                              ? 'bg-accent text-accent-foreground'
-                              : ''
-                          }`}
-                        >
-                          {currentReadingStatus === 'not_started' ? '✓ ' : ''}Want to Read
-                        </button>
-                        <button
-                          onClick={() => handleReadingStatusUpdate('currently_reading')}
-                          disabled={isUpdatingStatus}
-                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                            currentReadingStatus === 'in_progress'
-                              ? 'bg-accent text-accent-foreground'
-                              : ''
-                          }`}
-                        >
-                          {currentReadingStatus === 'in_progress' ? '✓ ' : ''}Currently Reading
-                        </button>
-                        <button
-                          onClick={() => handleReadingStatusUpdate('read')}
-                          disabled={isUpdatingStatus}
-                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                            currentReadingStatus === 'completed'
-                              ? 'bg-accent text-accent-foreground'
-                              : ''
-                          }`}
-                        >
-                          {currentReadingStatus === 'completed' ? '✓ ' : ''}Read
-                        </button>
-                        <button
-                          onClick={() => handleReadingStatusUpdate('on_hold')}
-                          disabled={isUpdatingStatus}
-                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                            currentReadingStatus === 'on_hold'
-                              ? 'bg-accent text-accent-foreground'
-                              : ''
-                          }`}
-                        >
-                          {currentReadingStatus === 'on_hold' ? '✓ ' : ''}On Hold
-                        </button>
-                        <button
-                          onClick={() => handleReadingStatusUpdate('abandoned')}
-                          disabled={isUpdatingStatus}
-                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                            currentReadingStatus === 'abandoned'
-                              ? 'bg-accent text-accent-foreground'
-                              : ''
-                          }`}
-                        >
-                          {currentReadingStatus === 'abandoned' ? '✓ ' : ''}Abandoned
-                        </button>
-                      </div>
-                      {currentReadingStatus && (
-                        <>
-                          <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
-                          <button
-                            onClick={handleRemoveFromShelf}
-                            disabled={isUpdatingStatus}
-                            className="shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-destructive hover:text-destructive-foreground cursor-pointer w-full text-left"
-                          >
-                            Remove from Shelf
-                          </button>
-                        </>
-                      )}
-                      <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsAddToShelfDialogOpen(false)
-                          setIsShelfCreateDialogOpen(true)
-                        }}
-                        className="shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left"
-                      >
-                        <Plus className="w-4 h-4" />
-                        New Shelf
-                      </button>
-                      <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (user) {
-                            router.push(`/profile/${user.id}?tab=shelves`)
-                          } else {
-                            toast({
-                              title: 'Authentication required',
-                              description: 'Please sign in to manage your shelves',
-                              variant: 'destructive',
-                            })
-                          }
-                        }}
-                        className="shelf-manage-button w-full text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Manage shelves...
-                      </button>
-                    </DialogContent>
-                  </Dialog>
-
-                  {/* Shelf Create Dialog */}
-                  <ShelfCreateDialog
-                    open={isShelfCreateDialogOpen}
-                    onOpenChange={setIsShelfCreateDialogOpen}
-                    origin="add-to-shelf"
-                    autoAddBookId={params.id}
-                    autoAddBookTitle={book.title}
-                    onCreated={async (shelf) => {
-                      // Refresh shelves list
-                      await fetchShelves()
-                      // Close the add to shelf dialog if it's still open
-                      setIsAddToShelfDialogOpen(false)
-                    }}
-                  />
-
-                  {/* Page Input Modal for Currently Reading */}
-                  <ShelfBookStatusModal
-                    open={isPageInputModalOpen}
-                    onOpenChange={setIsPageInputModalOpen}
+                  <AddToShelfButton
                     bookId={params.id}
                     bookTitle={book.title}
-                    totalPages={book.pages || book.page_count || null}
-                    onConfirm={handlePageInputConfirm}
-                    isLoading={isUpdatingStatus}
-                    initialStatus="in_progress"
+                    bookPages={book.pages ?? book.page_count ?? null}
+                    currentReadingStatus={currentReadingStatus}
+                    showCurrentStatus={true}
+                    onStatusChange={checkReadingStatus}
+                    variant="default"
+                    size="default"
+                    className="book-page__shelf-button w-full"
                     initialCurrentPage={readingProgress?.current_page ?? null}
                   />
                 </div>

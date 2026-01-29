@@ -69,10 +69,15 @@ export function ClientAuthorsList({
     return filteredAuthors.filter((author) => author.nationality === nationality)
   }, [filteredAuthors, nationality])
 
-  // Apply sorting client-side
+  // Apply sorting client-side — when user is searching, keep relevance order (full name match first)
   const sortedAuthors = useMemo(() => {
-    const sorted = [...nationalityFilteredAuthors]
+    const hasSearch = searchValue.trim().length > 0
+    if (hasSearch) {
+      // Preserve relevance order from useSearchFilter so exact full-name matches appear first
+      return [...nationalityFilteredAuthors]
+    }
 
+    const sorted = [...nationalityFilteredAuthors]
     if (sort === 'name_asc') {
       sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     } else if (sort === 'name_desc') {
@@ -93,9 +98,8 @@ export function ClientAuthorsList({
       // Default: name_asc
       sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     }
-
     return sorted
-  }, [nationalityFilteredAuthors, sort])
+  }, [nationalityFilteredAuthors, sort, searchValue])
 
   // Pagination logic
   const paginatedAuthors = useMemo(() => {

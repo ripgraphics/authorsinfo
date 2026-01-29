@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import {
   BookOpen,
   Edit,
@@ -205,17 +199,18 @@ export function AdminBookActions({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MoreHorizontal className="h-5 w-5" />
-            Book Actions
-          </DialogTitle>
-          <DialogDescription>Manage {book.title}</DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
+    <ReusableModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Book Actions"
+      description={`Manage ${book.title}`}
+      footer={
+        <Button variant="outline" onClick={() => onOpenChange(false)}>
+          Close
+        </Button>
+      }
+    >
+      <div className="space-y-4">
           {/* Book Info */}
           <Card>
             <CardContent className="p-4">
@@ -380,13 +375,6 @@ export function AdminBookActions({
             </div>
           </div>
         </div>
-
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   )
 }

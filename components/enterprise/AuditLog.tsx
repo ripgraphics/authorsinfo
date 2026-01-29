@@ -20,13 +20,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { supabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 
@@ -188,32 +182,9 @@ export function AuditLog({ groupId }: AuditLogProps) {
     {
       header: 'Details',
       cell: ({ row }: { row: any }) => (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" onClick={() => setSelectedEntry(row.original)}>
-              View Changes
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Audit Entry Details</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">Changes</h4>
-                {formatChanges(row.original.changes)}
-              </div>
-              {row.original.metadata && (
-                <div>
-                  <h4 className="font-semibold mb-2">Additional Information</h4>
-                  <pre className="text-sm bg-muted p-2 rounded-sm">
-                    {JSON.stringify(row.original.metadata, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button variant="outline" size="sm" onClick={() => setSelectedEntry(row.original)}>
+          View Changes
+        </Button>
       ),
     },
   ]
@@ -319,46 +290,13 @@ export function AuditLog({ groupId }: AuditLogProps) {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedEntry(entry)}
-                            >
-                              View Changes
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Audit Entry Details</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <strong>Action:</strong> {entry.action}
-                              </div>
-                              <div>
-                                <strong>Target:</strong> {entry.target_type} ({entry.target_id})
-                              </div>
-                              {entry.changes && (
-                                <div>
-                                  <strong>Changes:</strong>
-                                  <pre className="mt-2 p-2 bg-muted rounded-sm text-sm overflow-auto">
-                                    {JSON.stringify(entry.changes, null, 2)}
-                                  </pre>
-                                </div>
-                              )}
-                              {entry.metadata && (
-                                <div>
-                                  <strong>Metadata:</strong>
-                                  <pre className="mt-2 p-2 bg-muted rounded-sm text-sm overflow-auto">
-                                    {JSON.stringify(entry.metadata, null, 2)}
-                                  </pre>
-                                </div>
-                              )}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedEntry(entry)}
+                        >
+                          View Changes
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -368,6 +306,37 @@ export function AuditLog({ groupId }: AuditLogProps) {
           )}
         </CardContent>
       </Card>
+
+      <ReusableModal
+        open={!!selectedEntry}
+        onOpenChange={(open) => !open && setSelectedEntry(null)}
+        title="Audit Entry Details"
+      >
+        {selectedEntry && (
+          <div className="space-y-4">
+            <div>
+              <strong>Action:</strong> {selectedEntry.action}
+            </div>
+            <div>
+              <strong>Target:</strong> {selectedEntry.target_type} ({selectedEntry.target_id})
+            </div>
+            {selectedEntry.changes && (
+              <div>
+                <h4 className="font-semibold mb-2">Changes</h4>
+                {formatChanges(selectedEntry.changes)}
+              </div>
+            )}
+            {selectedEntry.metadata && (
+              <div>
+                <strong>Metadata:</strong>
+                <pre className="mt-2 p-2 bg-muted rounded-sm text-sm overflow-auto">
+                  {JSON.stringify(selectedEntry.metadata, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+      </ReusableModal>
     </div>
   )
 }

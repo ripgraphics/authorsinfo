@@ -8,20 +8,13 @@
 import React, { useState } from 'react';
 import { CustomShelf, UpdateShelfInput } from '@/types/phase3';
 import { useShelfStore } from '@/lib/stores/shelf-store';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { ReusableModal } from '@/components/ui/reusable-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Settings, Globe, Lock } from 'lucide-react';
+import { Globe, Lock } from 'lucide-react';
 
 const SHELF_ICONS = [
   '📚',
@@ -95,17 +88,24 @@ export function ShelfSettings({ isOpen, shelf, onClose }: ShelfSettingsProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Shelf Settings
-          </DialogTitle>
-          <DialogDescription>Edit your shelf properties</DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      title="Shelf Settings"
+      description="Edit your shelf properties"
+      contentClassName="sm:max-w-[500px]"
+      footer={
+        <div className="flex justify-end gap-2 w-full">
+          <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="submit" form="shelf-settings-form" disabled={loading}>
+            {loading ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
+      }
+    >
+        <form id="shelf-settings-form" onSubmit={handleSubmit} className="space-y-6">
           {(localError || error) && (
             <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md">
               {localError || error}
@@ -222,16 +222,6 @@ export function ShelfSettings({ isOpen, shelf, onClose }: ShelfSettingsProps) {
             </div>
           </div>
         </form>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   );
 }

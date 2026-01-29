@@ -45,7 +45,7 @@ import { MutualFriendsDisplay } from '@/components/mutual-friends-display'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { CameraIconButton } from '@/components/ui/camera-icon-button'
 import { HoverOverlay } from '@/components/ui/hover-overlay'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { useToast } from '@/hooks/use-toast'
 import { EntityTabs } from '@/components/ui/entity-tabs'
 import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
@@ -1405,23 +1405,23 @@ export function EntityHeader({
 
       {/* Crop Avatar Image Modal */}
       {isEditable && avatarImage && (
-        <Dialog open={isAvatarCropModalOpen} onOpenChange={setIsAvatarCropModalOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Crop Avatar</DialogTitle>
-            </DialogHeader>
-            <ImageCropper
-              imageUrl={avatarImage}
-              aspectRatio={1}
-              targetWidth={400}
-              targetHeight={400}
-              onCropComplete={handleCropAvatar}
-              onCancel={handleAvatarCropCancel}
-              isProcessing={isProcessing}
-              circularCrop={true}
-            />
-          </DialogContent>
-        </Dialog>
+        <ReusableModal
+          open={isAvatarCropModalOpen}
+          onOpenChange={setIsAvatarCropModalOpen}
+          title="Crop Avatar"
+          contentClassName="max-w-4xl"
+        >
+          <ImageCropper
+            imageUrl={avatarImage}
+            aspectRatio={1}
+            targetWidth={400}
+            targetHeight={400}
+            onCropComplete={handleCropAvatar}
+            onCancel={handleAvatarCropCancel}
+            isProcessing={isProcessing}
+            circularCrop={true}
+          />
+        </ReusableModal>
       )}
 
       {children}

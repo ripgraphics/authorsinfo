@@ -2,14 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ReusableModal } from '@/components/ui/reusable-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -259,15 +252,30 @@ export function CreateDiscussionDialog({
     formData.content.trim().length < minContentLength;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn('sm:max-w-[600px]', className)}>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{getDescription()}</DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
+    <ReusableModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={getDescription()}
+      contentClassName={cn('max-w-[600px]', className)}
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={loading}
+          >
+            {cancelButtonText}
+          </Button>
+          <Button type="submit" form="create-discussion-form" disabled={isSubmitDisabled}>
+            {loading ? loadingButtonText : submitButtonText}
+          </Button>
+        </>
+      }
+    >
+      <form id="create-discussion-form" onSubmit={handleSubmit}>
+          <div className="space-y-4">
             {/* Title field */}
             <div className="space-y-2">
               <Label htmlFor="discussion-title">{labels.title} *</Label>
@@ -321,22 +329,7 @@ export function CreateDiscussionDialog({
               </Alert>
             )}
           </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={loading}
-            >
-              {cancelButtonText}
-            </Button>
-            <Button type="submit" disabled={isSubmitDisabled}>
-              {loading ? loadingButtonText : submitButtonText}
-            </Button>
-          </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   );
 }

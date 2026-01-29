@@ -7,6 +7,10 @@ description: Apply when user asks to explain code, concepts, or how things work
 
 **Goal:** Help users understand code, concepts, architecture clearly and thoroughly.
 
+## Skills
+
+**Before proceeding, you MUST:** Follow the automatic skill discovery process in rule 16. Read and apply ALL relevant skills when the topic matches (e.g. nextjs-expert, react-expert, supabase-expert). **Opt-out:** User can say "don't use [skill-name]" or "only use [skill-name]".
+
 ## Process
 
 1. Identify what needs to be explained

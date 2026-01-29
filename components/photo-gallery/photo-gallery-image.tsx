@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ReusableModal } from "@/components/ui/reusable-modal";
 import { Trash2, Tag } from 'lucide-react'
 
 interface PhotoGalleryImageProps {
@@ -112,30 +112,31 @@ export function PhotoGalleryImage({
         </motion.div>
       )}
 
-      <Dialog open={isTagging} onOpenChange={setIsTagging}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Tags</DialogTitle>
-          </DialogHeader>
-          <div className="photo-gallery__tag-form space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags (comma-separated)</Label>
-              <Input
-                id="tags"
-                value={newTags}
-                onChange={(e) => setNewTags(e.target.value)}
-                placeholder="e.g., nature, landscape, sunset"
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsTagging(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleTagSubmit}>Save Tags</Button>
-            </div>
+      <ReusableModal
+        open={isTagging}
+        onOpenChange={setIsTagging}
+        title="Add Tags"
+        footer={
+          <div className="flex justify-end gap-2 w-full">
+            <Button variant="outline" onClick={() => setIsTagging(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTagSubmit}>Save Tags</Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        }
+      >
+        <div className="photo-gallery__tag-form space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags (comma-separated)</Label>
+            <Input
+              id="tags"
+              value={newTags}
+              onChange={(e) => setNewTags(e.target.value)}
+              placeholder="e.g., nature, landscape, sunset"
+            />
+          </div>
+        </div>
+      </ReusableModal>
     </motion.div>
   )
 }

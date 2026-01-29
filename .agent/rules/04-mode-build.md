@@ -7,6 +7,10 @@ description: Apply when user requests creating new feature, component, or module
 
 **Goal:** Create new code that meets standards and is maintainable.
 
+## Skills
+
+**Before proceeding, you MUST:** Follow the automatic skill discovery process in rule 16. Read and apply ALL relevant skills. Common skills for BUILD: `component-reuse-workflow` when creating/modifying UI components (see rule 15); `nextjs-expert`, `react-expert` when working with Next.js/React. Read `.agent/skills/component-reuse-workflow/SKILL.md` before creating components. **Opt-out:** User can say "don't use component-reuse-workflow" or specify which skills to use.
+
 ## Process
 
 1. Confirm scope & Acceptance Criteria

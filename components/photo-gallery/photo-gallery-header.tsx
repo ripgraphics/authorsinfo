@@ -5,7 +5,7 @@ import { PhotoGalleryHeaderProps } from './types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ReusableModal } from "@/components/ui/reusable-modal";
 import { Upload, Share2, Image as ImageIcon, Eye, Heart } from 'lucide-react'
 
 export function PhotoGalleryHeader({
@@ -126,35 +126,34 @@ export function PhotoGalleryHeader({
         )}
       </div>
 
-      <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Share Gallery</DialogTitle>
-          </DialogHeader>
-          <div className="photo-gallery__share-dialog space-y-4">
-            <div className="space-y-2">
-              <Label>Share Link</Label>
-              <div className="flex gap-2">
-                <Input value={shareLink} readOnly className="photo-gallery__share-input" />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    navigator.clipboard.writeText(shareLink)
-                  }}
-                >
-                  Copy
-                </Button>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setIsShareDialogOpen(false)}>
-                Close
+      <ReusableModal
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        title="Share Gallery"
+        footer={
+          <Button variant="outline" onClick={() => setIsShareDialogOpen(false)}>
+            Close
+          </Button>
+        }
+      >
+        <div className="photo-gallery__share-dialog space-y-4">
+          <div className="space-y-2">
+            <Label>Share Link</Label>
+            <div className="flex gap-2">
+              <Input value={shareLink} readOnly className="photo-gallery__share-input" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(shareLink)
+                }}
+              >
+                Copy
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </ReusableModal>
     </div>
   )
 }

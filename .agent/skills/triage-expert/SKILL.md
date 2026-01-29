@@ -1,6 +1,10 @@
 ---
 name: triage-expert
 description: Specializes in context gathering, initial problem diagnosis, and routing issues to appropriate domain experts. Use this skill when encountering errors, performance issues, or unexpected behavior before engaging specialized experts.
+task_types: [DEBUG]
+keywords: [error, bug, crash, broken, fails, not working, unexpected behavior, issue, problem, debug]
+domains: [diagnostics, triage]
+always_use: true
 ---
 
 # Triage Expert

@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -150,19 +144,30 @@ export function EditSectionModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="edit-section-modal sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="edit-section-modal__title">
-            {getSectionTitle()}
-          </DialogTitle>
-        </DialogHeader>
+    <ReusableModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={getSectionTitle()}
+      contentClassName="edit-section-modal sm:max-w-[500px]"
+      footer={
+        !isLoading && (
+          <div className="flex justify-end gap-2 w-full">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form="edit-section-form" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        )
+      }
+    >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <p className="text-muted-foreground">Loading...</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="edit-section-modal__form space-y-4 py-4">
+          <form id="edit-section-form" onSubmit={handleSubmit} className="edit-section-modal__form space-y-4 py-4">
             {section === 'overview' && entityType === 'publisher' && (
               <>
                 <div className="edit-section-modal__field grid w-full gap-1.5">
@@ -524,27 +529,8 @@ export function EditSectionModal({
               </>
             )}
 
-            <DialogFooter className="edit-section-modal__footer">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
-                className="edit-section-modal__cancel-button"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="edit-section-modal__submit-button"
-              >
-                {isSubmitting ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </DialogFooter>
           </form>
-        )}
-      </DialogContent>
-    </Dialog>
+      )}
+    </ReusableModal>
   )
 }

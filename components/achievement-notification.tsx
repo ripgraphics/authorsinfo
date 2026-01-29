@@ -9,14 +9,8 @@ import React, { useEffect, useState } from 'react';
 import { Badge } from '@/types/phase3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Award, Star, Sparkles, X } from 'lucide-react';
+import { ReusableModal } from '@/components/ui/reusable-modal';
+import { Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Optional confetti effect - degrades gracefully
@@ -95,65 +89,54 @@ export function AchievementNotification({
   if (!badge) return null;
 
   return (
-    <Dialog open={!!badge} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex flex-col items-center space-y-4">
-            <div className="relative">
-              <Sparkles className="absolute -top-2 -left-2 h-6 w-6 text-yellow-500 animate-pulse" />
-              <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-yellow-500 animate-pulse delay-100" />
-              
-              <div
-                className={cn(
-                  'w-24 h-24 rounded-full flex items-center justify-center',
-                  'bg-gradient-to-br shadow-lg',
-                  tierColors[badge.tier],
-                  tierGlow[badge.tier]
-                )}
-              >
-                <span className="text-4xl">{badge.icon}</span>
-              </div>
-            </div>
-
-            <DialogTitle className="text-2xl text-center">
-              Achievement Unlocked!
-            </DialogTitle>
-
-            <DialogDescription className="text-center space-y-2">
-              <p className="text-lg font-semibold text-foreground">{badge.name}</p>
-              <p className="text-muted-foreground">{badge.description}</p>
-            </DialogDescription>
-
-            <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  'px-3 py-1 rounded-full text-sm font-medium capitalize',
-                  'bg-gradient-to-r text-white',
-                  tierColors[badge.tier]
-                )}
-              >
-                {badge.tier}
-              </span>
-              <span className="px-3 py-1 rounded-full text-sm font-medium bg-muted capitalize">
-                {badge.category}
-              </span>
-            </div>
-
-            {badge.requirementValue > 0 && (
-              <p className="text-xs text-muted-foreground text-center">
-                {badge.requirementType.replace(/_/g, ' ')}: {badge.requirementValue}
-              </p>
+    <ReusableModal
+      open={!!badge}
+      onOpenChange={(open) => !open && onClose()}
+      title="Achievement Unlocked!"
+      description={badge.name}
+      footer={
+        <Button onClick={onClose} className="px-8">
+          Awesome!
+        </Button>
+      }
+    >
+      <div className="flex flex-col items-center space-y-4">
+        <p className="text-muted-foreground text-center">{badge.description}</p>
+        <div className="relative">
+          <Sparkles className="absolute -top-2 -left-2 h-6 w-6 text-yellow-500 animate-pulse" />
+          <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-yellow-500 animate-pulse delay-100" />
+          <div
+            className={cn(
+              'w-24 h-24 rounded-full flex items-center justify-center',
+              'bg-gradient-to-br shadow-lg',
+              tierColors[badge.tier],
+              tierGlow[badge.tier]
             )}
+          >
+            <span className="text-4xl">{badge.icon}</span>
           </div>
-        </DialogHeader>
-
-        <div className="flex justify-center mt-4">
-          <Button onClick={onClose} className="px-8">
-            Awesome!
-          </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              'px-3 py-1 rounded-full text-sm font-medium capitalize',
+              'bg-gradient-to-r text-white',
+              tierColors[badge.tier]
+            )}
+          >
+            {badge.tier}
+          </span>
+          <span className="px-3 py-1 rounded-full text-sm font-medium bg-muted capitalize">
+            {badge.category}
+          </span>
+        </div>
+        {badge.requirementValue > 0 && (
+          <p className="text-xs text-muted-foreground text-center">
+            {badge.requirementType.replace(/_/g, ' ')}: {badge.requirementValue}
+          </p>
+        )}
+      </div>
+    </ReusableModal>
   );
 }
 

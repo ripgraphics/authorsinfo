@@ -12,15 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { ReusableModal } from '@/components/ui/reusable-modal';
 import {
   Select,
   SelectContent,
@@ -192,23 +184,34 @@ export function SessionLogger({
             </Button>
           </>
         ) : (
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-1" />
-                Log Session
-              </Button>
-            </DialogTrigger>
-            <SessionLoggerDialog
-              bookId={bookId}
-              bookTitle={bookTitle}
-              formData={formData}
-              setFormData={setFormData}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              onStartTimer={handleStartTimer}
-            />
-          </Dialog>
+          <>
+            <Button size="sm" variant="outline" onClick={() => setIsOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Log Session
+            </Button>
+            <ReusableModal
+              open={isOpen}
+              onOpenChange={setIsOpen}
+              title="Log Reading Session"
+              description={bookTitle ? `Record your progress for "${bookTitle}"` : 'Record your reading session details'}
+              contentClassName="sm:max-w-[425px]"
+              footer={
+                <Button onClick={handleSubmit} disabled={isSubmitting}>
+                  {isSubmitting ? 'Logging...' : 'Log Session'}
+                </Button>
+              }
+            >
+              <SessionLoggerDialogBody
+                bookId={bookId}
+                bookTitle={bookTitle}
+                formData={formData}
+                setFormData={setFormData}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+                onStartTimer={handleStartTimer}
+              />
+            </ReusableModal>
+          </>
         )}
       </div>
     );
@@ -257,14 +260,23 @@ export function SessionLogger({
 
         {/* Manual Entry Button */}
         <div className="text-center">
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <FileText className="h-4 w-4" />
-                Log Manually
+          <Button variant="outline" className="gap-2" onClick={() => setIsOpen(true)}>
+            <FileText className="h-4 w-4" />
+            Log Manually
+          </Button>
+          <ReusableModal
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            title="Log Reading Session"
+            description={bookTitle ? `Record your progress for "${bookTitle}"` : 'Record your reading session details'}
+            contentClassName="sm:max-w-[425px]"
+            footer={
+              <Button onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? 'Logging...' : 'Log Session'}
               </Button>
-            </DialogTrigger>
-            <SessionLoggerDialog
+            }
+          >
+            <SessionLoggerDialogBody
               bookId={bookId}
               bookTitle={bookTitle}
               formData={formData}
@@ -273,169 +285,133 @@ export function SessionLogger({
               isSubmitting={isSubmitting}
               onStartTimer={handleStartTimer}
             />
-          </Dialog>
+          </ReusableModal>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-// Dialog content component
-function SessionLoggerDialog({
-  bookId,
-  bookTitle,
+function SessionLoggerDialogBody({
   formData,
   setFormData,
-  onSubmit,
-  isSubmitting,
-  onStartTimer,
 }: {
   bookId?: string;
   bookTitle?: string;
-  formData: any;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  formData: { pagesRead: string; startPage: string; endPage: string; durationMinutes: string; mood: string; location: string; format: string; notes: string };
+  setFormData: React.Dispatch<React.SetStateAction<{ pagesRead: string; startPage: string; endPage: string; durationMinutes: string; mood: string; location: string; format: string; notes: string }>>;
   onSubmit: () => void;
   isSubmitting: boolean;
   onStartTimer: () => void;
 }) {
   return (
-    <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-        <DialogTitle>Log Reading Session</DialogTitle>
-        <DialogDescription>
-          {bookTitle 
-            ? `Record your progress for "${bookTitle}"`
-            : 'Record your reading session details'
-          }
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="grid gap-4 py-4">
-        {/* Pages Read */}
+    <div className="grid gap-4 py-4">
+      <div className="grid gap-2">
+        <Label htmlFor="pagesRead">Pages Read *</Label>
+        <Input
+          id="pagesRead"
+          type="number"
+          placeholder="e.g., 25"
+          value={formData.pagesRead}
+          onChange={(e) => setFormData({ ...formData, pagesRead: e.target.value })}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="pagesRead">Pages Read *</Label>
+          <Label htmlFor="startPage">Start Page</Label>
           <Input
-            id="pagesRead"
+            id="startPage"
+            type="number"
+            placeholder="e.g., 1"
+            value={formData.startPage}
+            onChange={(e) => setFormData({ ...formData, startPage: e.target.value })}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="endPage">End Page</Label>
+          <Input
+            id="endPage"
             type="number"
             placeholder="e.g., 25"
-            value={formData.pagesRead}
-            onChange={(e) => setFormData({ ...formData, pagesRead: e.target.value })}
-          />
-        </div>
-
-        {/* Page Range */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="startPage">Start Page</Label>
-            <Input
-              id="startPage"
-              type="number"
-              placeholder="e.g., 1"
-              value={formData.startPage}
-              onChange={(e) => setFormData({ ...formData, startPage: e.target.value })}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="endPage">End Page</Label>
-            <Input
-              id="endPage"
-              type="number"
-              placeholder="e.g., 25"
-              value={formData.endPage}
-              onChange={(e) => setFormData({ ...formData, endPage: e.target.value })}
-            />
-          </div>
-        </div>
-
-        {/* Duration */}
-        <div className="grid gap-2">
-          <Label htmlFor="duration">Duration (minutes)</Label>
-          <Input
-            id="duration"
-            type="number"
-            placeholder="e.g., 30"
-            value={formData.durationMinutes}
-            onChange={(e) => setFormData({ ...formData, durationMinutes: e.target.value })}
-          />
-        </div>
-
-        {/* Format */}
-        <div className="grid gap-2">
-          <Label>Format</Label>
-          <Select
-            value={formData.format}
-            onValueChange={(value) => setFormData({ ...formData, format: value })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FORMATS.map((format) => (
-                <SelectItem key={format.value} value={format.value}>
-                  {format.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Location */}
-        <div className="grid gap-2">
-          <Label>Location</Label>
-          <Select
-            value={formData.location}
-            onValueChange={(value) => setFormData({ ...formData, location: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Where did you read?" />
-            </SelectTrigger>
-            <SelectContent>
-              {LOCATIONS.map((loc) => (
-                <SelectItem key={loc.value} value={loc.value}>
-                  {loc.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Mood */}
-        <div className="grid gap-2">
-          <Label>Mood</Label>
-          <div className="flex flex-wrap gap-2">
-            {MOODS.map((mood) => (
-              <Badge
-                key={mood.value}
-                variant={formData.mood === mood.value ? 'default' : 'outline'}
-                className={cn(
-                  'cursor-pointer transition-colors',
-                  formData.mood === mood.value && mood.color
-                )}
-                onClick={() => setFormData({ ...formData, mood: mood.value })}
-              >
-                {mood.label}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div className="grid gap-2">
-          <Label htmlFor="notes">Notes</Label>
-          <Textarea
-            id="notes"
-            placeholder="Any thoughts or notes about this session..."
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            value={formData.endPage}
+            onChange={(e) => setFormData({ ...formData, endPage: e.target.value })}
           />
         </div>
       </div>
-
-      <DialogFooter>
-        <Button onClick={onSubmit} disabled={!formData.pagesRead || isSubmitting}>
-          {isSubmitting ? 'Saving...' : 'Save Session'}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+      <div className="grid gap-2">
+        <Label htmlFor="duration">Duration (minutes)</Label>
+        <Input
+          id="duration"
+          type="number"
+          placeholder="e.g., 30"
+          value={formData.durationMinutes}
+          onChange={(e) => setFormData({ ...formData, durationMinutes: e.target.value })}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label>Format</Label>
+        <Select
+          value={formData.format}
+          onValueChange={(value) => setFormData({ ...formData, format: value })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {FORMATS.map((format) => (
+              <SelectItem key={format.value} value={format.value}>
+                {format.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid gap-2">
+        <Label>Location</Label>
+        <Select
+          value={formData.location}
+          onValueChange={(value) => setFormData({ ...formData, location: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Where did you read?" />
+          </SelectTrigger>
+          <SelectContent>
+            {LOCATIONS.map((loc) => (
+              <SelectItem key={loc.value} value={loc.value}>
+                {loc.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid gap-2">
+        <Label>Mood</Label>
+        <div className="flex flex-wrap gap-2">
+          {MOODS.map((mood) => (
+            <Badge
+              key={mood.value}
+              variant={formData.mood === mood.value ? 'default' : 'outline'}
+              className={cn(
+                'cursor-pointer transition-colors',
+                formData.mood === mood.value && mood.color
+              )}
+              onClick={() => setFormData({ ...formData, mood: mood.value })}
+            >
+              {mood.label}
+            </Badge>
+          ))}
+        </div>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea
+          id="notes"
+          placeholder="Any thoughts or notes about this session..."
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+        />
+      </div>
+    </div>
   );
 }
+

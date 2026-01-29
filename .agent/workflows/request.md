@@ -21,6 +21,20 @@ Identify which of the 4 categories the request belongs to:
 
 ---
 
+## Step 1.5: Automatic Skill Discovery
+
+**MANDATORY:** Before executing the mode, you MUST:
+
+1. Follow rule 16 (automatic skill discovery) — see `.agent/rules/16-automatic-skill-discovery.md`.
+2. Scan all skills in `.agent/skills/` for relevance (or use `.agent/SKILL_INDEX.md`).
+3. Check user request for opt-out instructions ("don't use X", "only use Y").
+4. Read and apply ALL matching skills (explicit paths: `.agent/skills/<name>/SKILL.md`).
+5. Then proceed to mode execution.
+
+**Default:** Use all relevant skills unless user explicitly opts out.
+
+---
+
 ## Step 2: Execute Based on Mode
 
 ### 🔍 CONSULT Mode

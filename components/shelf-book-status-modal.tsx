@@ -1,18 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { BookOpen, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 export type ReadingStatus = 'not_started' | 'in_progress' | 'completed' | 'on_hold' | 'abandoned'
 
@@ -150,85 +143,17 @@ export function ShelfBookStatusModal({
       : null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5" />
-            {step === 'status' ? 'Set Reading Status' : 'Current Page'}
-          </DialogTitle>
-          <DialogDescription>
-            {step === 'status'
-              ? `How would you like to track "${bookTitle || 'this book'}"?`
-              : `What page are you on for "${bookTitle || 'this book'}"?`}
-          </DialogDescription>
-        </DialogHeader>
-
-        {error && (
-          <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md">
-            {error}
-          </div>
-        )}
-
-        {step === 'status' ? (
-          <div className="space-y-2 py-4">
-            {STATUS_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => handleStatusSelect(option.value)}
-                disabled={isLoading}
-                className="w-full text-left px-4 py-3 rounded-lg border-2 transition-all hover:bg-accent hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="font-medium">{option.label}</div>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="current-page">Current Page</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="current-page"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="0"
-                  value={currentPage}
-                  onChange={(e) => handlePageInputChange(e.target.value)}
-                  disabled={isLoading}
-                  className="text-lg"
-                  autoFocus
-                />
-                {totalPages !== null && (
-                  <span className="text-sm text-muted-foreground whitespace-nowrap">
-                    of {totalPages} pages
-                  </span>
-                )}
-              </div>
-              {percentage !== null && (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Progress</span>
-                    <span>{percentage}%</span>
-                  </div>
-                  <div className="relative w-full overflow-hidden rounded-full bg-secondary h-2">
-                    <div
-                      className="h-full bg-primary transition-all"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-              {totalPages === null && (
-                <p className="text-xs text-muted-foreground">
-                  Page count not available for this book
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        <DialogFooter>
+    <ReusableModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={step === 'status' ? 'Set Reading Status' : 'Current Page'}
+      description={
+        step === 'status'
+          ? `How would you like to track "${bookTitle || 'this book'}"?`
+          : `What page are you on for "${bookTitle || 'this book'}"?`
+      }
+      footer={
+        <>
           {step === 'page' && (
             <Button variant="outline" onClick={handleBack} disabled={isLoading}>
               Back
@@ -249,9 +174,74 @@ export function ShelfBookStatusModal({
               )}
             </Button>
           )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      {error && (
+        <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md mb-4">
+          {error}
+        </div>
+      )}
+
+      {step === 'status' ? (
+        <div className="space-y-2">
+          {STATUS_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => handleStatusSelect(option.value)}
+              disabled={isLoading}
+              className="w-full text-left px-4 py-3 rounded-lg border-2 transition-all hover:bg-accent hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="font-medium">{option.label}</div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="current-page">Current Page</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="current-page"
+                type="text"
+                inputMode="numeric"
+                placeholder="0"
+                value={currentPage}
+                onChange={(e) => handlePageInputChange(e.target.value)}
+                disabled={isLoading}
+                className="text-lg"
+                autoFocus
+              />
+              {totalPages !== null && (
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  of {totalPages} pages
+                </span>
+              )}
+            </div>
+            {percentage !== null && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Progress</span>
+                  <span>{percentage}%</span>
+                </div>
+                <div className="relative w-full overflow-hidden rounded-full bg-secondary h-2">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {totalPages === null && (
+              <p className="text-xs text-muted-foreground">
+                Page count not available for this book
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </ReusableModal>
   )
 }
 

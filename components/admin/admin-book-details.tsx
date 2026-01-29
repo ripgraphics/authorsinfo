@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   BookOpen,
@@ -124,16 +118,18 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Book Details
-          </DialogTitle>
-          <DialogDescription>Complete information about {book.title}</DialogDescription>
-        </DialogHeader>
-
+    <ReusableModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Book Details"
+      description={`Complete information about ${book.title}`}
+      contentClassName="max-w-4xl max-h-[90vh]"
+      footer={
+        <Button variant="outline" onClick={() => onOpenChange(false)}>
+          Close
+        </Button>
+      }
+    >
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -621,12 +617,6 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   )
 }

@@ -5,13 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -184,80 +178,9 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
       header: 'Actions',
       cell: ({ row }: { row: any }) => (
         <div className="flex gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" onClick={() => setEditingRole(row.original)}>
-                Edit
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Role</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Name</label>
-                  <Input
-                    value={editingRole?.name || ''}
-                    onChange={(e) =>
-                      setEditingRole((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              name: e.target.value,
-                            }
-                          : null
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Description</label>
-                  <Input
-                    value={editingRole?.description || ''}
-                    onChange={(e) =>
-                      setEditingRole((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              description: e.target.value,
-                            }
-                          : null
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Permissions</label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    {DEFAULT_PERMISSIONS.map((permission) => (
-                      <div key={permission} className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={editingRole?.permissions.includes(permission)}
-                          onCheckedChange={(checked) => {
-                            if (!editingRole) return
-                            setEditingRole({
-                              ...editingRole,
-                              permissions: checked
-                                ? [...editingRole.permissions, permission]
-                                : editingRole.permissions.filter((p) => p !== permission),
-                            })
-                          }}
-                        />
-                        <label className="text-sm">{permission}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setEditingRole(null)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleUpdateRole}>Save Changes</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button variant="outline" size="sm" onClick={() => setEditingRole(row.original)}>
+            Edit
+          </Button>
           {row.original.is_custom && (
             <Button
               variant="destructive"
@@ -276,61 +199,60 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Role Management</h2>
-        <Dialog open={showNewRoleDialog} onOpenChange={setShowNewRoleDialog}>
-          <DialogTrigger asChild>
-            <Button>Create New Role</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Role</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Name</label>
-                <Input
-                  value={newRole.name}
-                  onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
-                  placeholder="Enter role name"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <Input
-                  value={newRole.description}
-                  onChange={(e) => setNewRole({ ...newRole, description: e.target.value })}
-                  placeholder="Enter role description"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Permissions</label>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {DEFAULT_PERMISSIONS.map((permission) => (
-                    <div key={permission} className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={newRole.permissions.includes(permission)}
-                        onCheckedChange={(checked) => {
-                          setNewRole({
-                            ...newRole,
-                            permissions: checked
-                              ? [...newRole.permissions, permission]
-                              : newRole.permissions.filter((p) => p !== permission),
-                          })
-                        }}
-                      />
-                      <label className="text-sm">{permission}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowNewRoleDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateRole}>Create Role</Button>
+        <Button onClick={() => setShowNewRoleDialog(true)}>Create New Role</Button>
+        <ReusableModal
+          open={showNewRoleDialog}
+          onOpenChange={setShowNewRoleDialog}
+          title="Create New Role"
+          footer={
+            <div className="flex justify-end gap-2 w-full">
+              <Button variant="outline" onClick={() => setShowNewRoleDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateRole}>Create Role</Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={newRole.name}
+                onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
+                placeholder="Enter role name"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Input
+                value={newRole.description}
+                onChange={(e) => setNewRole({ ...newRole, description: e.target.value })}
+                placeholder="Enter role description"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Permissions</label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {DEFAULT_PERMISSIONS.map((permission) => (
+                  <div key={permission} className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={newRole.permissions.includes(permission)}
+                      onCheckedChange={(checked) => {
+                        setNewRole({
+                          ...newRole,
+                          permissions: checked
+                            ? [...newRole.permissions, permission]
+                            : newRole.permissions.filter((p) => p !== permission),
+                        })
+                      }}
+                    />
+                    <label className="text-sm">{permission}</label>
+                  </div>
+                ))}
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </ReusableModal>
       </div>
 
       <Card>
@@ -378,6 +300,70 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
           </div>
         </CardContent>
       </Card>
+
+      <ReusableModal
+        open={!!editingRole}
+        onOpenChange={(open) => !open && setEditingRole(null)}
+        title="Edit Role"
+        footer={
+          editingRole ? (
+            <div className="flex justify-end gap-2 w-full">
+              <Button variant="outline" onClick={() => setEditingRole(null)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateRole}>Save Changes</Button>
+            </div>
+          ) : undefined
+        }
+      >
+        {editingRole && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={editingRole.name}
+                onChange={(e) =>
+                  setEditingRole((prev) =>
+                    prev ? { ...prev, name: e.target.value } : null
+                  )
+                }
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Input
+                value={editingRole.description}
+                onChange={(e) =>
+                  setEditingRole((prev) =>
+                    prev ? { ...prev, description: e.target.value } : null
+                  )
+                }
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Permissions</label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {DEFAULT_PERMISSIONS.map((permission) => (
+                  <div key={permission} className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={editingRole.permissions.includes(permission)}
+                      onCheckedChange={(checked) => {
+                        setEditingRole({
+                          ...editingRole,
+                          permissions: checked
+                            ? [...editingRole.permissions, permission]
+                            : editingRole.permissions.filter((p) => p !== permission),
+                        })
+                      }}
+                    />
+                    <label className="text-sm">{permission}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </ReusableModal>
     </div>
   )
 }

@@ -7,6 +7,10 @@ description: Apply when user asks for opinions, compares approaches, or requests
 
 **Goal:** Help users make the right decision **BEFORE** coding.
 
+## Skills
+
+**Before proceeding, you MUST:** Follow the automatic skill discovery process in rule 16. Read and apply ALL relevant skills (see `.agent/SKILL_INDEX.md`). Common skills for CONSULT: nextjs-expert, supabase-expert, react-expert (when tech matches). **Opt-out:** User can say "don't use [skill-name]" or "only use [skill1, skill2]".
+
 ## Process
 
 1. Clarify context & constraints

@@ -7,13 +7,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Button } from '@/components/ui/button'
 import EntityAvatar from '@/components/entity-avatar'
 import {
@@ -345,27 +339,75 @@ export function CreatePostModal({
   const hasContent = captionText.trim().length > 0 || detectedLinkUrl || linkPreview
   const currentUserName = user?.name || 'User'
 
-  return (
-    <>
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="flex flex-col max-h-[85vh] overflow-hidden max-w-[500px] p-0">
-        {view === 'create' && (
-          <>
-            {/* Header */}
-            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
-              <div className="flex items-center justify-between">
-                <div className="h-8 w-8 flex-shrink-0" aria-hidden="true" />
-                <DialogTitle className="flex-1 text-center text-xl font-semibold">
-                  Create post
-                </DialogTitle>
-                <div className="h-8 w-8 flex-shrink-0" aria-hidden="true" />
-              </div>
-            </DialogHeader>
+  const modalTitle =
+    view === 'create'
+      ? 'Create post'
+      : view === 'settings'
+        ? 'Post settings'
+        : view === 'add-to-post'
+          ? 'Add to your post'
+          : view === 'post-audience'
+            ? 'Post audience'
+            : 'Tag and collaborate'
 
-            {/* Scrollable body */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
+  const modalHeaderLeft =
+    view === 'create' ? undefined : (
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={
+          view === 'settings'
+            ? handleBack
+            : view === 'add-to-post' || view === 'tag-and-collaborate'
+              ? () => setView(view === 'tag-and-collaborate' ? returnViewRef.current : 'create')
+              : handlePostAudienceCancel
+        }
+        className="h-8 w-8 shrink-0"
+        aria-label="Back"
+      >
+        <ArrowLeft className="h-4 w-4" />
+      </Button>
+    )
+
+  return (
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose()
+      }}
+      title={modalTitle}
+      headerLeft={modalHeaderLeft}
+      contentClassName="max-w-[500px]"
+      footer={
+        view === 'create' ? (
+          <Button onClick={handleNext} disabled={!hasContent || isPosting} className="w-full" size="lg">
+            Next
+          </Button>
+        ) : view === 'settings' ? (
+          <Button onClick={handleSubmit} disabled={!hasContent || isPosting} className="w-full" size="lg">
+            {isPosting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Posting...
+              </>
+            ) : (
+              'Post'
+            )}
+          </Button>
+        ) : view === 'post-audience' ? (
+          <>
+            <Button variant="ghost" onClick={handlePostAudienceCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handlePostAudienceDone}>Done</Button>
+          </>
+        ) : undefined
+      }
+    >
+      {view === 'create' && (
+        <>
               {/* User Info and Privacy */}
-              <div className="px-4 pt-4">
+              <div className="pt-4">
                 <div className="flex items-center gap-2">
                   <EntityAvatar
                     type="user"
@@ -463,47 +505,11 @@ export function CreatePostModal({
                   </div>
                 </div>
               </div>
-            </div>
+        </>
+      )}
 
-            {/* Footer with Next Button */}
-            <DialogFooter className="flex-shrink-0 px-4 pb-4 border-t pt-3">
-              <Button
-                onClick={handleNext}
-                disabled={!hasContent || isPosting}
-                className="w-full"
-                size="lg"
-              >
-                Next
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-
-        {view === 'settings' && (
-          <>
-            {/* Post Settings Step */}
-            {/* Header with Back button */}
-            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleBack}
-                  className="h-8 w-8"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <DialogTitle className="text-xl font-semibold flex-1 text-center">
-                  Post settings
-                </DialogTitle>
-                <div className="h-8 w-8 flex-shrink-0" aria-hidden="true" />
-              </div>
-            </DialogHeader>
-
-            {/* Scrollable body */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
-              {/* Settings Options */}
-              <div className="px-4 py-4 space-y-0">
+      {view === 'settings' && (
+              <div className="py-4 space-y-0">
               {/* Post audience */}
               <button
                 onClick={() => openPostAudience('settings')}
@@ -595,40 +601,10 @@ export function CreatePostModal({
                 />
               </div>
             </div>
-            </div>
+      )}
 
-            {/* Footer with Post Button */}
-            <DialogFooter className="flex-shrink-0 px-4 pb-4 border-t pt-3">
-              <Button
-                onClick={handleSubmit}
-                disabled={!hasContent || isPosting}
-                className="w-full"
-                size="lg"
-              >
-                {isPosting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Posting...
-                  </>
-                ) : (
-                  'Post'
-                )}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-
-        {view === 'add-to-post' && (
-          <>
-            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => setView('create')} className="h-8 w-8 shrink-0" aria-label="Back">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <DialogTitle className="text-lg font-semibold flex-1">Add to your post</DialogTitle>
-              </div>
-            </DialogHeader>
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+      {view === 'add-to-post' && (
+              <div className="py-4">
               <div className="grid grid-cols-2 gap-2">
                 {ADD_TO_POST_OPTIONS.map((opt) => (
                   <button
@@ -657,21 +633,11 @@ export function CreatePostModal({
                   </button>
                 ))}
               </div>
-            </div>
-          </>
-        )}
-
-        {view === 'post-audience' && (
-          <>
-            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={handlePostAudienceCancel} className="h-8 w-8 shrink-0" aria-label="Back">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <DialogTitle className="text-lg font-semibold flex-1">Post audience</DialogTitle>
               </div>
-            </DialogHeader>
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4">
+      )}
+
+      {view === 'post-audience' && (
+              <div className="py-4 space-y-4">
               <div>
                 <p className="text-sm font-medium mb-1">Who can see your post?</p>
                 <p className="text-sm text-muted-foreground">
@@ -719,45 +685,19 @@ export function CreatePostModal({
                   Set as default audience
                 </Label>
               </div>
-            </div>
-            <DialogFooter className="flex-shrink-0 px-4 pb-4 pt-3 border-t gap-2 sm:gap-0">
-              <Button variant="ghost" onClick={handlePostAudienceCancel}>Cancel</Button>
-              <Button onClick={handlePostAudienceDone}>Done</Button>
-            </DialogFooter>
-          </>
-        )}
-
-        {view === 'tag-and-collaborate' && (
-          <>
-            <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
-              <div className="flex items-center justify-between gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setView(returnViewRef.current)}
-                  className="h-8 w-8 shrink-0"
-                  aria-label="Back"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <DialogTitle className="text-lg font-semibold flex-1 text-center">
-                  Tag and collaborate
-                </DialogTitle>
-                <div className="h-8 w-8 shrink-0" aria-hidden="true" />
               </div>
-            </DialogHeader>
-            <div className="flex-1 min-h-0">
-              <TagAndCollaborateView
-                tagged={tagged}
-                onTaggedChange={setTagged}
-                suggestions={[]}
-                className="flex-1 min-h-0 h-full"
-              />
-            </div>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
-    </>
+      )}
+
+      {view === 'tag-and-collaborate' && (
+              <div className="min-h-0 flex-1 flex flex-col">
+                <TagAndCollaborateView
+                  tagged={tagged}
+                  onTaggedChange={setTagged}
+                  suggestions={[]}
+                  className="flex-1 min-h-0 h-full"
+                />
+              </div>
+      )}
+    </ReusableModal>
   )
 }

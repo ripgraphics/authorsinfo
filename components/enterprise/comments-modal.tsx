@@ -1,13 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Avatar } from '@/components/ui/avatar'
 import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
@@ -216,31 +210,15 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent
-        className={cn(
-          'flex flex-col max-h-[90vh] overflow-hidden max-w-2xl w-full p-0 gap-0 mx-4',
-          className
-        )}
-      >
-        <DialogHeader className="flex-shrink-0 flex items-center justify-between px-4 py-4 border-b border-border bg-muted">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <MessageCircle className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <DialogTitle className="text-lg font-semibold text-foreground">
-                {title} ({commentCount})
-              </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
-                {description}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={(open) => { if (!open) onClose() }}
+      title={`${title} (${commentCount})`}
+      description={description}
+      contentClassName={cn('max-w-2xl max-h-[90vh]', className)}
+    >
         <div className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto -mx-4 -mt-2 px-4 py-4">
             {!isLoading && !error && comments.length > 0 ? (
               <div className="space-y-4">
                 {comments.map((comment) => (
@@ -469,7 +447,6 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   )
 }

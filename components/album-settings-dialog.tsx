@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -267,13 +267,27 @@ export function AlbumSettingsDialog({
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) onClose()
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Album Settings</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-6 py-4">
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      title="Album Settings"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-6">
           {/* Privacy Settings */}
           <div className="space-y-4">
             <Label>Privacy Settings</Label>
@@ -386,18 +400,7 @@ export function AlbumSettingsDialog({
               )}
             </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose} disabled={isSaving}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   )
 }

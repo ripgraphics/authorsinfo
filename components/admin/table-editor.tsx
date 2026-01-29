@@ -7,13 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 
 // Update the TableItem interface to include description
 interface TableItem {
@@ -188,73 +182,69 @@ export function TableEditor({
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">{title} Management</h2>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add {title}
-            </Button>
-          </DialogTrigger>
-          {/* Update the Dialog content to include description field */}
-          {/* Replace the Dialog content with this updated version */}
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New {title}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add {title}
+        </Button>
+        <ReusableModal
+          open={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          title={`Add New ${title}`}
+          footer={
+            <div className="flex justify-end space-x-2 w-full">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAdd} disabled={isLoading}>
+                {isLoading ? 'Adding...' : 'Add'}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium">
+                Name
+              </label>
+              <Input
+                id="name"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder={`Enter ${title.toLowerCase()} name`}
+              />
+            </div>
+
+            {hasDescription && (
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">
-                  Name
+                <label htmlFor="description" className="text-sm font-medium">
+                  Description
                 </label>
                 <Input
-                  id="name"
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
-                  placeholder={`Enter ${title.toLowerCase()} name`}
+                  id="description"
+                  value={newItemDescription}
+                  onChange={(e) => setNewItemDescription(e.target.value)}
+                  placeholder={`Enter ${title.toLowerCase()} description`}
                 />
               </div>
+            )}
 
-              {hasDescription && (
-                <div className="space-y-2">
-                  <label htmlFor="description" className="text-sm font-medium">
-                    Description
-                  </label>
-                  <Input
-                    id="description"
-                    value={newItemDescription}
-                    onChange={(e) => setNewItemDescription(e.target.value)}
-                    placeholder={`Enter ${title.toLowerCase()} description`}
-                  />
-                </div>
-              )}
-
-              {extraColumns.map((col) => (
-                <div key={col.key} className="space-y-2">
-                  <label htmlFor={col.key} className="text-sm font-medium">
-                    {col.label}
-                  </label>
-                  <Input
-                    id={col.key}
-                    value={editingExtra[col.key] || ''}
-                    onChange={(e) =>
-                      setEditingExtra({ ...editingExtra, [col.key]: e.target.value })
-                    }
-                    placeholder={`Enter ${col.label.toLowerCase()}`}
-                  />
-                </div>
-              ))}
-
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleAdd} disabled={isLoading}>
-                  {isLoading ? 'Adding...' : 'Add'}
-                </Button>
+            {extraColumns.map((col) => (
+              <div key={col.key} className="space-y-2">
+                <label htmlFor={col.key} className="text-sm font-medium">
+                  {col.label}
+                </label>
+                <Input
+                  id={col.key}
+                  value={editingExtra[col.key] || ''}
+                  onChange={(e) =>
+                    setEditingExtra({ ...editingExtra, [col.key]: e.target.value })
+                  }
+                  placeholder={`Enter ${col.label.toLowerCase()}`}
+                />
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            ))}
+          </div>
+        </ReusableModal>
       </div>
 
       <div className="border rounded-md">

@@ -1,13 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
 import { Button } from '@/components/ui/button'
@@ -173,36 +167,15 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent
-        className={cn(
-          'flex flex-col max-h-[90vh] overflow-hidden max-w-2xl w-full p-0 gap-0 mx-4',
-          className
-        )}
-      >
-        <DialogHeader className="flex-shrink-0 flex items-center justify-between px-4 py-4 border-b border-border bg-muted">
-          <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                'w-10 h-10 rounded-full flex items-center justify-center shadow-xs',
-                `bg-gradient-to-r ${getReactionColor()}`
-              )}
-            >
-              {customReactionIcon || <Heart className="h-5 w-5 text-white" />}
-            </div>
-            <div>
-              <DialogTitle className="text-lg font-semibold text-foreground">
-                {title} ({reactionCount})
-              </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
-                {description}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={(open) => { if (!open) onClose() }}
+      title={`${title} (${reactionCount})`}
+      description={description}
+      contentClassName={cn('max-w-2xl max-h-[90vh]', className)}
+    >
         <div className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto -mx-4 -mt-2 px-4 py-4">
             {!isLoading && !error && reactions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reactions.map((reaction) => (
@@ -296,7 +269,6 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   )
 }

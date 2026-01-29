@@ -22,7 +22,7 @@ This rule activates automatically when:
 
 ### Step 1: Activate Component Reuse Workflow
 
-Automatically invoke the `component-reuse-workflow` skill:
+Read and apply `.agent/skills/component-reuse-workflow/SKILL.md` before creating or modifying components. This skill is automatically discovered via rule 16 for BUILD tasks involving components; rule 15 provides additional enforcement.
 
 ```
 I need to create a component. Activating component-reuse-workflow skill to:
@@ -322,7 +322,7 @@ When `[BUILD]` mode is activated for component creation:
 This rule works with:
 - **14-auto-code-review.md**: Additional code quality checks
 - **04-mode-build.md**: Component creation process
-- **component-reuse-workflow skill**: Detailed workflow guidance
+- **component-reuse-workflow skill** (`.agent/skills/component-reuse-workflow/SKILL.md`): Detailed workflow guidance; discovered via rule 16 for BUILD tasks
 
 ## Success Metrics
 

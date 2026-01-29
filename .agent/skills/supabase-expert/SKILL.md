@@ -1,6 +1,10 @@
 ---
 name: supabase-expert
 description: Expert in Supabase database management, querying patterns, and migration workflows specific to this project.
+task_types: [BUILD, DEBUG, OPTIMIZE, CONSULT, MIGRATE]
+keywords: [supabase, database, migration, schema, query, postgres, postgresql, rpc, function, trigger, policy]
+domains: [supabase, database, postgresql]
+always_use: false
 ---
 
 # Supabase Expert

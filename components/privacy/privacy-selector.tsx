@@ -8,15 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { PrivacyService } from '@/lib/privacy-service'
 import type { PrivacyLevel } from '@/types/privacy'
 import { Shield, Users, UserCheck, Lock, Globe } from 'lucide-react'
@@ -105,29 +97,26 @@ export function PrivacySelector({
 
   return (
     <div className={className}>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={disabled}
-            className="flex items-center gap-2"
-          >
-            <currentOption.icon className="h-4 w-4" />
-            {currentOption.label}
-            <Badge variant="secondary" className="ml-1">
-              {PrivacyService.getPrivacyLevelIcon(currentPrivacyLevel)}
-            </Badge>
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Choose Privacy Level</DialogTitle>
-            <DialogDescription>
-              Control who can see this book in your reading list
-            </DialogDescription>
-          </DialogHeader>
-
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={disabled}
+        className="flex items-center gap-2"
+        onClick={() => setOpen(true)}
+      >
+        <currentOption.icon className="h-4 w-4" />
+        {currentOption.label}
+        <Badge variant="secondary" className="ml-1">
+          {PrivacyService.getPrivacyLevelIcon(currentPrivacyLevel)}
+        </Badge>
+      </Button>
+      <ReusableModal
+        open={open}
+        onOpenChange={setOpen}
+        title="Choose Privacy Level"
+        description="Control who can see this book in your reading list"
+        contentClassName="sm:max-w-md"
+      >
           <div className="space-y-4">
             <RadioGroup value={selectedPrivacy} onValueChange={handlePrivacyChange}>
               {privacyOptions.map((option) => {
@@ -200,15 +189,7 @@ export function PrivacySelector({
               </CardContent>
             </Card>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>Save Privacy Settings</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </ReusableModal>
     </div>
   )
 }

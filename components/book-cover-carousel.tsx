@@ -6,13 +6,7 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 
 interface BookCoverCarouselProps {
   bookId: string
@@ -43,6 +37,7 @@ export function BookCoverCarousel({
   const [images, setImages] = useState<AlbumImage[]>([])
   const [loading, setLoading] = useState(true)
   const [showAlbum, setShowAlbum] = useState(false)
+  const [isViewAllOpen, setIsViewAllOpen] = useState(false)
 
   // Fetch book cover images directly from images table - Supabase as source of truth
   useEffect(() => {
@@ -228,17 +223,22 @@ export function BookCoverCarousel({
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium">Book Covers</h3>
           {canEdit && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-7 px-2">
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>View All Book Covers</DialogTitle>
-                </DialogHeader>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2"
+                onClick={() => setIsViewAllOpen(true)}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add
+              </Button>
+              <ReusableModal
+                open={isViewAllOpen}
+                onOpenChange={setIsViewAllOpen}
+                title="View All Book Covers"
+                contentClassName="max-w-4xl"
+              >
                 <EntityPhotoAlbums
                   entityId={bookId}
                   entityType="book"
@@ -249,8 +249,8 @@ export function BookCoverCarousel({
                     type: 'book' as const,
                   }}
                 />
-              </DialogContent>
-            </Dialog>
+              </ReusableModal>
+            </>
           )}
         </div>
         <div className="text-center py-4 text-sm text-muted-foreground">

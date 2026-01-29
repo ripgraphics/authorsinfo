@@ -7,6 +7,10 @@ description: Apply when user requests refactoring, optimization, or performance 
 
 **Goal:** Improve quality **WITHOUT changing behavior**.
 
+## Skills
+
+**Before proceeding, you MUST:** Follow the automatic skill discovery process in rule 16. Read and apply ALL relevant skills. Common skills for OPTIMIZE: react-performance, react-expert, nextjs-expert, database/supabase experts when domain matches. **Opt-out:** User can say "don't use [skill-name]" or "only use [skill1, skill2]".
+
 ## Process
 
 1. Measure current state (baseline)

@@ -14,13 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -391,18 +385,31 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            {book?.id ? 'Edit Book' : 'Add New Book'}
-          </DialogTitle>
-          <DialogDescription>
-            Manage all book information including metadata, images, and relationships.
-          </DialogDescription>
-        </DialogHeader>
-
+    <ReusableModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={book?.id ? 'Edit Book' : 'Add New Book'}
+      description="Manage all book information including metadata, images, and relationships."
+      contentClassName="max-w-4xl max-h-[90vh]"
+      footer={
+        <div className="flex justify-end gap-2 w-full">
+          {book?.id && (
+            <Button variant="destructive" onClick={handleDelete} disabled={saving}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          )}
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            <X className="h-4 w-4 mr-2" />
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving || !formData.title}>
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
+      }
+    >
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
@@ -815,23 +822,6 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          {book?.id && (
-            <Button variant="destructive" onClick={handleDelete} disabled={saving}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-          )}
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            <X className="h-4 w-4 mr-2" />
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saving || !formData.title}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   )
 }

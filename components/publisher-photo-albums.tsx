@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
@@ -370,41 +370,46 @@ export function PublisherPhotoAlbums({
 
       {/* Album Detail Dialog */}
       {selectedAlbum && (
-        <Dialog open={!!selectedAlbum} onOpenChange={() => setSelectedAlbum(null)}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>{selectedAlbum.name}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              {selectedAlbum.description && (
-                <p className="text-muted-foreground">{selectedAlbum.description}</p>
-              )}
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <ImageIcon className="h-4 w-4" />
-                  {selectedAlbum.image_count} photos
-                </span>
-                <span className="flex items-center gap-1">
-                  <Eye className="h-4 w-4" />
-                  {selectedAlbum.view_count} views
-                </span>
-                <span className="flex items-center gap-1">
-                  <Heart className="h-4 w-4" />
-                  {selectedAlbum.like_count} likes
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Created {formatDate(selectedAlbum.created_at)}
-                </span>
-              </div>
-              {/* TODO: Add photo grid display here */}
-              <div className="bg-muted/50 p-8 rounded-lg text-center">
-                <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Photo gallery view coming soon...</p>
-              </div>
+        <ReusableModal
+          open={!!selectedAlbum}
+          onOpenChange={(open) => !open && setSelectedAlbum(null)}
+          title={selectedAlbum.name}
+          contentClassName="max-w-4xl"
+          footer={
+            <Button variant="outline" onClick={() => setSelectedAlbum(null)}>
+              Close
+            </Button>
+          }
+        >
+          <div className="space-y-4">
+            {selectedAlbum.description && (
+              <p className="text-muted-foreground">{selectedAlbum.description}</p>
+            )}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <ImageIcon className="h-4 w-4" />
+                {selectedAlbum.image_count} photos
+              </span>
+              <span className="flex items-center gap-1">
+                <Eye className="h-4 w-4" />
+                {selectedAlbum.view_count} views
+              </span>
+              <span className="flex items-center gap-1">
+                <Heart className="h-4 w-4" />
+                {selectedAlbum.like_count} likes
+              </span>
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                Created {formatDate(selectedAlbum.created_at)}
+              </span>
             </div>
-          </DialogContent>
-        </Dialog>
+            {/* TODO: Add photo grid display here */}
+            <div className="bg-muted/50 p-8 rounded-lg text-center">
+              <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Photo gallery view coming soon...</p>
+            </div>
+          </div>
+        </ReusableModal>
       )}
     </div>
   )

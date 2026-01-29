@@ -20,7 +20,7 @@ This rule activates automatically when:
 
 ### Step 1: Immediate Review
 After any code edit, automatically:
-1. Run code review using `code-review` skill
+1. Read and apply `.agent/skills/code-review/SKILL.md` when performing code review. This skill is automatically discovered via rule 16 for REVIEW tasks, but can also be triggered by code edits.
 2. Identify issues by priority (Critical → High → Medium → Low)
 3. Check against project-specific patterns
 4. Generate fix suggestions
@@ -234,7 +234,7 @@ This rule works with:
 - **12-checklist.md**: Pre-delivery checklist validation
 - **10-technical-standards.md**: Enforces naming and style conventions
 - **08-mode-review.md**: Uses review format and patterns
-- **code-review skill**: Leverages comprehensive review patterns
+- **code-review skill** (`.agent/skills/code-review/SKILL.md`): Leverages comprehensive review patterns; discovered via rule 16 for REVIEW tasks
 
 ## Configuration
 

@@ -516,7 +516,6 @@ export function EntityShelvesList({
           open={isCreateOpen}
           onOpenChange={setIsCreateOpen}
           onCreated={handleShelfCreated}
-          origin="shelves-tab"
         />
       )}
 

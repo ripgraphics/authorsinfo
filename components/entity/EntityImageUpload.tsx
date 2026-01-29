@@ -7,7 +7,7 @@ import { Camera, Crop, ImageIcon, X } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { clearCache } from '@/lib/request-utils'
 import { isValidCloudinaryUrl, validateAndSanitizeImageUrl } from '@/lib/utils/image-url-validation'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { ImageCropper } from '@/components/ui/image-cropper'
@@ -546,39 +546,78 @@ export function EntityImageUpload({
     )
   }
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={`${dialogMaxWidth} flex flex-col [&>button]:hidden`}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '400px',
-          height: 'clamp(400px, 80vh, 80vh)',
-          maxHeight: '80vh',
-        }}
-      >
-        <DialogHeader className="flex-shrink-0 px-4 pt-4 flex items-center justify-between">
-          <DialogTitle className="flex-1 pr-4">
-            Change {entityType}{' '}
-            {type === 'bookCover'
-              ? 'book cover'
-              : type === 'bookCoverBack'
-                ? 'back cover'
-                : type === 'entityHeaderCover'
-                  ? 'header cover'
-                  : type}
-          </DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground flex-shrink-0"
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </DialogHeader>
+  const modalTitle = `Change ${entityType} ${
+    type === 'bookCover'
+      ? 'book cover'
+      : type === 'bookCoverBack'
+        ? 'back cover'
+        : type === 'entityHeaderCover'
+          ? 'header cover'
+          : type
+  }`
 
+  return (
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      title={modalTitle}
+      contentClassName={`${dialogMaxWidth} flex flex-col min-h-[400px] max-h-[80vh] [&>button]:hidden`}
+      headerRight={
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-full bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground flex-shrink-0"
+          onClick={handleClose}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      }
+      footer={
+        <>
+          <div className="w-full">
+            <Input
+              ref={fileInputRef}
+              id={type}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={isUploading}
+              className="cursor-pointer"
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2 w-full">
+            <div>
+              {(type === 'bookCover' || type === 'bookCoverBack' || type === 'entityHeaderCover' || type === 'avatar') &&
+                preview &&
+                !showCropper && (
+                  <Button
+                    size="sm"
+                    onClick={() => setShowCropper(true)}
+                    disabled={isUploading}
+                    className="flex items-center gap-2 h-8"
+                  >
+                    <Crop className="h-4 w-4" />
+                    Crop & Adjust
+                  </Button>
+                )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleClose} disabled={isUploading} className="h-8">
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleUpload}
+                disabled={(!preview && !croppedImage) || isUploading}
+                className="h-8"
+              >
+                {isUploading ? 'Uploading...' : 'Upload'}
+              </Button>
+            </div>
+          </div>
+        </>
+      }
+    >
         {/* Preview - Takes available space */}
         <div
           className={`flex-1 min-h-0 flex items-center justify-center ${type === 'bookCover' || type === 'bookCoverBack' || type === 'entityHeaderCover' ? 'py-4' : 'py-4'}`}
@@ -655,64 +694,6 @@ export function EntityImageUpload({
             )}
           </div>
         </div>
-
-        {/* Footer with File Input and Action Buttons */}
-        <div className="flex-shrink-0 space-y-3 px-4 pt-4 pb-4 border-t">
-          {/* File Input - Hidden, triggered by preview area click */}
-          <div className="w-full">
-            <Input
-              ref={fileInputRef}
-              id={type}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              disabled={isUploading}
-              className="cursor-pointer"
-            />
-          </div>
-
-          {/* Action Buttons Row */}
-          <div className="flex items-center justify-between gap-2">
-            {/* Crop Button - Show for both cover and avatar images when a file is selected */}
-            <div>
-              {(type === 'bookCover' || type === 'bookCoverBack' || type === 'entityHeaderCover' || type === 'avatar') &&
-                preview &&
-                !showCropper && (
-                  <Button
-                    size="sm"
-                    onClick={() => setShowCropper(true)}
-                    disabled={isUploading}
-                    className="flex items-center gap-2 h-8"
-                  >
-                    <Crop className="h-4 w-4" />
-                    Crop & Adjust
-                  </Button>
-                )}
-            </div>
-
-            {/* Cancel and Upload buttons */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClose}
-                disabled={isUploading}
-                className="h-8"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleUpload}
-                disabled={(!preview && !croppedImage) || isUploading}
-                className="h-8"
-              >
-                {isUploading ? 'Uploading...' : 'Upload'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   )
 }

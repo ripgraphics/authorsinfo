@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { useToast } from '@/components/ui/use-toast'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
@@ -84,17 +78,30 @@ export function PhotoAlbumManager({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="default" className="flex items-center gap-2">
-          <FolderPlus className="h-4 w-4" />
-          Create Album
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create New Album</DialogTitle>
-        </DialogHeader>
+    <>
+      <Button
+        variant="default"
+        className="flex items-center gap-2"
+        onClick={() => setIsOpen(true)}
+      >
+        <FolderPlus className="h-4 w-4" />
+        Create Album
+      </Button>
+      <ReusableModal
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        title="Create New Album"
+        footer={
+          <div className="flex justify-end gap-2 w-full">
+            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isCreating}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateAlbum} disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Create Album'}
+            </Button>
+          </div>
+        }
+      >
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium">
@@ -120,16 +127,8 @@ export function PhotoAlbumManager({
               disabled={isCreating}
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isCreating}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateAlbum} disabled={isCreating}>
-              {isCreating ? 'Creating...' : 'Create Album'}
-            </Button>
-          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ReusableModal>
+    </>
   )
 }

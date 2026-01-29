@@ -2,14 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ReusableModal } from '@/components/ui/reusable-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -233,14 +226,24 @@ export function CreateBookClubDialog({
   const isSubmitDisabled = loading || !formData.name.trim();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn('sm:max-w-[500px]', className)}>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit}>
+    <ReusableModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={description}
+      contentClassName={cn('sm:max-w-[500px]', className)}
+      footer={
+        <div className="flex justify-end gap-2 w-full">
+          <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="submit" form="create-book-club-form" disabled={isSubmitDisabled}>
+            {loading ? 'Creating...' : submitButtonText}
+          </Button>
+        </div>
+      }
+    >
+        <form id="create-book-club-form" onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             {/* Name field - always shown */}
             <div className="space-y-2">
@@ -327,22 +330,7 @@ export function CreateBookClubDialog({
               </Alert>
             )}
           </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={loading}
-            >
-              {cancelButtonText}
-            </Button>
-            <Button type="submit" disabled={isSubmitDisabled}>
-              {loading ? loadingButtonText : submitButtonText}
-            </Button>
-          </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
-  );
+    </ReusableModal>
+  )
 }

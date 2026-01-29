@@ -6,13 +6,7 @@
 'use client'
 
 import React from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -52,14 +46,13 @@ export function TagDisambiguationDialog({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Multiple matches found</DialogTitle>
-          <DialogDescription>
-            We found multiple results for &quot;{query}&quot;. Please select the one you meant:
-          </DialogDescription>
-        </DialogHeader>
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      title="Multiple matches found"
+      description={`We found multiple results for "${query}". Please select the one you meant:`}
+      contentClassName="max-w-md"
+    >
         <div className="space-y-2 max-h-[400px] overflow-y-auto">
           {matches.map((match) => (
             <button
@@ -94,12 +87,6 @@ export function TagDisambiguationDialog({
             </button>
           ))}
         </div>
-        <div className="flex justify-end">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   )
 }

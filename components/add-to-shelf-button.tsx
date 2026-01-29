@@ -4,13 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Loader2, BookmarkPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { useShelfStore } from '@/lib/stores/shelf-store'
 import { UUID } from 'crypto'
 import { toast } from 'sonner'
@@ -233,31 +227,31 @@ export function AddToShelfButton({
 
   return (
     <>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant={variant}
-            size={size}
-            className={`gap-2 ${className}`}
-            onClick={(e) => e.stopPropagation()}
-            disabled={isUpdatingStatus}
-          >
-            <BookmarkPlus className="h-4 w-4" />
-            {size !== 'icon' && <span>{buttonLabel}</span>}
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-lg p-4">
-          <DialogHeader>
-            <DialogTitle>
-              {displayStatus ? 'Update Reading Status' : 'Add Book to Shelf'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
+      <Button
+        variant={variant}
+        size={size}
+        className={`gap-2 ${className}`}
+        onClick={(e) => {
+          e.stopPropagation()
+          setDialogOpen(true)
+        }}
+        disabled={isUpdatingStatus}
+      >
+        <BookmarkPlus className="h-4 w-4" />
+        {size !== 'icon' && <span>{buttonLabel}</span>}
+      </Button>
+
+      <ReusableModal
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title={displayStatus ? 'Update Reading Status' : 'Add Book to Shelf'}
+      >
+        <div className="space-y-2">
             <button
               type="button"
               onClick={() => handleReadingStatusUpdate('want_to_read')}
               disabled={isUpdatingStatus}
-              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground ${
+              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white ${
                 displayStatus === 'not_started' ? 'bg-accent text-accent-foreground' : ''
               }`}
             >
@@ -267,7 +261,7 @@ export function AddToShelfButton({
               type="button"
               onClick={() => handleReadingStatusUpdate('currently_reading')}
               disabled={isUpdatingStatus}
-              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground ${
+              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white ${
                 displayStatus === 'in_progress' ? 'bg-accent text-accent-foreground' : ''
               }`}
             >
@@ -277,7 +271,7 @@ export function AddToShelfButton({
               type="button"
               onClick={() => handleReadingStatusUpdate('read')}
               disabled={isUpdatingStatus}
-              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground ${
+              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white ${
                 displayStatus === 'completed' ? 'bg-accent text-accent-foreground' : ''
               }`}
             >
@@ -287,7 +281,7 @@ export function AddToShelfButton({
               type="button"
               onClick={() => handleReadingStatusUpdate('on_hold')}
               disabled={isUpdatingStatus}
-              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground ${
+              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white ${
                 displayStatus === 'on_hold' ? 'bg-accent text-accent-foreground' : ''
               }`}
             >
@@ -297,13 +291,12 @@ export function AddToShelfButton({
               type="button"
               onClick={() => handleReadingStatusUpdate('abandoned')}
               disabled={isUpdatingStatus}
-              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground ${
+              className={`shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white ${
                 displayStatus === 'abandoned' ? 'bg-accent text-accent-foreground' : ''
               }`}
             >
               {displayStatus === 'abandoned' ? '✓ ' : ''}Abandoned
             </button>
-          </div>
           {displayStatus && (
             <>
               <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
@@ -319,28 +312,35 @@ export function AddToShelfButton({
           )}
           <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
           <div className="text-sm font-medium text-muted-foreground">Add to custom shelf</div>
-          {loading && shelves.length === 0 ? (
-            <div className="flex items-center justify-center p-4">
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </div>
-          ) : shelves.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No custom shelves. Create one below.</p>
-          ) : (
+          {(() => {
+            const customShelves = shelves.filter((s: { isDefault?: boolean }) => !s.isDefault)
+            if (loading && customShelves.length === 0) {
+              return (
+                <div className="flex items-center justify-center p-4">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              )
+            }
+            if (customShelves.length === 0) {
+              return <p className="text-sm text-muted-foreground">No custom shelves. Create one below.</p>
+            }
+            return (
             <div className="space-y-1">
-              {shelves.map((shelf) => (
+              {customShelves.map((shelf) => (
                 <button
                   key={shelf.id}
                   type="button"
                   onClick={() => handleShelfSelect(shelf.id)}
                   disabled={isUpdatingStatus}
-                  className="shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                  className="shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white"
                 >
                   <span className="text-lg">{shelf.icon || '📚'}</span>
                   <span className="truncate">{shelf.name}</span>
                 </button>
               ))}
             </div>
-          )}
+            )
+          })()}
           <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
           <button
             type="button"
@@ -348,7 +348,7 @@ export function AddToShelfButton({
               setDialogOpen(false)
               setIsShelfCreateDialogOpen(true)
             }}
-            className="shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+            className="shelf-menu-item flex w-full cursor-pointer items-center gap-2 rounded-xs px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white"
           >
             <Plus className="h-4 w-4" />
             New Shelf
@@ -368,17 +368,16 @@ export function AddToShelfButton({
                 })
               }
             }}
-            className="shelf-manage-button w-full cursor-pointer px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+            className="shelf-manage-button w-full cursor-pointer px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white"
           >
             Manage shelves...
           </button>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </ReusableModal>
 
       <ShelfCreateDialog
         open={isShelfCreateDialogOpen}
         onOpenChange={setIsShelfCreateDialogOpen}
-        origin="add-to-shelf"
         autoAddBookId={bookId}
         autoAddBookTitle={bookTitle}
         onCreated={async () => {

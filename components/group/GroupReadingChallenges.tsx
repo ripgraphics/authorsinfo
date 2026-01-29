@@ -6,15 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import type { GroupReadingChallengesProps, ReadingChallenge } from '@/types/group-components'
@@ -39,6 +31,7 @@ export default function GroupReadingChallenges({
 }: GroupReadingChallengesProps) {
   const { toast } = useToast()
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
   const [newChallenge, setNewChallenge] = useState({
     name: '',
     description: '',
@@ -58,6 +51,7 @@ export default function GroupReadingChallenges({
       return
     }
 
+    setIsCreating(true)
     try {
       await onCreateChallenge({
         name: newChallenge.name.trim(),
@@ -88,6 +82,8 @@ export default function GroupReadingChallenges({
         description: error instanceof Error ? error.message : 'Failed to create challenge',
         variant: 'destructive',
       })
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -132,20 +128,23 @@ export default function GroupReadingChallenges({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Reading Challenges</h2>
         {userPermissions.canCreate && (
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Challenge
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create Reading Challenge</DialogTitle>
-                <DialogDescription>
-                  Create a reading challenge for your group members
-                </DialogDescription>
-              </DialogHeader>
+          <>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Challenge
+            </Button>
+            <ReusableModal
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
+              title="Create Reading Challenge"
+              description="Create a reading challenge for your group members"
+              contentClassName="max-w-2xl"
+              footer={
+                <Button onClick={handleCreateChallenge} disabled={isCreating}>
+                  {isCreating ? 'Creating...' : 'Create Challenge'}
+                </Button>
+              }
+            >
               <div className="space-y-4 py-4">
                 <div>
                   <Label htmlFor="name">Challenge Name</Label>
@@ -218,14 +217,8 @@ export default function GroupReadingChallenges({
                   </div>
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateChallenge}>Create Challenge</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            </ReusableModal>
+          </>
         )}
       </div>
 

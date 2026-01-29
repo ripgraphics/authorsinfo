@@ -2,13 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { ReusableSearch } from '@/components/ui/reusable-search'
 import { Button } from '@/components/ui/button'
 
@@ -53,24 +47,25 @@ export function SearchModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Search</DialogTitle>
-          <DialogDescription>Search for books, authors, publishers, and more.</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          <ReusableSearch
-            placeholder="Search books, authors, publishers..."
-            updateUrl={false}
-            onSearchChange={handleSearchChange}
-            className="w-full"
-          />
-          <div className="flex justify-end">
-            <Button type="submit">Search</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <ReusableModal
+      open={open}
+      onOpenChange={handleOpenChange}
+      title="Search"
+      description="Search for books, authors, publishers, and more."
+      footer={
+        <Button type="submit" form="search-modal-form">
+          Search
+        </Button>
+      }
+    >
+      <form id="search-modal-form" onSubmit={handleSubmit} className="grid gap-4">
+        <ReusableSearch
+          placeholder="Search books, authors, publishers..."
+          updateUrl={false}
+          onSearchChange={handleSearchChange}
+          className="w-full"
+        />
+      </form>
+    </ReusableModal>
   )
 }

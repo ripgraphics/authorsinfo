@@ -21,14 +21,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { ReusableModal } from '@/components/ui/reusable-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -320,15 +313,30 @@ export function CreateChallengeModal({
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className={cn("sm:max-w-[500px]", className)}>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
+  const handleOpenChange = (open: boolean) => {
+    if (!open) handleClose();
+  };
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+  return (
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      title={title}
+      description={description}
+      contentClassName={className}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
+            {cancelText}
+          </Button>
+          <Button type="submit" form="create-challenge-form" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading ? 'Creating...' : submitText}
+          </Button>
+        </>
+      }
+    >
+      <form id="create-challenge-form" onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">Challenge Title</Label>
             <Input
@@ -438,18 +446,7 @@ export function CreateChallengeModal({
               </div>
             </div>
           )}
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
-              {cancelText}
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? 'Creating...' : submitText}
-            </Button>
-          </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   );
 }

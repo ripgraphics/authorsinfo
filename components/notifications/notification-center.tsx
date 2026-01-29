@@ -6,13 +6,7 @@
 
 import React, { useEffect } from 'react';
 import { Trash2, Check, Archive } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { ReusableModal } from '@/components/ui/reusable-modal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -169,15 +163,13 @@ export function NotificationCenter({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`max-w-2xl max-h-[80vh] ${className || ''}`}>
-        <DialogHeader>
-          <DialogTitle>Notifications</DialogTitle>
-          <DialogDescription>
-            Manage your notifications and preferences
-          </DialogDescription>
-        </DialogHeader>
-
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose?.()}
+      title="Notifications"
+      description="Manage your notifications and preferences"
+      contentClassName={`max-w-2xl max-h-[80vh] ${className || ''}`}
+    >
         <div className="space-y-4">
           {unreadCount > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
@@ -237,8 +229,7 @@ export function NotificationCenter({
             </TabsContent>
           </Tabs>
         </div>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   );
 }
 

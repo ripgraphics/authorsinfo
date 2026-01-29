@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -150,23 +144,36 @@ export function CreateAlbumDialog({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button>Create Album</Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create New Album</DialogTitle>
-        </DialogHeader>
+    <>
+      <Button onClick={() => setIsOpen(true)}>Create Album</Button>
+      <ReusableModal
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        title="Create New Album"
+        footer={
+          !userId ? (
+            <Button onClick={handleSignIn}>Sign In</Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" form="create-album-form" disabled={isLoading}>
+                {isLoading ? 'Creating...' : 'Create Album'}
+              </Button>
+            </>
+          )
+        }
+      >
         {!userId ? (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Please sign in to create albums</p>
-            <div className="flex justify-end">
-              <Button onClick={handleSignIn}>Sign In</Button>
-            </div>
-          </div>
+          <p className="text-sm text-muted-foreground">Please sign in to create albums</p>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form id="create-album-form" onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Album Name</Label>
               <Input
@@ -190,22 +197,9 @@ export function CreateAlbumDialog({
               <Switch id="public" checked={isPublic} onCheckedChange={setIsPublic} />
               <Label htmlFor="public">Public Album</Label>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsOpen(false)}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Album'}
-              </Button>
-            </div>
           </form>
         )}
-      </DialogContent>
-    </Dialog>
+      </ReusableModal>
+    </>
   )
 }

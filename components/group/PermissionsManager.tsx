@@ -8,13 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/ssr'
 import { useToast } from '@/hooks/use-toast'
@@ -257,61 +251,60 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
 
             <TabsContent value="roles" className="space-y-4">
               <div className="flex justify-end">
-                <Dialog open={showNewRoleDialog} onOpenChange={setShowNewRoleDialog}>
-                  <DialogTrigger asChild>
-                    <Button>Create Role</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Role</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="name">Role Name</Label>
-                        <Input
-                          id="name"
-                          value={newRole.name}
-                          onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="description">Description</Label>
-                        <Input
-                          id="description"
-                          value={newRole.description}
-                          onChange={(e) =>
-                            setNewRole({
-                              ...newRole,
-                              description: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Permissions</Label>
-                        {permissionsList.map(({ key, label }) => (
-                          <div key={key} className="flex items-center justify-between">
-                            <Label htmlFor={key}>{label}</Label>
-                            <Switch
-                              id={key}
-                              checked={newRole.permissions[key] || false}
-                              onCheckedChange={(checked) =>
-                                setNewRole({
-                                  ...newRole,
-                                  permissions: {
-                                    ...newRole.permissions,
-                                    [key]: checked,
-                                  },
-                                })
-                              }
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      <Button onClick={handleCreateRole}>Create Role</Button>
+                <Button onClick={() => setShowNewRoleDialog(true)}>Create Role</Button>
+                <ReusableModal
+                  open={showNewRoleDialog}
+                  onOpenChange={setShowNewRoleDialog}
+                  title="Create New Role"
+                  footer={
+                    <Button onClick={handleCreateRole}>Create Role</Button>
+                  }
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Role Name</Label>
+                      <Input
+                        id="name"
+                        value={newRole.name}
+                        onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
+                      />
                     </div>
-                  </DialogContent>
-                </Dialog>
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Input
+                        id="description"
+                        value={newRole.description}
+                        onChange={(e) =>
+                          setNewRole({
+                            ...newRole,
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Permissions</Label>
+                      {permissionsList.map(({ key, label }) => (
+                        <div key={key} className="flex items-center justify-between">
+                          <Label htmlFor={key}>{label}</Label>
+                          <Switch
+                            id={key}
+                            checked={newRole.permissions[key] || false}
+                            onCheckedChange={(checked) =>
+                              setNewRole({
+                                ...newRole,
+                                permissions: {
+                                  ...newRole.permissions,
+                                  [key]: checked,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </ReusableModal>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1,11 +1,5 @@
 import { useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -207,20 +201,29 @@ export function PhotoAlbumCreator({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button className="flex items-center gap-2">
-            <FolderPlus className="h-4 w-4" />
-            Create Photo Album
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create New Photo Album</DialogTitle>
-        </DialogHeader>
-
+    <>
+      {trigger || (
+        <Button className="flex items-center gap-2" onClick={() => setIsOpen(true)}>
+          <FolderPlus className="h-4 w-4" />
+          Create Photo Album
+        </Button>
+      )}
+      <ReusableModal
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        title="Create New Photo Album"
+        contentClassName="max-w-md"
+        footer={
+          <div className="flex justify-end gap-2 w-full">
+            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isCreating}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateAlbum} disabled={isCreating || !name.trim()}>
+              {isCreating ? 'Creating...' : 'Create Album'}
+            </Button>
+          </div>
+        }
+      >
         <div className="space-y-6 py-4">
           {/* Album Name */}
           <div className="space-y-2">
@@ -309,18 +312,8 @@ export function PhotoAlbumCreator({
               </div>
             </div>
           )}
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isCreating}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateAlbum} disabled={isCreating || !name.trim()}>
-              {isCreating ? 'Creating...' : 'Create Album'}
-            </Button>
-          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ReusableModal>
+    </>
   )
 }

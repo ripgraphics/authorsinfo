@@ -4,6 +4,10 @@ description: Workflow that enforces component reuse by systematically searching 
 category: workflow
 color: green
 displayName: Component Reuse Workflow
+task_types: [BUILD]
+keywords: [component, UI, create component, new component, build component, add component, make component, ui component, react component]
+domains: [react, ui, components]
+always_use: false
 ---
 
 # Component Reuse Workflow

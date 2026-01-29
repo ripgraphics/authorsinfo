@@ -7,15 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -335,19 +327,30 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
 
             {/* Update Progress Button */}
             <div className="flex justify-end mt-2">
-              <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    Update Progress
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Update Reading Progress</DialogTitle>
-                    <DialogDescription>Track your reading journey for this book.</DialogDescription>
-                  </DialogHeader>
-
-                  <div className="grid gap-4 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowUpdateDialog(true)}
+              >
+                Update Progress
+              </Button>
+              <ReusableModal
+                open={showUpdateDialog}
+                onOpenChange={setShowUpdateDialog}
+                title="Update Reading Progress"
+                description="Track your reading journey for this book."
+                footer={
+                  <>
+                    <Button variant="outline" onClick={handleDeleteProgress} disabled={updating}>
+                      Delete Progress
+                    </Button>
+                    <Button onClick={handleProgressUpdate} disabled={updating}>
+                      {updating ? 'Saving...' : 'Save Progress'}
+                    </Button>
+                  </>
+                }
+              >
+                <div className="grid gap-4">
                     {totalPages > 0 && (
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -439,18 +442,8 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                       <Switch id="public" checked={isPublic} onCheckedChange={setIsPublic} />
                       <Label htmlFor="public">Share my progress with friends</Label>
                     </div>
-                  </div>
-
-                  <DialogFooter className="flex justify-between">
-                    <Button variant="outline" onClick={handleDeleteProgress} disabled={updating}>
-                      Delete Progress
-                    </Button>
-                    <Button onClick={handleProgressUpdate} disabled={updating}>
-                      {updating ? 'Saving...' : 'Save Progress'}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                </div>
+              </ReusableModal>
             </div>
           </>
         ) : (

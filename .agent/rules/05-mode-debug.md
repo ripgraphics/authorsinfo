@@ -7,6 +7,10 @@ description: Apply when user reports bugs, errors that need fixing
 
 **Goal:** Find the correct cause, fix the right place, prevent recurrence.
 
+## Skills
+
+**Before proceeding, you MUST:** Follow the automatic skill discovery process in rule 16. Read and apply ALL relevant skills. Default for DEBUG: `triage-expert` (always_use: true) — read `.agent/skills/triage-expert/SKILL.md` first. If triage recommends a domain expert, also read that expert's SKILL.md. **Opt-out:** User can say "don't use triage-expert" or "only use [skill-name]".
+
 ## Process
 
 1. Gather information (5W1H)

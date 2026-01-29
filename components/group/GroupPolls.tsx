@@ -6,15 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { useToast } from '@/hooks/use-toast'
 import type { GroupPollsProps, Poll } from '@/types/group-components'
 import { Plus, Trash2, BarChart3 } from 'lucide-react'
@@ -151,21 +143,27 @@ export default function GroupPolls({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Group Polls</h2>
         {userPermissions.canCreate && (
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Poll
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New Poll</DialogTitle>
-                <DialogDescription>
-                  Create a poll to get feedback from group members
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
+          <>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Poll
+            </Button>
+            <ReusableModal
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
+              title="Create New Poll"
+              description="Create a poll to get feedback from group members"
+              contentClassName="max-w-2xl"
+              footer={
+                <>
+                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreatePoll}>Create Poll</Button>
+                </>
+              }
+            >
+              <div className="space-y-4">
                 <div>
                   <Label htmlFor="question">Question</Label>
                   <Textarea
@@ -226,14 +224,8 @@ export default function GroupPolls({
                   <Label htmlFor="allows_multiple">Allow multiple votes</Label>
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreatePoll}>Create Poll</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            </ReusableModal>
+          </>
         )}
       </div>
 

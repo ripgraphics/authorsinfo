@@ -6,21 +6,14 @@
  */
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { ReusableModal } from '@/components/ui/reusable-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { CreateShelfInput, CustomShelf } from '@/types/phase3';
-import { Plus, Globe, Lock } from 'lucide-react';
+import { Globe, Lock } from 'lucide-react';
 
 const SHELF_ICONS = [
   '📚',
@@ -101,19 +94,24 @@ export function ShelfCreationModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            Create New Shelf
-          </DialogTitle>
-          <DialogDescription>
-            Create a custom shelf to organize your books
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      title="Create New Shelf"
+      description="Create a custom shelf to organize your books"
+      contentClassName="sm:max-w-[500px]"
+      footer={
+        <div className="flex justify-end gap-2 w-full">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button type="submit" form="shelf-creation-form" disabled={isLoading}>
+            {isLoading ? 'Creating...' : 'Create Shelf'}
+          </Button>
+        </div>
+      }
+    >
+        <form id="shelf-creation-form" onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md">
               {error}
@@ -237,16 +235,6 @@ export function ShelfCreationModal({
             />
           </div>
         </form>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? 'Creating...' : 'Create Shelf'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </ReusableModal>
   );
 }

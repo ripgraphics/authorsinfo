@@ -7,6 +7,10 @@ description: Apply when user requests upgrading dependencies, migrating to new v
 
 **Goal:** Safely upgrade or migrate code with minimal disruption and zero data loss.
 
+## Skills
+
+**Before proceeding, you MUST:** Follow the automatic skill discovery process in rule 16. Read and apply ALL relevant skills (e.g. nextjs-expert, supabase-expert when migrating Next.js/Supabase). **Opt-out:** User can say "don't use [skill-name]" or "only use [skill1, skill2]".
+
 ## Process
 
 1. Assess current state and language/framework

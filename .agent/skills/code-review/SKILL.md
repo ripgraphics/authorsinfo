@@ -1,6 +1,10 @@
 ---
 name: code-review
 description: Provides comprehensive code review covering 6 focused aspects - architecture & design, code quality, security & dependencies, performance & scalability, testing coverage, and documentation & API design. Use this skill for deep analysis with actionable feedback after significant code changes.
+task_types: [REVIEW]
+keywords: [review, code review, audit, check code, evaluate code, assess code, look at code, review code]
+domains: [code quality, architecture, security, performance]
+always_use: false
 ---
 
 # Code Review Expert

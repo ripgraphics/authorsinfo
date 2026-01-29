@@ -7,6 +7,10 @@ description: Apply when user asks for code review, security audit, or best pract
 
 **Goal:** Evaluate code quality, identify issues, and suggest improvements.
 
+## Skills
+
+**Before proceeding, you MUST:** Follow the automatic skill discovery process in rule 16. Read and apply ALL relevant skills. Use `.agent/skills/code-review/SKILL.md` for structured review (see also rule 14). **Opt-out:** User can say "don't use code-review" or specify which skills to use.
+
 ## Process
 
 1. Understand the code's purpose and language

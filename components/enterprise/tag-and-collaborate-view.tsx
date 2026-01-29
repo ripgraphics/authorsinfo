@@ -7,7 +7,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Input } from '@/components/ui/input'
 import { Avatar } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -258,20 +258,24 @@ export function TagAndCollaborateModal({
   onSearch,
   className,
 }: TagAndCollaborateModalProps) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open) onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="flex flex-col max-h-[85vh] overflow-hidden max-w-[440px] p-0 gap-0">
-        <DialogHeader className="flex-shrink-0 px-4 pt-4 pb-2 border-b">
-          <DialogTitle className="text-lg font-semibold">Tag and collaborate</DialogTitle>
-        </DialogHeader>
-        <TagAndCollaborateView
-          tagged={tagged}
-          onTaggedChange={onTaggedChange}
-          suggestions={suggestions}
-          onSearch={onSearch}
-          className="flex-1 min-h-0"
-        />
-      </DialogContent>
-    </Dialog>
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      title="Tag and collaborate"
+      contentClassName="max-w-[440px]"
+    >
+      <TagAndCollaborateView
+        tagged={tagged}
+        onTaggedChange={onTaggedChange}
+        suggestions={suggestions}
+        onSearch={onSearch}
+        className="flex-1 min-h-0"
+      />
+    </ReusableModal>
   )
 }

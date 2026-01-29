@@ -8,13 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -440,95 +434,13 @@ export function EnterpriseAlbumManager({
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Photo Albums</h2>
           {isOwnProfile && (
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
-                  <FolderPlus className="h-4 w-4" />
-                  Create Album
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Create New Album</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="album-name">Album Name *</Label>
-                    <Input
-                      id="album-name"
-                      value={newAlbum.name}
-                      onChange={(e) => setNewAlbum((prev) => ({ ...prev, name: e.target.value }))}
-                      placeholder="Enter album name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="album-description">Description</Label>
-                    <Textarea
-                      id="album-description"
-                      value={newAlbum.description}
-                      onChange={(e) =>
-                        setNewAlbum((prev) => ({ ...prev, description: e.target.value }))
-                      }
-                      placeholder="Describe your album (optional)"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="privacy-level">Privacy</Label>
-                    <Select
-                      value={newAlbum.privacy_level}
-                      onValueChange={(value) =>
-                        setNewAlbum((prev) => ({
-                          ...prev,
-                          privacy_level: value as 'public' | 'private',
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="public">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4" />
-                            Public - Everyone can see
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="private">
-                          <div className="flex items-center gap-2">
-                            <Lock className="h-4 w-4" />
-                            Private - Only you can see
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="friends">
-                          <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4" />
-                            Friends Only
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-in-feed">Show in Feed</Label>
-                    <Switch
-                      id="show-in-feed"
-                      checked={newAlbum.show_in_feed}
-                      onCheckedChange={(checked) =>
-                        setNewAlbum((prev) => ({ ...prev, show_in_feed: checked }))
-                      }
-                    />
-                  </div>
-                  <Button
-                    onClick={createAlbum}
-                    disabled={isCreatingAlbum || !newAlbum.name.trim()}
-                    className="w-full"
-                  >
-                    {isCreatingAlbum ? 'Creating...' : 'Create Album'}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button
+              className="flex items-center gap-2"
+              onClick={() => setShowCreateDialog(true)}
+            >
+              <FolderPlus className="h-4 w-4" />
+              Create Album
+            </Button>
           )}
         </div>
 
@@ -655,39 +567,13 @@ export function EnterpriseAlbumManager({
                 </p>
               </div>
               {isOwnProfile && (
-                <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                  <DialogTrigger asChild>
-                    <Button className="flex items-center gap-2">
-                      <FolderPlus className="h-4 w-4" />
-                      Create Your First Album
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Create Your First Album</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="first-album-name">Album Name *</Label>
-                        <Input
-                          id="first-album-name"
-                          value={newAlbum.name}
-                          onChange={(e) =>
-                            setNewAlbum((prev) => ({ ...prev, name: e.target.value }))
-                          }
-                          placeholder="My First Album"
-                        />
-                      </div>
-                      <Button
-                        onClick={createAlbum}
-                        disabled={isCreatingAlbum || !newAlbum.name.trim()}
-                        className="w-full"
-                      >
-                        {isCreatingAlbum ? 'Creating...' : 'Create Album'}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <Button
+                  className="flex items-center gap-2"
+                  onClick={() => setShowCreateDialog(true)}
+                >
+                  <FolderPlus className="h-4 w-4" />
+                  Create Your First Album
+                </Button>
               )}
             </div>
           </CardContent>
@@ -915,6 +801,93 @@ export function EnterpriseAlbumManager({
           buttonText="Add Photos"
           size="sm"
         />
+      )}
+
+      {/* Create Album Modal */}
+      {isOwnProfile && (
+        <ReusableModal
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          title="Create New Album"
+          footer={
+            <Button
+              onClick={createAlbum}
+              disabled={isCreatingAlbum || !newAlbum.name.trim()}
+            >
+              {isCreatingAlbum ? 'Creating...' : 'Create Album'}
+            </Button>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="album-name">Album Name *</Label>
+              <Input
+                id="album-name"
+                value={newAlbum.name}
+                onChange={(e) => setNewAlbum((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter album name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="album-description">Description</Label>
+              <Textarea
+                id="album-description"
+                value={newAlbum.description}
+                onChange={(e) =>
+                  setNewAlbum((prev) => ({ ...prev, description: e.target.value }))
+                }
+                placeholder="Describe your album (optional)"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="privacy-level">Privacy</Label>
+              <Select
+                value={newAlbum.privacy_level}
+                onValueChange={(value) =>
+                  setNewAlbum((prev) => ({
+                    ...prev,
+                    privacy_level: value as 'public' | 'private',
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      Public - Everyone can see
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="private">
+                    <div className="flex items-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      Private - Only you can see
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="friends">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Friends Only
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="show-in-feed">Show in Feed</Label>
+              <Switch
+                id="show-in-feed"
+                checked={newAlbum.show_in_feed}
+                onCheckedChange={(checked) =>
+                  setNewAlbum((prev) => ({ ...prev, show_in_feed: checked }))
+                }
+              />
+            </div>
+          </div>
+        </ReusableModal>
       )}
     </div>
   )

@@ -1,6 +1,10 @@
 ---
 name: nextjs-expert
 description: Next.js framework expert specializing in App Router, Server Components, performance optimization, data fetching patterns, and full-stack development. Use this skill for Next.js routing issues, hydration errors, build problems, or deployment challenges.
+task_types: [BUILD, DEBUG, OPTIMIZE, CONSULT, MIGRATE]
+keywords: [nextjs, next.js, app router, pages router, server components, hydration, routing, build, deployment, vercel, next config]
+domains: [nextjs, react, fullstack]
+always_use: false
 ---
 
 # Next.js Expert

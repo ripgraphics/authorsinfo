@@ -13,13 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import {
   Select,
   SelectContent,
@@ -67,6 +61,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
   const [inviteRole, setInviteRole] = useState('member')
   const [suspensionReason, setSuspensionReason] = useState('')
   const [suspensionDuration, setSuspensionDuration] = useState('24h')
+  const [isInviteOpen, setIsInviteOpen] = useState(false)
 
   useEffect(() => {
     fetchMembers()
@@ -278,71 +273,9 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
       header: 'Actions',
       cell: ({ row }: { row: any }) => (
         <div className="flex gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" onClick={() => setSelectedMember(row.original)}>
-                Manage
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Manage Member</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Roles</label>
-                  <Select
-                    value={row.original.roles[0]}
-                    onValueChange={(value) => handleUpdateRole(row.original.user_id, [value])}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="moderator">Moderator</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Suspension</label>
-                  <div className="space-y-2">
-                    <Select value={suspensionDuration} onValueChange={setSuspensionDuration}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="24h">24 Hours</SelectItem>
-                        <SelectItem value="7d">7 Days</SelectItem>
-                        <SelectItem value="30d">30 Days</SelectItem>
-                        <SelectItem value="permanent">Permanent</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Textarea
-                      placeholder="Reason for suspension"
-                      value={suspensionReason}
-                      onChange={(e) => setSuspensionReason(e.target.value)}
-                    />
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleSuspendMember(row.original.user_id)}
-                    >
-                      Suspend Member
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleRemoveMember(row.original.user_id)}
-                  >
-                    Remove from Group
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button variant="outline" size="sm" onClick={() => setSelectedMember(row.original)}>
+            Manage
+          </Button>
         </div>
       ),
     },
@@ -387,43 +320,40 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
               <SelectItem value="admin">Admin</SelectItem>
             </SelectContent>
           </Select>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>Invite Member</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Invite New Member</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Email Address</label>
-                  <Input
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="Enter email address"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Role</label>
-                  <Select value={inviteRole} onValueChange={setInviteRole}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="moderator">Moderator</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end">
-                  <Button onClick={handleInviteMember}>Send Invitation</Button>
-                </div>
+          <Button onClick={() => setIsInviteOpen(true)}>Invite Member</Button>
+          <ReusableModal
+            open={isInviteOpen}
+            onOpenChange={setIsInviteOpen}
+            title="Invite New Member"
+            footer={
+              <Button onClick={handleInviteMember}>Send Invitation</Button>
+            }
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Email Address</label>
+                <Input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="Enter email address"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
+              <div>
+                <label className="text-sm font-medium">Role</label>
+                <Select value={inviteRole} onValueChange={setInviteRole}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="moderator">Moderator</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </ReusableModal>
         </div>
       </div>
 
@@ -472,6 +402,70 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
           </div>
         </CardContent>
       </Card>
+
+      <ReusableModal
+        open={!!selectedMember}
+        onOpenChange={(open) => !open && setSelectedMember(null)}
+        title="Manage Member"
+        footer={
+          selectedMember ? (
+            <Button
+              variant="destructive"
+              onClick={() => handleRemoveMember(selectedMember.user_id)}
+            >
+              Remove from Group
+            </Button>
+          ) : undefined
+        }
+      >
+        {selectedMember && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Roles</label>
+              <Select
+                value={selectedMember.roles[0]}
+                onValueChange={(value) => handleUpdateRole(selectedMember.user_id, [value])}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="moderator">Moderator</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Suspension</label>
+              <div className="space-y-2">
+                <Select value={suspensionDuration} onValueChange={setSuspensionDuration}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="24h">24 Hours</SelectItem>
+                    <SelectItem value="7d">7 Days</SelectItem>
+                    <SelectItem value="30d">30 Days</SelectItem>
+                    <SelectItem value="permanent">Permanent</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Textarea
+                  placeholder="Reason for suspension"
+                  value={suspensionReason}
+                  onChange={(e) => setSuspensionReason(e.target.value)}
+                />
+                <Button
+                  variant="destructive"
+                  onClick={() => handleSuspendMember(selectedMember.user_id)}
+                >
+                  Suspend Member
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </ReusableModal>
     </div>
   )
 }

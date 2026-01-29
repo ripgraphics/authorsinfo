@@ -1,6 +1,10 @@
 ---
 name: react-expert
 description: Provides React 18/19 expertise including hooks, component patterns, performance optimization, state management, and Server Components. Use this skill for React component issues, hook errors, re-rendering problems, or state management challenges.
+task_types: [BUILD, DEBUG, OPTIMIZE, CONSULT]
+keywords: [react, component, hook, useState, useEffect, re-render, state management, props, context, server components]
+domains: [react, frontend, ui]
+always_use: false
 ---
 
 # React Expert

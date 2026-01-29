@@ -22,7 +22,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { ReusableModal } from '@/components/ui/reusable-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -270,90 +270,87 @@ export function LogProgressModal({
   const icon = getProgressIcon(effectiveGoalType);
   const placeholder = valuePlaceholder || getProgressPlaceholder(effectiveGoalType);
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className={cn("sm:max-w-[425px]", className)}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {icon}
-            {title}
-          </DialogTitle>
-          {(description || challenge?.title) && (
-            <DialogDescription>
-              {description || `Log progress for "${challenge?.title}"`}
-            </DialogDescription>
-          )}
-        </DialogHeader>
+  const handleOpenChange = (open: boolean) => {
+    if (!open) handleClose();
+  };
 
-        {showCurrentProgress && challenge?.currentValue !== undefined && challenge?.goalValue !== undefined && (
-          <div className="bg-muted/50 p-3 rounded-lg text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Current progress:</span>
-              <span className="font-semibold">
-                {challenge.currentValue} / {challenge.goalValue} {effectiveGoalType}
-              </span>
-            </div>
+  return (
+    <ReusableModal
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      title={title}
+      description={description || (challenge?.title ? `Log progress for "${challenge.title}"` : undefined)}
+      contentClassName={className}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
+            {cancelText}
+          </Button>
+          <Button type="submit" form="log-progress-form" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {submitText}
+          </Button>
+        </>
+      }
+    >
+      {showCurrentProgress && challenge?.currentValue !== undefined && challenge?.goalValue !== undefined && (
+        <div className="bg-muted/50 p-3 rounded-lg text-sm mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Current progress:</span>
+            <span className="font-semibold">
+              {challenge.currentValue} / {challenge.goalValue} {effectiveGoalType}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <form id="log-progress-form" onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="value">{label}</Label>
+          <Input
+            id="value"
+            type="number"
+            placeholder={placeholder}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            min={minValue}
+            max={maxValue}
+            disabled={loading}
+            required
+          />
+        </div>
+
+        {showDatePicker && (
+          <div className="space-y-2">
+            <Label htmlFor="date" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Date
+            </Label>
+            <Input
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              disabled={loading}
+              max={getTodayISO()}
+            />
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        {showNotes && (
           <div className="space-y-2">
-            <Label htmlFor="value">{label}</Label>
-            <Input
-              id="value"
-              type="number"
-              placeholder={placeholder}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              min={minValue}
-              max={maxValue}
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              placeholder={notesPlaceholder}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               disabled={loading}
-              required
+              className="resize-none h-20"
             />
           </div>
-
-          {showDatePicker && (
-            <div className="space-y-2">
-              <Label htmlFor="date" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Date
-              </Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                disabled={loading}
-                max={getTodayISO()}
-              />
-            </div>
-          )}
-
-          {showNotes && (
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea
-                id="notes"
-                placeholder={notesPlaceholder}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                disabled={loading}
-                className="resize-none h-20"
-              />
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
-              {cancelText}
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {submitText}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        )}
+      </form>
+    </ReusableModal>
   );
 }

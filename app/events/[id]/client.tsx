@@ -27,7 +27,7 @@ export function ClientEventPage({ event, params, setActiveTab }: ClientEventPage
               About
             </div>
             <button
-              className="timeline-about-section__view-more text-sm text-primary hover:underline"
+              className="timeline-about-section__view-more app-text-link text-sm"
               onClick={() => handleSetActiveTab('about')}
             >
               View More

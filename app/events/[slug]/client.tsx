@@ -214,7 +214,7 @@ export function ClientEventPage({
                 <div className="space-y-1.5 p-4 flex flex-row items-center justify-between">
                   <div className="text-2xl font-semibold leading-none tracking-tight">About</div>
                   <button
-                    className="text-sm text-primary hover:underline"
+                    className="app-text-link text-sm"
                     onClick={() => handleTabChange('about')}
                   >
                     View More
@@ -266,7 +266,7 @@ export function ClientEventPage({
                 <div className="space-y-1.5 p-4 flex flex-row items-center justify-between">
                   <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
                   <button
-                    className="text-sm text-primary hover:underline"
+                    className="app-text-link text-sm"
                     onClick={() => handleTabChange('photos')}
                   >
                     See All

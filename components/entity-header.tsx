@@ -1336,7 +1336,7 @@ export function EntityHeader({
                       href={website.startsWith('http') ? website : `https://${website}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="entity-header__website-link flex items-center hover:text-primary hover:underline"
+                      className="entity-header__website-link flex items-center app-text-link"
                     >
                       <Globe className="h-4 w-4 mr-1" />
                       <span>Website</span>

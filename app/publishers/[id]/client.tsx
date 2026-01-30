@@ -203,7 +203,7 @@ export function ClientPublisherPage({
                   </div>
                   <Link 
                     href={`/publishers/${params.id}?tab=books`} 
-                    className="text-sm text-primary hover:underline"
+                    className="app-text-link text-sm"
                   >
                     See All
                   </Link>

@@ -237,7 +237,7 @@ export function CurrentlyReadingSection({
             {title}
           </div>
           {viewMoreLink && (
-            <Link href={viewMoreLink} className="text-sm text-primary hover:underline">
+            <Link href={viewMoreLink} className="app-text-link text-sm">
               {viewMoreText}
             </Link>
           )}

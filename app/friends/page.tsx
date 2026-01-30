@@ -33,7 +33,7 @@ function AuthRequired() {
           </Button>
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link href="/login" className="app-text-link">
               Create one
             </Link>
           </p>

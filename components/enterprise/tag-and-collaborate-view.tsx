@@ -162,7 +162,7 @@ export function TagAndCollaborateView({
           <button
             type="button"
             onClick={() => onSearch?.(search)}
-            className="text-sm font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded shrink-0"
+            className="app-text-link text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded shrink-0"
           >
             Done
           </button>

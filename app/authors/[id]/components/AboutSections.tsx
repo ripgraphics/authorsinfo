@@ -114,7 +114,7 @@ export function OverviewSection({
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="overview-section__website-link text-primary hover:underline break-words"
+              className="overview-section__website-link app-text-link break-words"
             >
               Website
             </a>
@@ -260,7 +260,7 @@ export function ContactSection({
               <span className="contact-section__label text-sm text-muted-foreground">Email</span>
               <a
                 href={`mailto:${contactInfo.email}`}
-                className="contact-section__email-link text-primary hover:underline"
+                className="contact-section__email-link app-text-link"
               >
                 {contactInfo.email}
               </a>
@@ -271,7 +271,7 @@ export function ContactSection({
               <span className="contact-section__label text-sm text-muted-foreground">Phone</span>
               <a
                 href={`tel:${contactInfo.phone}`}
-                className="contact-section__phone-link text-primary hover:underline"
+                className="contact-section__phone-link app-text-link"
               >
                 {contactInfo.phone}
               </a>
@@ -288,7 +288,7 @@ export function ContactSection({
                 }
                 target="_blank"
                 rel="noopener noreferrer"
-                className="contact-section__website-link text-primary hover:underline"
+                className="contact-section__website-link app-text-link"
               >
                 {contactInfo.website}
               </a>

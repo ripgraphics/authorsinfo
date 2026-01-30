@@ -1309,7 +1309,7 @@ export function ClientBookPage({
                                   <span className="mx-2">
                                     <button
                                       onClick={() => setShowAllAuthors(true)}
-                                      className="text-primary hover:text-primary/80 underline font-semibold transition-colors cursor-pointer"
+                                      className="app-text-link"
                                     >
                                       +{authors.length - 4} More Author{authors.length - 4 !== 1 ? 's' : ''}
                                     </button>
@@ -1562,7 +1562,7 @@ export function ClientBookPage({
                                     ? book.website
                                     : `https://${book.website}`
                                 }
-                                className="hover:underline text-primary"
+                                className="app-text-link"
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >

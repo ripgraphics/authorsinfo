@@ -768,7 +768,7 @@ export function ClientAuthorPage({
                   <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
                   <Link
                     href={`/authors/${params.id}/photos`}
-                    className="text-sm text-primary hover:underline"
+                    className="app-text-link text-sm"
                   >
                     See All
                   </Link>

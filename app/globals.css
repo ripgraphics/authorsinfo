@@ -190,8 +190,24 @@ button[class*="close-button"]:focus {
   outline: none !important;
 }
 
+/* Inline text link - default style (no button look, no underline). Blue (secondary) on hover only. */
+.app-text-link {
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+.app-text-link:hover {
+  color: hsl(var(--secondary));
+}
+button.app-text-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
 /* Global button hover behavior - default to secondary color on hover */
-button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([class*="destructive"]):not([class*="secondary"]):not([data-no-secondary-hover]):hover {
+button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([class*="destructive"]):not([class*="secondary"]):not([data-no-secondary-hover]):not([class*="app-text-link"]):hover {
   background-color: hsl(var(--secondary)) !important;
   transition: background-color 0.2s ease-in-out !important;
 }

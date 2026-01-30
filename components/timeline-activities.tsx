@@ -111,7 +111,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             added a new book{' '}
             <Link
               href={`/books/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.title || data?.book_title || 'Unknown Book'}
             </Link>
@@ -125,7 +125,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             updated the book{' '}
             <Link
               href={`/books/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.title || data?.book_title || 'Unknown Book'}
             </Link>
@@ -138,7 +138,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             added a new author{' '}
             <Link
               href={`/authors/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.name || data?.author_name || 'Unknown Author'}
             </Link>
@@ -157,7 +157,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             updated the author{' '}
             <Link
               href={`/authors/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.name || data?.author_name || 'Unknown Author'}
             </Link>
@@ -170,7 +170,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             added a new publisher{' '}
             <Link
               href={`/publishers/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.name || data?.publisher_name || 'Unknown Publisher'}
             </Link>
@@ -183,7 +183,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             updated the publisher{' '}
             <Link
               href={`/publishers/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.name || data?.publisher_name || 'Unknown Publisher'}
             </Link>
@@ -196,7 +196,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             created a new group{' '}
             <Link
               href={`/groups/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.name || data?.group_name || 'Unknown Group'}
             </Link>
@@ -209,7 +209,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             joined the group{' '}
             <Link
               href={`/groups/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.name || data?.group_name || 'Unknown Group'}
             </Link>
@@ -222,7 +222,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             reviewed{' '}
             <Link
               href={`/books/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.title || data?.book_title || 'Unknown Book'}
             </Link>
@@ -241,7 +241,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             rated{' '}
             <Link
               href={`/books/${activity.entity_id}`}
-              className="text-primary hover:underline font-medium"
+              className="app-text-link"
             >
               {entity_details?.title || data?.book_title || 'Unknown Book'}
             </Link>

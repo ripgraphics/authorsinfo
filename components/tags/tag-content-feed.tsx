@@ -81,7 +81,7 @@ export function TagContentFeed({ taggings, tag }: TagContentFeedProps) {
                     <div className="mt-4 flex gap-2">
                       <Link
                         href={`/${context}s/${content.id}`}
-                        className="text-sm text-primary hover:underline"
+                        className="app-text-link text-sm"
                       >
                         View {context}
                       </Link>

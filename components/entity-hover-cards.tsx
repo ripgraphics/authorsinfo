@@ -132,6 +132,7 @@ export function EntityHoverCard({
   const [isHoverCardOpen, setIsHoverCardOpen] = useState(false)
   const actionsContainerRef = useRef<HTMLDivElement>(null)
   const isCompact = useButtonOverflow(actionsContainerRef, 350)
+  const isOwnUser = type === 'user' && !!user && entity.id === user.id
 
   const handleClose = () => {}
 
@@ -419,8 +420,8 @@ export function EntityHoverCard({
             </div>
           </div>
         </div>
-        {/* Action Buttons - Show for users, authors, and publishers (only when logged in) */}
-        {user && showActions && (type === 'user' || type === 'author' || type === 'publisher') && (
+        {/* Action Buttons - Show for users, authors, and publishers (only when logged in). Hide for own user. */}
+        {user && showActions && !isOwnUser && (type === 'user' || type === 'author' || type === 'publisher') && (
           <div className="px-4 pb-4 border-t border-gray-100">
             <div ref={actionsContainerRef} className="flex gap-2 mt-3">
               {type === 'user' ? (
@@ -437,7 +438,6 @@ export function EntityHoverCard({
                   entityId={entity.id}
                   targetType={type === 'author' ? 'author' : 'publisher'}
                   entityName={entity.name}
-                  variant="outline"
                   className="flex-1"
                   showText={!isCompact}
                 />

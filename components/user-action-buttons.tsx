@@ -403,7 +403,6 @@ export function UserActionButtons({
           entityId={userId}
           targetType="user"
           entityName={userName}
-          variant={variant}
           size={size}
           showIcon={true}
           showText={!compact}

@@ -108,7 +108,6 @@ export function GroupActions({
         entityId={groupId}
         targetType="group"
         entityName={groupName}
-        variant="outline"
         showText={!isCompact}
       />
     </div>

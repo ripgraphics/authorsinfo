@@ -1099,7 +1099,6 @@ export function EntityHeader({
                 entityId={entityId}
                 targetType={targetType}
                 entityName={name}
-                variant={isFollowing ? 'outline' : 'default'}
                 className="entity-header__follow-button flex items-center"
                 showText={!isCompact}
               />

@@ -127,6 +127,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
                     type="user"
                     id={user?.id || 'current-user'}
                     name={currentUserName}
+                    disableHoverCard
                   />
                 </Button>
               </DropdownMenuTrigger>

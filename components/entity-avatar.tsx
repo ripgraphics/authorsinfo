@@ -15,6 +15,7 @@ interface EntityAvatarProps {
   src?: string | null
   size?: 'xs' | 'sm' | 'md' | 'lg'
   className?: string
+  disableHoverCard?: boolean
 }
 
 export default function EntityAvatar({
@@ -24,6 +25,7 @@ export default function EntityAvatar({
   src,
   size = 'sm',
   className,
+  disableHoverCard = false,
 }: EntityAvatarProps) {
   const { user: currentUser } = useAuth()
   const [avatarUrl, setAvatarUrl] = useState<string | null>(src || null)
@@ -203,6 +205,10 @@ export default function EntityAvatar({
   const avatar = (
     <Avatar src={avatarUrl || undefined} alt={name} name={name} size={size} className={className} />
   )
+
+  if (disableHoverCard) {
+    return avatar
+  }
 
   if (type === 'user') {
     return (

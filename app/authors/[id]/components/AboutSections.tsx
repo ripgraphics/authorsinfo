@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar, Globe, MapPin, Edit2, Settings, User, Twitter, Facebook, Instagram, BookOpen } from 'lucide-react'
 import { BookCard } from '@/components/book-card'
+import { getBookPages } from '@/utils/bookUtils'
 import { useState, useRef, useEffect } from 'react'
 import { EditSectionModal } from '@/components/entity/EditSectionModal'
 import Link from 'next/link'
@@ -516,7 +517,7 @@ export function BooksSection({
                   id={book.id.toString()}
                   title={book.title}
                   coverImageUrl={book.cover_image_url}
-                  pages={(book as { pages?: number; page_count?: number }).pages ?? (book as { pages?: number; page_count?: number }).page_count ?? null}
+                  pages={getBookPages(book)}
                 />
               ))}
             </div>

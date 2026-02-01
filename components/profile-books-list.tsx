@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ReusableSearch } from '@/components/ui/reusable-search'
 import { BookCard } from '@/components/book-card'
+import { getBookPages } from '@/utils/bookUtils'
 
 export type BookStatusFilter = 'all' | 'read' | 'reading' | 'want'
 
@@ -161,7 +162,7 @@ export function ProfileBooksList({
               id={book.id}
               title={book.title}
               coverImageUrl={book.coverImageUrl || undefined}
-              pages={(book as { pages?: number; page_count?: number }).pages ?? (book as { pages?: number; page_count?: number }).page_count ?? null}
+              pages={getBookPages(book)}
             />
           ))
         ) : (

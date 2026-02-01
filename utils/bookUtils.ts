@@ -3,6 +3,19 @@
  */
 
 /**
+ * Extracts page count from a book-like object (supports both pages and page_count).
+ * Use when passing to BookCard or AddToShelfButton from varying API responses.
+ * Accepts unknown to support BookData and other types that may have pages at runtime.
+ */
+export function getBookPages(book: unknown): number | null {
+  if (!book || typeof book !== 'object') return null
+  const b = book as Record<string, unknown>
+  const pages = b.pages ?? b.page_count
+  if (typeof pages === 'number' && !Number.isNaN(pages)) return pages
+  return null
+}
+
+/**
  * Formats book cover alt/title text
  * @param title - The book title
  * @param coverType - Type of cover: 'front' (default) or 'back'

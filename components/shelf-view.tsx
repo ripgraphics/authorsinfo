@@ -105,6 +105,7 @@ export function ShelfView({ shelfId, editable = true }: ShelfViewProps) {
                     id={book.id}
                     title={book.title}
                     coverImageUrl={book.cover_url}
+                    pages={book.pages ?? book.page_count ?? null}
                     readingProgress={readingProgress}
                   />
                   {editable && (

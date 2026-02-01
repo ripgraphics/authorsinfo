@@ -933,7 +933,7 @@ export function ClientBookPage({
       if (!authors || authors.length === 0) return
       const { data, error } = await supabase
         .from('books')
-        .select('id, title, cover_image:images!cover_image_id(id, url)')
+        .select('id, title, pages, cover_image:images!cover_image_id(id, url)')
         .eq('author_id', authors[0].id)
         .neq('id', book.id)
         .limit(4)
@@ -1621,6 +1621,7 @@ export function ClientBookPage({
                             id={b.id}
                             title={b.title}
                             coverImageUrl={b.cover_image?.url || '/placeholder.svg'}
+                            pages={b.pages ?? null}
                           />
                         ))}
                       </div>

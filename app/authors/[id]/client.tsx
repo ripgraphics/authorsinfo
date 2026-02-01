@@ -846,6 +846,7 @@ export function ClientAuthorPage({
                 id={book.id}
                 title={book.title}
                 coverImageUrl={book.cover_image_url}
+                pages={book.pages ?? book.page_count ?? null}
               />
             ))}
           </div>

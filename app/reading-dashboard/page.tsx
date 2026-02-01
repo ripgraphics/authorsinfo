@@ -62,6 +62,7 @@ export default async function ReadingDashboardPage() {
                         id={book.id}
                         title={book.title}
                         coverImageUrl={book.cover_image_url || '/placeholder.svg'}
+                        pages={book.pages ?? book.page_count ?? null}
                       />
                     ))}
                   </div>

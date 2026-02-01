@@ -430,6 +430,7 @@ export function BooksSection({
                   id={book.id.toString()}
                   title={book.title}
                   coverImageUrl={book.cover_image_url}
+                  pages={(book as { pages?: number; page_count?: number }).pages ?? (book as { pages?: number; page_count?: number }).page_count ?? null}
                 />
               ))}
             </div>

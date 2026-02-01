@@ -81,6 +81,7 @@ export function ClientBooksList({
               id={book.id}
               title={book.title || ''}
               coverImageUrl={book.cover_image_url}
+              pages={book.pages ?? book.page_count ?? null}
             />
           ))
         ) : (

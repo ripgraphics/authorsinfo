@@ -299,6 +299,7 @@ export function ClientPublisherPage({
                       id={book.id.toString()}
                       title={book.title}
                       coverImageUrl={book.cover_image_url}
+                      pages={book.pages ?? book.page_count ?? null}
                     />
                   ))}
                 </div>

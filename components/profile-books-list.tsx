@@ -161,6 +161,7 @@ export function ProfileBooksList({
               id={book.id}
               title={book.title}
               coverImageUrl={book.coverImageUrl || undefined}
+              pages={(book as { pages?: number; page_count?: number }).pages ?? (book as { pages?: number; page_count?: number }).page_count ?? null}
             />
           ))
         ) : (

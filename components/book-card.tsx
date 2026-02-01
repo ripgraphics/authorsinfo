@@ -14,6 +14,8 @@ interface BookCardProps {
   title: string
   coverImageUrl?: string
   className?: string
+  /** Book page count for AddToShelfButton modal (pages or page_count) */
+  pages?: number | null
   author?: {
     id: string
     name: string
@@ -36,6 +38,7 @@ export function BookCard({
   title,
   coverImageUrl,
   className = '',
+  pages,
   author,
   authorBookCount = 0,
   readingProgress,
@@ -120,10 +123,12 @@ export function BookCard({
       
       {/* Add to Shelf Button - Overlay */}
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        <AddToShelfButton 
-          bookId={id} 
-          size="icon" 
-          variant="secondary" 
+        <AddToShelfButton
+          bookId={id}
+          bookTitle={title}
+          bookPages={pages ?? readingProgress?.total_pages ?? null}
+          size="icon"
+          variant="secondary"
           className="h-8 w-8 rounded-full shadow-md"
         />
       </div>

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Loader2, BookmarkPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ReusableModal } from '@/components/ui/reusable-modal'
 import { useShelfStore } from '@/lib/stores/shelf-store'
 import { UUID } from 'crypto'
@@ -66,6 +68,9 @@ export function AddToShelfButton({
   const [selectedShelfId, setSelectedShelfId] = useState<string | null>(null)
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false)
   const [isShelfCreateDialogOpen, setIsShelfCreateDialogOpen] = useState(false)
+  const [showPageInputForCurrentlyReading, setShowPageInputForCurrentlyReading] = useState(false)
+  const [currentlyReadingPageInput, setCurrentlyReadingPageInput] = useState('')
+  const [pageInputError, setPageInputError] = useState('')
 
   const displayStatus = currentReadingStatusProp ?? currentReadingStatus
   const showStatusText = showCurrentStatus && size !== 'icon'
@@ -118,9 +123,9 @@ export function AddToShelfButton({
       return
     }
     if (status === 'currently_reading') {
-      setSelectedShelfId(null)
-      setDialogOpen(false)
-      setIsStatusModalOpen(true)
+      setCurrentlyReadingPageInput(initialCurrentPage != null ? String(initialCurrentPage) : '')
+      setPageInputError('')
+      setShowPageInputForCurrentlyReading(true)
       return
     }
     setIsUpdatingStatus(true)
@@ -129,6 +134,42 @@ export function AddToShelfButton({
       setDialogOpen(false)
       const displayName = getStatusDisplayName(status)
       toast.success(`"${bookTitle || 'Book'}" added to ${displayName} shelf`)
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : `Failed to update reading status for "${bookTitle || 'Book'}"`
+      )
+    } finally {
+      setIsUpdatingStatus(false)
+    }
+  }
+
+  const handleInlinePageInputSave = async () => {
+    const pageNum = parseInt(currentlyReadingPageInput.replace(/[^0-9]/g, ''), 10)
+    if (!currentlyReadingPageInput.trim() || isNaN(pageNum)) {
+      setPageInputError('Please enter a valid page number')
+      return
+    }
+    const totalPages = bookPages ?? null
+    if (totalPages !== null) {
+      if (pageNum < 0) {
+        setPageInputError('Page number cannot be negative')
+        return
+      }
+      if (pageNum > totalPages) {
+        setPageInputError(`Page number cannot exceed ${totalPages} pages`)
+        return
+      }
+    }
+    setPageInputError('')
+    setIsUpdatingStatus(true)
+    try {
+      await updateReadingStatusApi('in_progress', pageNum)
+      setShowPageInputForCurrentlyReading(false)
+      setDialogOpen(false)
+      toast.success(
+        `"${bookTitle || 'Book'}" added to Currently Reading (Page ${pageNum})`
+      )
+      onStatusChange?.()
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : `Failed to update reading status for "${bookTitle || 'Book'}"`
@@ -243,9 +284,124 @@ export function AddToShelfButton({
 
       <ReusableModal
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        title={displayStatus ? 'Update Reading Status' : 'Add Book to Shelf'}
+        onOpenChange={(open) => {
+          setDialogOpen(open)
+          if (!open) {
+            setShowPageInputForCurrentlyReading(false)
+            setCurrentlyReadingPageInput('')
+            setPageInputError('')
+          }
+        }}
+        title={
+          showPageInputForCurrentlyReading
+            ? 'Current Page'
+            : displayStatus
+              ? 'Update Reading Status'
+              : 'Add Book to Shelf'
+        }
+        description={
+          showPageInputForCurrentlyReading
+            ? `What page are you on for "${bookTitle || 'this book'}"?`
+            : undefined
+        }
+        footer={
+          showPageInputForCurrentlyReading ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowPageInputForCurrentlyReading(false)
+                  setCurrentlyReadingPageInput('')
+                  setPageInputError('')
+                }}
+                disabled={isUpdatingStatus}
+              >
+                Back
+              </Button>
+              <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isUpdatingStatus}>
+                Cancel
+              </Button>
+              <Button onClick={handleInlinePageInputSave} disabled={isUpdatingStatus || !currentlyReadingPageInput.trim()}>
+                {isUpdatingStatus ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save'
+                )}
+              </Button>
+            </>
+          ) : undefined
+        }
       >
+        {showPageInputForCurrentlyReading ? (
+          <div className="space-y-4">
+            {pageInputError && (
+              <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md">
+                {pageInputError}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="current-page-inline">Current Page</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="current-page-inline"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={currentlyReadingPageInput}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '')
+                    setCurrentlyReadingPageInput(value)
+                    setPageInputError('')
+                  }}
+                  disabled={isUpdatingStatus}
+                  className="text-lg"
+                  autoFocus
+                />
+                {bookPages != null && (
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">
+                    of {bookPages} pages
+                  </span>
+                )}
+              </div>
+              {(() => {
+                const totalPages = bookPages ?? null
+                const pageNum = parseInt(currentlyReadingPageInput, 10)
+                const percentage =
+                  totalPages !== null &&
+                  currentlyReadingPageInput &&
+                  !isNaN(pageNum)
+                    ? Math.round((pageNum / totalPages) * 100)
+                    : null
+                return (
+                  <>
+                    {percentage !== null && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Progress</span>
+                          <span>{percentage}%</span>
+                        </div>
+                        <div className="relative w-full overflow-hidden rounded-full bg-secondary h-2">
+                          <div
+                            className="h-full bg-primary transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {totalPages === null && (
+                      <p className="text-xs text-muted-foreground">
+                        Page count not available for this book
+                      </p>
+                    )}
+                  </>
+                )
+              })()}
+            </div>
+          </div>
+        ) : (
         <div className="space-y-2">
             <button
               type="button"
@@ -373,6 +529,7 @@ export function AddToShelfButton({
             Manage shelves...
           </button>
         </div>
+        )}
       </ReusableModal>
 
       <ShelfCreateDialog

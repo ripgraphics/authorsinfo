@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { ClientProfilePage } from './client'
-import { getFollowersCount, getFollowers } from '@/lib/follows-server'
+import { getFollowersCount, getFollowers, getMutualFriendsCount } from '@/lib/follows-server'
 import { getFriends } from '@/lib/friends-server'
 import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 
@@ -409,9 +409,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const userStats = {
       booksRead: 0,
       friendsCount: 0,
-      followersCount: 0, // Added missing followersCount
-      location: user.location, // Now available from the users table
-      website: user.website, // Now available from the users table
+      followersCount: 0,
+      mutualFriendsCount: 0,
+      location: user.location,
+      website: user.website,
       joinedDate: user.created_at,
     }
 
@@ -469,9 +470,17 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         console.log('👥 Followers Count:', followersCount, 'Followers List:', followers.length)
       } catch (followersError) {
         console.error('Error fetching followers:', followersError)
-        // Continue with default value of 0
         userStats.followersCount = 0
         followers = []
+      }
+
+      // Get mutual friends count (friends of viewer who follow this user) - only when viewer is logged in
+      if (viewerId) {
+        try {
+          userStats.mutualFriendsCount = await getMutualFriendsCount(user.id, 'user', viewerId)
+        } catch {
+          userStats.mutualFriendsCount = 0
+        }
       }
 
       // Get friends list (users who are friends with this user)

@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { getFollowersCount, getMutualFriendsCount } from '@/lib/follows-server'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: userId } = await params
+    const { searchParams } = new URL(request.url)
+    const currentUserId = searchParams.get('currentUserId') || null
     const supabase = await createRouteHandlerClientAsync()
 
     // Use Promise.all for parallel queries to speed up the response
-    const [userData, booksRead, friends, reverseFriends, profileData] = await Promise.all([
+    const [userData, booksRead, friends, reverseFriends, profileData, followersCountResult, mutualFriendsCountResult] = await Promise.all([
       // Get user data from the users table (this is the main table)
       (supabase.from('users') as any)
         .select('id, name, email, created_at, permalink, location, website')
@@ -34,6 +37,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
       // Get profile bio if available
       (supabase.from('profiles') as any).select('bio').eq('user_id', userId).single(),
+
+      // Get followers count from follows table
+      getFollowersCount(userId, 'user').catch(() => 0),
+
+      // Get mutual friends (friends of current user who follow this user) - only when logged in
+      currentUserId
+        ? getMutualFriendsCount(userId, 'user', currentUserId).catch(() => 0)
+        : Promise.resolve(0),
     ])
 
     // Check for user data error first
@@ -67,6 +78,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       stats: {
         booksRead: booksRead?.data?.length || 0,
         friendsCount: totalFriends,
+        followersCount: typeof followersCountResult === 'number' ? followersCountResult : 0,
+        mutualFriendsCount: typeof mutualFriendsCountResult === 'number' ? mutualFriendsCountResult : 0,
         location: userData.data?.location || null,
         website: userData.data?.website || null,
         joinedDate: userData.data?.created_at,

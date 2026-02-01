@@ -191,6 +191,7 @@ const EnterpriseTimelineActivities = React.memo(
     enableMonetization = true,
     enableReadingProgress = true,
     enablePrivacyControls = true,
+    profileOwnerUserStats,
   }: {
     entityId: string
     entityType?: 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
@@ -214,6 +215,14 @@ const EnterpriseTimelineActivities = React.memo(
     enableMonetization?: boolean
     enableReadingProgress?: boolean
     enablePrivacyControls?: boolean
+    profileOwnerUserStats?: {
+      booksRead: number
+      friendsCount: number
+      followersCount: number
+      location: string | null
+      website: string | null
+      joinedDate: string
+    }
   }) => {
     const { user } = useAuth()
     const { toast } = useToast()
@@ -708,6 +717,8 @@ const EnterpriseTimelineActivities = React.memo(
               showEngagement={true}
               className=""
               onPostDeleted={handlePostDeleted}
+              profileOwnerId={entityType === 'user' ? entityId : undefined}
+              profileOwnerUserStats={profileOwnerUserStats ?? undefined}
             />
             <div className="mt-3 p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -744,7 +755,7 @@ const EnterpriseTimelineActivities = React.memo(
           </div>
         )
       },
-      [transformActivityToPost]
+      [transformActivityToPost, entityType, entityId, profileOwnerUserStats]
     )
 
     // Memoized loading skeleton

@@ -56,6 +56,7 @@ import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { BookCover } from '@/components/book-cover'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
+import type { UserStats } from '@/hooks/useUserStats'
 import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
 import { EnterpriseEngagementActions } from '@/components/enterprise/enterprise-engagement-actions'
@@ -133,6 +134,9 @@ export interface EntityFeedCardProps {
   className?: string
   onPostUpdated?: (post: FeedPost) => void
   onPostDeleted?: (postId: string) => void
+  /** When viewing a user profile, the profile owner's stats for consistent hover card display */
+  profileOwnerId?: string
+  profileOwnerUserStats?: UserStats
 }
 
 // Legacy PostContent interface for backward compatibility
@@ -169,6 +173,8 @@ export default function EntityFeedCard({
   className,
   onPostUpdated,
   onPostDeleted,
+  profileOwnerId,
+  profileOwnerUserStats,
 }: EntityFeedCardProps) {
   // Safety check for post object
   if (!post) {
@@ -1837,6 +1843,9 @@ export default function EntityFeedCard({
               name: postOwnerName,
               avatar_url: postOwnerAvatar,
             }}
+            userStats={
+              profileOwnerId && post.user_id === profileOwnerId ? profileOwnerUserStats : undefined
+            }
           >
             <span
               className="hover:underline cursor-pointer text-muted-foreground"
@@ -2534,6 +2543,11 @@ export default function EntityFeedCard({
                         name: postOwnerName,
                         avatar_url: postOwnerAvatar,
                       }}
+                      userStats={
+                        profileOwnerId && post.user_id === profileOwnerId
+                          ? profileOwnerUserStats
+                          : undefined
+                      }
                     >
                       <span
                         className="hover:underline cursor-pointer text-muted-foreground"

@@ -61,6 +61,7 @@ interface ClientProfilePageProps {
     booksRead: number
     friendsCount: number
     followersCount: number
+    mutualFriendsCount?: number
     location: string | null
     website: string | null
     joinedDate: string
@@ -315,6 +316,7 @@ export function ClientProfilePage({
                     enableAudit={false}
                     enableReadingProgress={true}
                     enablePrivacyControls={true}
+                    profileOwnerUserStats={userStats}
                   />
                 ) : (
                   <div className="text-center py-8">

@@ -25,6 +25,7 @@ import { AddFriendButton } from '@/components/add-friend-button'
 import { FollowersDisplay } from '@/components/followers-display'
 import { MutualFriendsDisplay } from '@/components/mutual-friends-display'
 import { useAuth } from '@/hooks/useAuth'
+import { useUserStats } from '@/hooks/useUserStats'
 import { useButtonOverflow } from '@/hooks/use-button-overflow'
 import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
 
@@ -113,6 +114,7 @@ interface EntityHoverCardProps {
     booksRead: number
     friendsCount: number
     followersCount: number
+    mutualFriendsCount?: number
     location: string | null
     website: string | null
     joinedDate: string
@@ -134,6 +136,13 @@ export function EntityHoverCard({
   const isCompact = useButtonOverflow(actionsContainerRef, 350)
   const isOwnUser = type === 'user' && !!user && entity.id === user.id
 
+  // Fetch user stats when not provided - ensures same data everywhere
+  const needsFetch = type === 'user' && !userStats && !!entity.id
+  const { userStats: fetchedUserStats } = useUserStats(needsFetch ? entity.id : undefined, {
+    enabled: needsFetch && isHoverCardOpen,
+    currentUserId: user?.id ?? null,
+  })
+
   const handleClose = () => {}
 
   const handleClick = () => {
@@ -151,33 +160,52 @@ export function EntityHoverCard({
     setIsHoverCardOpen(open)
   }
 
+  // Single source of truth: passed userStats > fetched userStats > entity fallback
+  const displayStats =
+    type === 'user'
+      ? userStats ||
+        fetchedUserStats || {
+          booksRead: (entity as UserEntity).books_read_count || 0,
+          friendsCount: (entity as UserEntity).friend_count || 0,
+          followersCount: (entity as UserEntity).followers_count || 0,
+          mutualFriendsCount: (entity as UserEntity).mutual_friends,
+          location: (entity as UserEntity).location || null,
+          website: (entity as UserEntity).website || null,
+          joinedDate: (entity as UserEntity).created_at || null,
+        }
+      : null
+
+  const formatJoinDate = (dateString: string | null) => {
+    if (!dateString) return null
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  }
+
+  const joinDate = displayStats ? formatJoinDate(displayStats.joinedDate) : null
+
   const getEntityInfo = () => {
     switch (type) {
-      case 'user':
+      case 'user': {
         const userEntity = entity as UserEntity
-        const joinDate = userEntity.created_at
-          ? new Date(userEntity.created_at).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })
-          : undefined
+        // Use displayStats for countText/subtitle so every user hover card shows identical content
+        const countText = displayStats?.friendsCount
+          ? `${displayStats.friendsCount} friends`
+          : joinDate
+            ? `Joined ${joinDate}`
+            : ''
+        const subtitle = joinDate ? `Joined ${joinDate}` : undefined
 
         return {
           icon: <Users className="mr-1 h-3 w-3" />,
-          countText: userEntity.friend_count
-            ? `${userEntity.friend_count} friends`
-            : joinDate
-              ? `Joined ${joinDate}`
-              : '',
+          countText,
           href: userEntity.permalink ? `/profile/${userEntity.permalink}` : `/profile/${entity.id}`,
           imageUrl: userEntity.avatar_url || `/api/avatar/${entity.id}`,
-          subtitle: joinDate ? `Joined ${joinDate}` : undefined,
-          // Additional user stats - only show if we have real data
-          friendsCount: userEntity.friend_count || 0,
-          followersCount: userEntity.followers_count || 0,
-          booksReadCount: userEntity.books_read_count || 0,
+          subtitle,
         } as const
+      }
       case 'author':
         const authorEntity = entity as AuthorEntity
         // Extract image URL - handle null, undefined, and empty strings
@@ -275,42 +303,6 @@ export function EntityHoverCard({
   // Ensure imageUrl is a valid non-empty string, otherwise use placeholder
   const imageUrl = (info.imageUrl && info.imageUrl.trim() !== '') ? info.imageUrl : '/placeholder.svg'
 
-  // Use userStats prop if available, otherwise use entity data
-  const displayStats = userStats || {
-    booksRead: (entity as UserEntity).books_read_count || 0,
-    friendsCount: (entity as UserEntity).friend_count || 0,
-    followersCount: (entity as UserEntity).followers_count || 0,
-    location: (entity as UserEntity).location || null,
-    website: (entity as UserEntity).website || null,
-    joinedDate: (entity as UserEntity).created_at || null,
-  }
-
-  // Temporary debug logging to see what data we're getting
-  console.log('🔍 Hover Card Debug:', {
-    entityId: entity.id,
-    entityName: entity.name,
-    userStats: userStats,
-    displayStats: displayStats,
-    hasUserStats: !!userStats,
-    entityData: {
-      books_read_count: (entity as UserEntity).books_read_count,
-      friend_count: (entity as UserEntity).friend_count,
-      followers_count: (entity as UserEntity).followers_count,
-    },
-  })
-
-  // Format join date
-  const formatJoinDate = (dateString: string | null) => {
-    if (!dateString) return null
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
-
-  const joinDate = formatJoinDate(displayStats.joinedDate)
-
   return (
     <HoverCard open={isHoverCardOpen || isDropdownOpen} onOpenChange={handleHoverCardOpenChange}>
       <HoverCardTrigger asChild>
@@ -379,37 +371,30 @@ export function EntityHoverCard({
               <div className="flex items-center text-sm text-gray-500">
                 {info.icon}
                 <span>{info.countText}</span>
+                {type === 'user' &&
+                  displayStats?.mutualFriendsCount != null &&
+                  displayStats.mutualFriendsCount > 0 && (
+                    <>
+                      <span className="mx-1">•</span>
+                      <span>
+                        {displayStats.mutualFriendsCount === 1
+                          ? '1 mutual friend'
+                          : `${displayStats.mutualFriendsCount} mutual friends`}
+                      </span>
+                    </>
+                  )}
               </div>
 
-              {/* User stats - only the 4 items you specified in correct order */}
-              {type === 'user' && (
+              {/* User stats - Followers and Books only (Joined and Friends shown in top summary) */}
+              {type === 'user' && displayStats && (
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <div className="space-y-1">
-                    {/* 1. Join Date (first, replacing "New user") */}
-                    {joinDate && (
-                      <div className="text-sm text-gray-500">
-                        <span>Joined: </span>
-                        <span className="font-semibold text-gray-900">{joinDate}</span>
-                      </div>
-                    )}
-
-                    {/* 2. Total Friends - show even if 0 */}
-                    <div className="text-sm text-gray-500">
-                      <span>Friends: </span>
-                      <span className="font-semibold text-gray-900">
-                        {displayStats.friendsCount}
-                      </span>
-                    </div>
-
-                    {/* 3. Followers - show even if 0 */}
                     <div className="text-sm text-gray-500">
                       <span>Followers: </span>
                       <span className="font-semibold text-gray-900">
                         {displayStats.followersCount}
                       </span>
                     </div>
-
-                    {/* 4. Books Read - show even if 0 */}
                     <div className="text-sm text-gray-500">
                       <span>Books: </span>
                       <span className="font-semibold text-gray-900">{displayStats.booksRead}</span>
@@ -505,6 +490,7 @@ interface UserHoverCardProps {
     booksRead: number
     friendsCount: number
     followersCount: number
+    mutualFriendsCount?: number
     location: string | null
     website: string | null
     joinedDate: string

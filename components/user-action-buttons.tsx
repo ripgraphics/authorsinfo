@@ -173,7 +173,7 @@ export function UserActionButtons({
 
     return (
       <div className={containerClass}>
-        <Button variant="default" size={size} onClick={handleSignIn}>
+        <Button variant="default" size="default" onClick={handleSignIn}>
           Sign in to interact
         </Button>
       </div>
@@ -412,7 +412,7 @@ export function UserActionButtons({
       {/* More options dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant={variant} size={size} className="ml-auto">
+          <Button variant={variant} size={size} className="ml-auto h-9 w-9 p-0 shrink-0">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

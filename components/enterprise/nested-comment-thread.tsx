@@ -154,7 +154,7 @@ export function NestedCommentThread({
                 )}
               </div>
 
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </div>
@@ -175,7 +175,7 @@ export function NestedCommentThread({
                 variant="ghost"
                 size="sm"
                 onClick={handleLikeClick}
-                className={cn('h-8 px-2 text-xs', isLiked && 'text-red-500 hover:text-red-600')}
+                className={cn('px-2 text-xs', isLiked && 'text-red-500 hover:text-red-600')}
               >
                 <Heart className={cn('h-3 w-3 mr-1', isLiked && 'fill-current')} />
                 {isLiked ? 'Liked' : 'Like'}
@@ -185,7 +185,7 @@ export function NestedCommentThread({
                 variant="ghost"
                 size="sm"
                 onClick={handleReplyClick}
-                className="h-8 px-2 text-xs"
+                className="px-2 text-xs"
               >
                 <Reply className="h-3 w-3 mr-1" />
                 Reply
@@ -196,7 +196,7 @@ export function NestedCommentThread({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowReplies(!showReplies)}
-                  className="h-8 px-2 text-xs"
+                  className="px-2 text-xs"
                 >
                   <MessageCircle className="h-3 w-3 mr-1" />
                   {showReplies ? 'Hide' : 'Show'} {comment.reply_count} replies

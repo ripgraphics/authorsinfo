@@ -50,7 +50,7 @@ export function AddToShelfButton({
   bookPages,
   className = '',
   variant = 'outline',
-  size = 'sm',
+  size = 'default',
   currentReadingStatus: currentReadingStatusProp,
   showCurrentStatus = true,
   onStatusChange,

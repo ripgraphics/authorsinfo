@@ -434,6 +434,7 @@ export function EntityHoverCard({
                   targetType={type === 'author' ? 'author' : 'publisher'}
                   entityName={entity.name}
                   className="flex-1"
+                  size="sm"
                   showText={!isCompact}
                 />
               )}
@@ -452,7 +453,7 @@ export function EntityHoverCard({
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="px-3"
+                    className="h-9 w-9 p-0"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                   >

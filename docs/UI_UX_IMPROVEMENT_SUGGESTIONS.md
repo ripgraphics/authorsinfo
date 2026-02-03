@@ -105,6 +105,26 @@ A review of the Authors Info codebase with actionable suggestions to improve con
 3. **Touch targets**  
    Ensure icon buttons and list rows meet ~44×44px (or 48×48px) on touch devices, especially in header, cards, and shelf/tag chips.
 
+4. **Button consistency (action rows)**  
+   Within a single action row (e.g. entity header, hover card actions, comment actions), all buttons should share the same height. Standard: use `size="sm"` (h-9 / 36px) for primary and secondary actions; icon-only buttons in the same row use `h-9 w-9 p-0` so they align. Do not mix `size="default"` (h-10) or `size="icon"` (h-10 w-10) in the same row. See `components/ui/button.tsx` for canonical sizes.
+
+5. **Application default button height**  
+   Primary and standalone CTAs (e.g. "Add to Shelf", "Submit", "Sign in", "Post Comment" when not in a dense row) use the **default** size: **h-10 (40px)**. Do not pass `size="sm"` for these unless they sit in a compact action row. Reference: `components/ui/button.tsx` — `defaultVariants.size = 'default'` and size variant `default: 'h-10 px-4 py-2'`. For mobile, UX guideline: minimum 44×44px touch targets; icon-only and critical mobile CTAs may need `min-h-[44px] min-w-[44px]` where applicable.
+
+6. **Primary CTA button size — audit checklist**  
+   Periodically verify that primary/standalone CTAs use `size="default"` or omit `size` (so they render h-10). When auditing, check:
+   - [ ] **Sign in** — Login page submit button; "Sign in to interact" when unauthenticated (e.g. in entity header / hover card).
+   - [ ] **Submit / Save** — Form submit buttons in modals and standalone forms (e.g. Create shelf, Edit section, Log Session).
+   - [ ] **Post / Post Comment** — Create Post modal; comment submit when it is the main CTA in the block (dense inline rows may keep `size="sm"`).
+   - [ ] **Add to Shelf** — Book page sidebar and any other standalone use (card overlay correctly uses `size="icon"`).
+   **Last audit (short run):**
+   - **Add to Shelf** (book page): ✓ Uses `size="default"`; `AddToShelfButton` default is now `default`.
+   - **Sign In** (login page submit): ✓ No `size` → default (h-10).
+   - **Sign in to interact** (`components/user-action-buttons.tsx`): ✓ Unauthenticated CTA now uses `size="default"` (h-10) in-component so it always matches the application default.
+   - **Post Comment** (comments-modal): In a row with icon buttons (dense); `size="sm"` acceptable; optional to use default for prominence.
+   - **Post** (entity-comments inline): Dense row; `size="sm"` OK.
+   - **Create Post** modal: Uses `size="lg"` by design for primary CTA.
+
 ---
 
 ## 5. Loading & empty states

@@ -1100,6 +1100,7 @@ export function EntityHeader({
                 targetType={targetType}
                 entityName={name}
                 className="entity-header__follow-button flex items-center"
+                size="sm"
                 showText={!isCompact}
               />
             )}
@@ -1121,7 +1122,7 @@ export function EntityHeader({
         {/* More options dropdown - always visible */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="entity-header__more-button">
+            <Button variant="outline" size="sm" className="entity-header__more-button h-9 w-9 p-0">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

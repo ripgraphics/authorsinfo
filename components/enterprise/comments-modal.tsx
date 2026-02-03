@@ -418,17 +418,18 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                   />
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
                         <Smile className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
                         <ImageIcon className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
                         <Link className="h-4 w-4" />
                       </Button>
                     </div>
                     <Button
+                      size="sm"
                       onClick={handleCommentSubmit}
                       disabled={!newComment.trim() || isSubmitting}
                       className="px-4"

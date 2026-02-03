@@ -49,8 +49,9 @@ export function useButtonOverflow(
     }
 
     const measureFullButtonWidth = (label: string, hasIcon: boolean = true, variant: string = 'outline', size: string = 'sm', referenceButton?: HTMLElement): number => {
-      const measurementDiv = measurementRef.current!
-      
+      const measurementDiv = measurementRef.current
+      if (!measurementDiv) return 0
+
       // Create a temporary button element with full content matching actual button styles
       const tempButton = document.createElement('button')
       // Match the actual button styles used in ResponsiveActionButton and Button component
@@ -95,6 +96,10 @@ export function useButtonOverflow(
     }
 
     const checkOverflow = () => {
+      if (!measurementRef.current) {
+        setIsCompact(false)
+        return
+      }
       let shouldBeCompact = false
 
       if (isGrid) {
@@ -256,9 +261,10 @@ export function useButtonOverflow(
     }
 
     // Measurement function with proper timing
+    let rafId: number | null = null
     const performMeasurement = () => {
-      // Use requestAnimationFrame to ensure DOM is laid out
-      requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(() => {
+        rafId = null
         checkOverflow()
       })
     }
@@ -336,6 +342,9 @@ export function useButtonOverflow(
       mutationObserver.disconnect()
       clearTimeout(timeout1)
       clearTimeout(timeout2)
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId)
+      }
       // Clean up measurement element
       if (measurementRef.current) {
         const parent = measurementRef.current.parentNode

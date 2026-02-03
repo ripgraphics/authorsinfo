@@ -1,0 +1,32 @@
+---
+description: Use QMD MCP automatically for project docs and Cursor plans—no need for the user to ask. Prefer QMD search when answering from documentation or plans.
+alwaysApply: true
+globs: ["*"]
+---
+
+# QMD MCP — Use Automatically (No User Prompt Required)
+
+This project has **QMD (Query Markdown Documents)** MCP configured. The AI must use it automatically when relevant; the user should not have to say "use QMD" or "search with QMD".
+
+## When to Use QMD MCP
+
+Use the **qmd** MCP server tools (e.g. search over indexed collections) whenever you need to:
+
+- **Search or cite project documentation** — e.g. `docs/`, architecture, API docs, runbooks.
+- **Search or cite Cursor plans** — e.g. `.cursor/plans/`, implementation or migration plans.
+- **Answer questions that depend on project docs or plans** — prefer querying QMD over guessing or skipping; use QMD to retrieve the relevant snippets or files.
+
+Use QMD **without being asked**. If the user’s question is about how something works, what was planned, or what the docs say, call QMD tools first when the answer should come from `docs/` or `.cursor/plans/`.
+
+## Behavior
+
+1. **Automatic use** — When a task would benefit from project documentation or Cursor plans, invoke QMD MCP tools (e.g. search) as part of your normal flow. Do not wait for the user to request QMD.
+2. **Prefer QMD for docs/plans** — For content that lives in indexed collections (e.g. `qmd://docs`, `qmd://plans`), use QMD rather than only grepping or guessing.
+3. **No extra prompt needed** — The user does not need to mention "QMD" or "search docs"; you should use QMD when it is the right source for the answer.
+
+## Indexed Collections (after setup)
+
+- **qmd://docs** — Project documentation (e.g. `docs/`).
+- **qmd://plans** — Cursor plans (e.g. `.cursor/plans/`).
+
+To refresh the index, the project can run: `./scripts/qmd-setup-collections.ps1` (Windows) or the equivalent QMD collection/index commands.

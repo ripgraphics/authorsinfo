@@ -303,6 +303,16 @@ export function EntityHoverCard({
   // Ensure imageUrl is a valid non-empty string, otherwise use placeholder
   const imageUrl = (info.imageUrl && info.imageUrl.trim() !== '') ? info.imageUrl : '/placeholder.svg'
 
+  console.log('EntityHoverCard Debug:', {
+    entityId: entity.id,
+    entityName: entity.name,
+    entityType: type,
+    infoImageUrl: info.imageUrl,
+    finalImageUrl: imageUrl,
+    isHoverCardOpen: isHoverCardOpen,
+    isDropdownOpen: isDropdownOpen,
+  })
+
   return (
     <HoverCard open={isHoverCardOpen || isDropdownOpen} onOpenChange={handleHoverCardOpenChange}>
       <HoverCardTrigger asChild>

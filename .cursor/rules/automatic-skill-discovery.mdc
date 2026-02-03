@@ -1,0 +1,43 @@
+---
+description: Use ALL relevant skills by default. After classifying the task, discover matching skills from .cursor/skills/, apply user opt-out if stated, then read and apply each matching skill before proceeding.
+alwaysApply: true
+globs: ["*"]
+---
+
+# Automatic Skill Discovery (Use All Relevant Skills)
+
+**Default behavior:** Use ALL relevant skills for every task. Only exclude skills when the user explicitly opts out.
+
+## When This Runs
+
+After you classify the task type (CONSULT, BUILD, DEBUG, OPTIMIZE, LEARN, REVIEW, MIGRATE) and BEFORE you start executing the work.
+
+## Process (MANDATORY)
+
+1. **Scan skills** – List `.cursor/skills/` and read each `SKILL.md` frontmatter (first 30–50 lines) to get `task_types`, `keywords`, `domains`, `always_use`.
+
+2. **Match relevance** – For each skill, include it if ANY of these match:
+   - Task type matches any value in `task_types`
+   - User request contains any word/phrase from `keywords`
+   - Task involves any technology from `domains`
+   - `always_use: true` and task type matches
+
+3. **Apply opt-out** – If the user said "don't use [skill-name]" or "skip [skill-name]", exclude that skill. If the user said "only use [skill1, skill2]", use ONLY those skills and ignore all others.
+
+4. **Read and apply** – For each matching skill, read the full file at `.cursor/skills/<name>/SKILL.md` and apply its guidance before proceeding.
+
+## Explicit Instructions
+
+You MUST:
+
+1. List all directories in `.cursor/skills/`
+2. For each skill, read the SKILL.md frontmatter and check relevance (task_types, keywords, domains, always_use)
+3. If user said "don't use X" or "skip X", exclude it
+4. If user said "only use Y, Z", use ONLY those skills
+5. For all selected skills, read the full `.cursor/skills/<name>/SKILL.md` file
+6. Apply the guidance from each skill, then proceed with the task
+
+## Opt-Out Examples
+
+- "Don't use triage-expert" → Exclude triage-expert; use all other matching skills
+- "Only use component-reuse-workflow" → Use only that skill; ignore other matches

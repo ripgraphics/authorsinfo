@@ -1872,6 +1872,11 @@ export default function EntityFeedCard({
                 name={postOwnerName}
                 avatar_url={postOwnerAvatar}
                 className="enterprise-feed-card-user-name font-semibold text-sm"
+                userStats={
+                  profileOwnerId && post.user_id === profileOwnerId
+                    ? profileOwnerUserStats
+                    : undefined
+                }
               />
 
               {/* Content Type Badge */}
@@ -2198,6 +2203,7 @@ export default function EntityFeedCard({
                             type="user"
                             id={first.user?.id}
                             name={first.user?.name || 'User'}
+                            avatar_url={first.user?.avatar_url}
                             className="text-sm font-semibold text-gray-900"
                           />
                         </div>
@@ -2359,6 +2365,7 @@ export default function EntityFeedCard({
                               type="user"
                               id={firstReply.user?.id}
                               name={firstReply.user?.name || 'User'}
+                              avatar_url={firstReply.user?.avatar_url}
                               className="text-xs font-semibold text-gray-900"
                             />
                           </div>
@@ -2644,6 +2651,7 @@ export default function EntityFeedCard({
                                     type="user"
                                     id={comment.user?.id}
                                     name={comment.user?.name || 'Unknown User'}
+                                    avatar_url={comment.user?.avatar_url}
                                     className="text-sm font-semibold text-gray-900"
                                   />
                                   <span className="text-xs text-gray-500">
@@ -2800,6 +2808,7 @@ export default function EntityFeedCard({
                                                 type="user"
                                                 id={reply.user?.id}
                                                 name={reply.user?.name || 'Unknown User'}
+                                                avatar_url={reply.user?.avatar_url}
                                                 className="text-xs font-semibold text-gray-900"
                                               />
                                               <span className="text-xs text-gray-400">
@@ -2946,6 +2955,7 @@ export default function EntityFeedCard({
                                                           name={
                                                             nestedReply.user?.name || 'Unknown User'
                                                           }
+                                                          avatar_url={nestedReply.user?.avatar_url}
                                                           className="text-xs font-semibold text-gray-900"
                                                         />
                                                         <span className="text-xs text-gray-400">

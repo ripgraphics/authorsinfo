@@ -16,6 +16,15 @@ interface EntityAvatarProps {
   size?: 'xs' | 'sm' | 'md' | 'lg'
   className?: string
   disableHoverCard?: boolean
+  userStats?: {
+    booksRead: number
+    friendsCount: number
+    followersCount: number
+    mutualFriendsCount?: number
+    location: string | null
+    website: string | null
+    joinedDate: string
+  }
 }
 
 export default function EntityAvatar({
@@ -26,6 +35,7 @@ export default function EntityAvatar({
   size = 'sm',
   className,
   disableHoverCard = false,
+  userStats,
 }: EntityAvatarProps) {
   const { user: currentUser } = useAuth()
   const [avatarUrl, setAvatarUrl] = useState<string | null>(src || null)
@@ -212,7 +222,7 @@ export default function EntityAvatar({
 
   if (type === 'user') {
     return (
-      <UserHoverCard user={{ id, name, avatar_url: avatarUrl || undefined } as any}>
+      <UserHoverCard user={{ id, name, avatar_url: avatarUrl || undefined } as any} userStats={userStats}>
         {avatar}
       </UserHoverCard>
     )

@@ -591,6 +591,7 @@ export default function EntityComments({
                         type="user"
                         id={comment.user.id}
                         name={comment.user.name}
+                        avatar_url={comment.user.avatar_url}
                         className="entity-comment-author font-medium text-sm text-gray-900"
                       />
                       <span className="entity-comment-timestamp text-xs text-gray-500">

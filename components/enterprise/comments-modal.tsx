@@ -239,6 +239,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                               type="user"
                               id={comment.user.id}
                               name={comment.user.name}
+                              avatar_url={comment.user.avatar_url}
                               className="text-sm font-semibold text-foreground"
                             />
                             <span className="text-xs text-muted-foreground">
@@ -327,6 +328,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                                         type="user"
                                         id={reply.user.id}
                                         name={reply.user.name}
+                                        avatar_url={reply.user.avatar_url}
                                         className="text-xs font-medium text-foreground"
                                       />
                                       <span className="text-xs text-muted-foreground">

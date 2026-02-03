@@ -145,6 +145,7 @@ export function NestedCommentThread({
                   type="user"
                   id={comment.user.id}
                   name={comment.user.name}
+                  avatar_url={comment.user.avatar_url}
                   className="font-semibold text-sm text-gray-900 dark:text-gray-100"
                 />
                 <span className="text-xs text-gray-500">{formatTimestamp(comment.created_at)}</span>

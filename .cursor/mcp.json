@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "qmd": {
+      "command": "${userHome}/.bun/bin/bun.exe",
+      "args": [
+        "${userHome}/.bun/install/global/node_modules/qmd/src/qmd.ts",
+        "mcp"
+      ],
+      "env": {
+        "INDEX_PATH": "${userHome}/.cache/qmd/index.sqlite"
+      }
+    }
+  }
+}

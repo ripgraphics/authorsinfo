@@ -19,7 +19,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "gemini": "node scripts/run-gemini-cli.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

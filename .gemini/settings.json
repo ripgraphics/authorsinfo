@@ -1,0 +1,17 @@
+{
+  "model": {
+    "name": "gemini-2.5-flash"
+  },
+  "modelConfigs": {
+    "overrides": [
+      {
+        "match": {
+          "overrideScope": "codebaseInvestigator"
+        },
+        "modelConfig": {
+          "model": "gemini-2.5-flash"
+        }
+      }
+    ]
+  }
+}

@@ -166,7 +166,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
             <button className="book-header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
               Timeline
             </button>
-            <button className="book-header-tab book-header-tab-active inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 border-b-2 border-primary">
+            <button className="book-header-tab book-header-tab-active inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 border-b-2 border-[#40A3D8]">
               Detail
             </button>
             <button className="book-header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">

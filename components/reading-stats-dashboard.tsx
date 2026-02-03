@@ -239,7 +239,7 @@ export function ReadingStatsDashboard({
                     <div
                       className={cn(
                         'w-full rounded-t transition-colors',
-                        hour.sessionCount > 0 ? 'bg-primary/70 hover:bg-primary' : 'bg-muted'
+                        hour.sessionCount > 0 ? 'bg-primary/70 hover:bg-[#40A3D8]' : 'bg-muted'
                       )}
                       style={{ height: `${Math.max(height, 4)}%` }}
                     />

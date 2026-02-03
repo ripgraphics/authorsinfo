@@ -34,6 +34,9 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
+  /* Application theme blue (single source of truth for #40A3D8) */
+  --color-app-theme-blue: #40A3D8;
+
   /* Chart palette */
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));

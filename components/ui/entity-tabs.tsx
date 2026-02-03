@@ -49,7 +49,7 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
       {tabs.map((tab) => (
         <button
           key={tab.id}
-          className={`entity-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 transition-colors ${activeTab === tab.id ? 'border-b-2 border-primary' : ''} ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''} hover:bg-primary hover:text-white`}
+          className={`entity-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 transition-colors ${activeTab === tab.id ? 'border-b-2 border-app-theme-blue' : ''} ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''} hover:!bg-app-theme-blue hover:!opacity-100 hover:text-white`}
           onClick={() => !tab.disabled && handleTabClick(tab.id)}
           disabled={tab.disabled}
           aria-selected={activeTab === tab.id}

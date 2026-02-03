@@ -196,7 +196,7 @@ A review of the Authors Info codebase with actionable suggestions to improve con
 ### Strengths
 
 - Button variants (default, destructive, outline, ghost, link) and sizes; `focus-visible` styling.
-- Global hover behavior for non-ghost/outline buttons (secondary on hover).
+- Primary buttons and close controls use the same hover blue for consistency (e.g. `hover:bg-[#40A3D8]`).
 
 ### Suggestions
 
@@ -208,6 +208,9 @@ A review of the Authors Info codebase with actionable suggestions to improve con
 
 3. **Links vs buttons**  
    Use `<Button asChild><Link>` for in-page navigation; use `<Link className="...">` for text links. Ensure text links have a clear hover (e.g. `app-text-link` or underline) so they’re recognizable.
+
+4. **Primary button hover (consistent blue)**  
+   Primary-style buttons and close controls use the same hover blue as the CloseButton so hover state is consistent (e.g. `hover:bg-[#40A3D8]`).
 
 ---
 

@@ -93,40 +93,40 @@ export interface EngagementContextValue extends EngagementContextState {
 
 type EngagementActionType =
   | {
-      type: 'SET_ENTITY_ENGAGEMENT'
-      payload: { entityId: string; entityType: EntityType; state: Partial<EngagementState> }
-    }
+    type: 'SET_ENTITY_ENGAGEMENT'
+    payload: { entityId: string; entityType: EntityType; state: Partial<EngagementState> }
+  }
   | {
-      type: 'SET_REACTION'
-      payload: { entityId: string; entityType: EntityType; reactionType: ReactionType | null }
-    }
+    type: 'SET_REACTION'
+    payload: { entityId: string; entityType: EntityType; reactionType: ReactionType | null }
+  }
   | {
-      type: 'INCREMENT_COUNT'
-      payload: {
-        entityId: string
-        entityType: EntityType
-        countType: keyof Pick<
-          EngagementState,
-          'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
-        >
-      }
+    type: 'INCREMENT_COUNT'
+    payload: {
+      entityId: string
+      entityType: EntityType
+      countType: keyof Pick<
+        EngagementState,
+        'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
+      >
     }
+  }
   | {
-      type: 'DECREMENT_COUNT'
-      payload: {
-        entityId: string
-        entityType: EntityType
-        countType: keyof Pick<
-          EngagementState,
-          'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
-        >
-      }
+    type: 'DECREMENT_COUNT'
+    payload: {
+      entityId: string
+      entityType: EntityType
+      countType: keyof Pick<
+        EngagementState,
+        'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
+      >
     }
+  }
   | { type: 'SET_LOADING'; payload: { entityId: string; entityType: EntityType; loading: boolean } }
   | {
-      type: 'SET_ERROR'
-      payload: { entityId: string; entityType: EntityType; error: string | null }
-    }
+    type: 'SET_ERROR'
+    payload: { entityId: string; entityType: EntityType; error: string | null }
+  }
   | { type: 'SET_GLOBAL_LOADING'; payload: boolean }
   | { type: 'SET_GLOBAL_ERROR'; payload: string | null }
   | { type: 'RESET_ENTITY'; payload: { entityId: string; entityType: EntityType } }
@@ -184,13 +184,22 @@ function engagementReducer(
 
       if (!existing) return state
 
+      // Determine reaction count change
+      let countChange = 0
+      if (reactionType && !existing.userReaction) {
+        // Adding new reaction
+        countChange = 1
+      } else if (!reactionType && existing.userReaction) {
+        // Removing reaction
+        countChange = -1
+      }
+      // If switching reaction types (reactionType && existing.userReaction), countChange is 0
+
       const updatedEntities = new Map(state.entities)
       updatedEntities.set(key, {
         ...existing,
         userReaction: reactionType,
-        reactionCount: reactionType
-          ? existing.reactionCount + 1
-          : Math.max(0, existing.reactionCount - 1),
+        reactionCount: Math.max(0, existing.reactionCount + countChange),
       })
 
       return { ...state, entities: updatedEntities }
@@ -348,9 +357,12 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
         const result = await response.json()
 
         if (result.success) {
-          // Update local state
+          // Update local state based on ACTION performed, not just the new type
+          // If we are removing the reaction (new type is null)
+          // The API might return the action taken ('added', 'removed', or implicitly updated if different)
+
           if (currentReaction === reactionType) {
-            // Removing reaction
+            // Case 1: Removing reaction (toggling off)
             dispatch({
               type: 'SET_REACTION',
               payload: { entityId, entityType, reactionType: null },
@@ -361,13 +373,23 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
               variant: 'default',
             })
           } else {
-            // Adding/updating reaction
+            // Case 2: Adding or Changing reaction
+            const isUpdate = !!currentReaction
             dispatch({ type: 'SET_REACTION', payload: { entityId, entityType, reactionType } })
-            toast({
-              title: 'Reaction added!',
-              description: `You reacted with ${reactionType}!`,
-              variant: 'default',
-            })
+
+            if (isUpdate) {
+              toast({
+                title: 'Reaction updated',
+                description: `You changed your reaction to ${reactionType}`,
+                variant: 'default',
+              })
+            } else {
+              toast({
+                title: 'Reaction added!',
+                description: `You reacted with ${reactionType}!`,
+                variant: 'default',
+              })
+            }
           }
 
           return true
@@ -396,7 +418,7 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
         dispatch({ type: 'SET_LOADING', payload: { entityId, entityType, loading: false } })
       }
     },
-    [user, toast]
+    [user, toast, state.entities]
   )
 
   const removeReaction = useCallback(
@@ -406,7 +428,7 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
 
       return setReaction(entityId, entityType, existing.userReaction)
     },
-    [setReaction]
+    [setReaction, state.entities]
   )
 
   const addComment = useCallback(

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
@@ -15,7 +15,9 @@ import {
   ChevronDown,
   TrendingUp,
 } from 'lucide-react'
-import { useEngagement, ReactionType, EntityType } from '@/contexts/engagement-context'
+import type { ReactionType } from '@/lib/engagement/config'
+import { REACTION_OPTIONS_METADATA } from '@/lib/engagement/config'
+import { useEngagement, type EntityType } from '@/contexts/engagement-context'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -55,98 +57,40 @@ export interface ReactionPopupProps {
   theme?: 'light' | 'dark' | 'auto'
   size?: 'sm' | 'md' | 'lg'
   animation?: 'fade' | 'slide' | 'scale' | 'bounce'
+  staticPosition?: boolean
+  variant?: 'default' | 'facebook'
 }
 
 // ============================================================================
-// REACTION CONFIGURATION
+// REACTION CONFIGURATION (built from lib/engagement/config)
 // ============================================================================
 
-const REACTION_OPTIONS: ReactionOption[] = [
-  {
-    type: 'like',
-    label: 'Like',
-    icon: <ThumbsUp className="h-5 w-5" />,
-    color: 'text-blue-600',
-    hoverColor: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    hoverBgColor: 'hover:bg-blue-100',
-    description: 'Show appreciation',
-    emoji: '👍',
-    popularity: 85,
-  },
-  {
-    type: 'love',
-    label: 'Love',
-    icon: <Heart className="h-5 w-5" />,
-    color: 'text-red-500',
-    hoverColor: 'text-red-600',
-    bgColor: 'bg-red-50',
-    hoverBgColor: 'hover:bg-red-100',
-    description: 'Express love and affection',
-    emoji: '❤️',
-    popularity: 78,
-  },
-  {
-    type: 'care',
-    label: 'Care',
-    icon: <Heart className="h-5 w-5" />,
-    color: 'text-yellow-500',
-    hoverColor: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
-    hoverBgColor: 'hover:bg-yellow-100',
-    description: 'Show care and support',
-    emoji: '🤗',
-    popularity: 65,
-  },
-  {
-    type: 'haha',
-    label: 'Haha',
-    icon: <Smile className="h-5 w-5" />,
-    color: 'text-yellow-500',
-    hoverColor: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
-    hoverBgColor: 'hover:bg-yellow-100',
-    description: 'Find it funny',
-    emoji: '😂',
-    popularity: 72,
-  },
-  {
-    type: 'wow',
-    label: 'Wow',
-    icon: <Star className="h-5 w-5" />,
-    color: 'text-purple-500',
-    hoverColor: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    hoverBgColor: 'hover:bg-purple-100',
-    description: 'Be amazed',
-    emoji: '😮',
-    popularity: 58,
-  },
-  {
-    type: 'sad',
-    label: 'Sad',
-    icon: <AlertTriangle className="h-5 w-5" />,
-    color: 'text-blue-500',
-    hoverColor: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    hoverBgColor: 'hover:bg-blue-100',
-    description: 'Feel sad about it',
-    emoji: '😢',
-    popularity: 45,
-  },
-  {
-    type: 'angry',
-    label: 'Angry',
-    icon: <Zap className="h-5 w-5" />,
-    color: 'text-red-600',
-    hoverColor: 'text-red-700',
-    bgColor: 'bg-red-50',
-    hoverBgColor: 'hover:bg-red-100',
-    description: 'Feel angry about it',
-    emoji: '😠',
-    popularity: 32,
-  },
-]
+const REACTION_TYPE_ICONS: Record<ReactionType, React.ReactNode> = {
+  like: <ThumbsUp className="h-5 w-5" />,
+  love: <Heart className="h-5 w-5" />,
+  care: <Heart className="h-5 w-5" />,
+  haha: <Smile className="h-5 w-5" />,
+  wow: <Star className="h-5 w-5" />,
+  sad: <AlertTriangle className="h-5 w-5" />,
+  angry: <Zap className="h-5 w-5" />,
+}
+
+function buildReactionOptions(): ReactionOption[] {
+  return REACTION_OPTIONS_METADATA.map((meta) => ({
+    type: meta.type,
+    label: meta.label,
+    icon: REACTION_TYPE_ICONS[meta.type],
+    color: meta.color,
+    hoverColor: meta.hoverColor,
+    bgColor: meta.bgColor,
+    hoverBgColor: meta.hoverBgColor,
+    description: meta.description,
+    emoji: meta.emoji,
+    popularity: meta.popularity,
+  }))
+}
+
+const REACTION_OPTIONS: ReactionOption[] = buildReactionOptions()
 
 // ============================================================================
 // MAIN COMPONENT
@@ -169,6 +113,8 @@ export function EnterpriseReactionPopup({
   theme = 'auto',
   size = 'md',
   animation = 'fade',
+  staticPosition = false,
+  variant = 'default',
 }: ReactionPopupProps) {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -256,6 +202,7 @@ export function EnterpriseReactionPopup({
   }, [position, triggerRef])
 
   const getPositionClasses = useCallback(() => {
+    if (staticPosition) return ''
     const baseClasses = 'absolute z-50'
 
     switch (popupPosition) {
@@ -318,34 +265,70 @@ export function EnterpriseReactionPopup({
       setIsSubmitting(true)
 
       try {
-        const success = await setReaction(entityId, entityType, reactionType)
-
-        if (success) {
+        // Just notify parent and let it handle the API call
+        if (onReactionChange) {
+          // Toggle logic: if clicking same reaction, remove it (pass null)
           const newReaction = selectedReaction === reactionType ? null : reactionType
+
+          // CRITICAL FIX: To trigger "remove" in the parent (which calls setReaction),
+          // we must pass the reaction type we want to toggle/remove.
+          // setReaction(currentReaction) toggles it off if it matches.
+          // So we always pass the clicked reactionType to the parent.
+          onReactionChange(reactionType)
+
+          // Optimistically update local state
           setSelectedReaction(newReaction)
 
-          if (onReactionChange) {
-            onReactionChange(newReaction)
-          }
-
-          // Update local counts
+          // Update local counts optimistically
           if (newReaction) {
             setReactionCounts((prev) => ({
               ...prev,
               [reactionType]: (prev[reactionType] || 0) + 1,
             }))
           } else {
-            setReactionCounts((prev) => ({
-              ...prev,
-              [reactionType]: Math.max(0, (prev[reactionType] || 0) - 1),
-            }))
+            // If removing, decrement the count of the previous reaction
+            if (selectedReaction) {
+              setReactionCounts((prev) => ({
+                ...prev,
+                [selectedReaction]: Math.max(0, (prev[selectedReaction] || 0) - 1),
+              }))
+            }
           }
 
+          // Success assumed for UI feedback
           // Auto-close after successful reaction
           if (newReaction) {
             timeoutRef.current = setTimeout(() => {
               onClose()
             }, 1000)
+          }
+        } else {
+          // Fallback to internal handling if no parent handler (legacy mode)
+          const success = await setReaction(entityId, entityType, reactionType)
+
+          if (success) {
+            const newReaction = selectedReaction === reactionType ? null : reactionType
+            setSelectedReaction(newReaction)
+
+            // Update local counts
+            if (newReaction) {
+              setReactionCounts((prev) => ({
+                ...prev,
+                [reactionType]: (prev[reactionType] || 0) + 1,
+              }))
+            } else {
+              setReactionCounts((prev) => ({
+                ...prev,
+                [reactionType]: Math.max(0, (prev[reactionType] || 0) - 1),
+              }))
+            }
+
+            // Auto-close after successful reaction
+            if (newReaction) {
+              timeoutRef.current = setTimeout(() => {
+                onClose()
+              }, 1000)
+            }
           }
         }
       } catch (error) {
@@ -387,6 +370,16 @@ export function EnterpriseReactionPopup({
     onClose()
   }, [onClose])
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        handleClose()
+      }
+    },
+    [handleClose]
+  )
+
   // ============================================================================
   // RENDER FUNCTIONS
   // ============================================================================
@@ -418,8 +411,8 @@ export function EnterpriseReactionPopup({
                     ? `${reaction.color} ${reaction.bgColor} shadow-md`
                     : 'text-gray-600 hover:text-gray-800',
                   isHovered &&
-                    !isCurrentReaction &&
-                    `${reaction.hoverColor} ${reaction.hoverBgColor}`,
+                  !isCurrentReaction &&
+                  `${reaction.hoverColor} ${reaction.hoverBgColor}`,
                   getAnimationClasses()
                 )}
               >
@@ -536,52 +529,129 @@ export function EnterpriseReactionPopup({
   // MAIN RENDER
   // ============================================================================
 
+  const totalReactionCount = Object.values(reactionCounts).reduce((a, b) => a + b, 0)
+  const reactionSummaryText = selectedReaction
+    ? `You reacted with ${selectedReaction}. ${totalReactionCount} ${totalReactionCount === 1 ? 'reaction' : 'reactions'} total.`
+    : `${totalReactionCount} ${totalReactionCount === 1 ? 'reaction' : 'reactions'}.`
+
   if (!isVisible) return null
 
-  return (
-    <TooltipProvider>
-      <div className="fixed inset-0 z-50" onClick={handleClose}>
+  // ============================================================================
+  // FACEBOOK VARIANT RENDER
+  // ============================================================================
+  if (variant === 'facebook') {
+    return (
+      <TooltipProvider>
         <div
           ref={popupRef}
+          role="dialog"
+          aria-modal="true"
           className={cn(
-            'bg-white rounded-2xl shadow-2xl border border-gray-200',
-            'backdrop-blur-xs bg-white/95',
-            getPositionClasses(),
-            getSizeClasses(),
-            getAnimationClasses(),
+            'flex items-center gap-1.5 p-1.5 bg-white rounded-full shadow-xl border border-gray-100',
+            'animate-in fade-in zoom-in-95 duration-200',
             className
           )}
           data-reaction-popup
-          onClick={(e) => e.stopPropagation()}
+          onKeyDown={handleKeyDown}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-700">React to this {entityType}</h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="w-6 h-6 p-0 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          {REACTION_OPTIONS.map((reaction) => (
+            <Tooltip key={reaction.type} delayDuration={0}>
+              <TooltipTrigger asChild>
+                <div /* div wrapper needed for tooltip on disabled button logic if any, but simplified here */
+                  className="relative group"
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleReactionClick(reaction.type)}
+                    disabled={isSubmitting}
+                    className={cn(
+                      'relative w-10 h-10 p-0 rounded-full transition-all duration-300 cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                      'hover:scale-125 hover:-translate-y-2 origin-bottom z-10 hover:z-20',
+                      'bg-transparent hover:bg-transparent', // Remove ghost hover bg to let emoji stand out
+                      selectedReaction === reaction.type && 'scale-110 grayscale-0'
+                    )}
+                  >
+                    <span className="text-3xl filter drop-shadow-sm transform transition-transform">
+                      {reaction.emoji}
+                    </span>
+                    {/* Selection Dot */}
+                    {selectedReaction === reaction.type && (
+                      <span className="absolute -bottom-1 w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                    )}
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className="px-2 py-0.5 text-xs font-semibold text-white bg-black/80 border-none rounded-full"
+                sideOffset={8}
+              >
+                {reaction.label}
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </TooltipProvider>
+    )
+  }
+
+  // ============================================================================
+  // DEFAULT RENDER
+  // ============================================================================
+  return (
+    <TooltipProvider>
+      <div
+        ref={popupRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reaction-popup-title"
+        className={cn(
+          'bg-white rounded-2xl shadow-2xl border border-gray-200',
+          'backdrop-blur-xs bg-white/95',
+          getPositionClasses(),
+          getSizeClasses(),
+          getAnimationClasses(),
+          className
+        )}
+        data-reaction-popup
+        onKeyDown={handleKeyDown}
+      >
+        {/* Live region for screening readers: reaction summary */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {reactionSummaryText}
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <h3 id="reaction-popup-title" className="text-sm font-semibold text-gray-700">
+            React to this {entityType}
+          </h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="w-6 h-6 p-0 text-gray-400 hover:text-gray-600"
+            aria-label="Close reaction menu"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Quick Reactions */}
+        {renderQuickReactions()}
+
+        {/* Full Reaction Grid */}
+        {showAdvanced && (
+          <div className="grid grid-cols-4 gap-2">
+            {REACTION_OPTIONS.map(renderReactionButton)}
           </div>
+        )}
 
-          {/* Quick Reactions */}
-          {renderQuickReactions()}
-
-          {/* Full Reaction Grid */}
-          {showAdvanced && (
-            <div className="grid grid-cols-4 gap-2">
-              {REACTION_OPTIONS.map(renderReactionButton)}
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="mt-3 pt-2 border-t border-gray-100">
-            <div className="text-xs text-gray-500 text-center">
-              Click to {selectedReaction ? 'change or remove' : 'add'} your reaction
-            </div>
+        {/* Footer */}
+        <div className="mt-3 pt-2 border-t border-gray-100">
+          <div className="text-xs text-gray-500 text-center">
+            Click to {selectedReaction ? 'change or remove' : 'add'} your reaction
           </div>
         </div>
       </div>

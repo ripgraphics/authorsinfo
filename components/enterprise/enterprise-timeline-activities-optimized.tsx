@@ -109,6 +109,7 @@ interface EnterpriseActivity {
   is_liked: boolean
   entity_type: string
   entity_id: string
+  user_reaction_type?: string | null // Added field for reaction persistence
   sentiment?: 'positive' | 'negative' | 'neutral'
   is_verified?: boolean
   is_bookmarked?: boolean
@@ -375,7 +376,8 @@ const EnterpriseTimelineActivities = React.memo(
             is_public: row.is_public,
             like_count: row.like_count || 0,
             comment_count: row.comment_count || 0,
-            is_liked: false,
+            is_liked: row.is_liked || false,
+            user_reaction_type: row.user_reaction_type || null,
             entity_type: row.entity_type,
             entity_id: row.entity_id,
             content_type: row.content_type,
@@ -600,7 +602,7 @@ const EnterpriseTimelineActivities = React.memo(
         if (!enableReadingProgress) return
         // Placeholder hook to keep parity; real endpoint optional
         setReadingProgress(null)
-      } catch {}
+      } catch { }
     }, [enableReadingProgress])
 
     const fetchPrivacySettings = useCallback(async () => {
@@ -619,6 +621,30 @@ const EnterpriseTimelineActivities = React.memo(
         setPrivacySettingsLoading(false)
       }
     }, [enablePrivacyControls, supabase, memoizedEntityType, memoizedUserId])
+
+    const handlePostDeleted = useCallback((postId: string) => {
+      // Remove the deleted post from the activities list
+      setActivities((prev) => prev.filter((activity) => activity.id !== postId))
+    }, [])
+
+    const handlePostUpdated = useCallback((updatedPost: FeedPost) => {
+      // Update the activity in the list
+      setActivities((prev) =>
+        prev.map((activity) =>
+          activity.id === updatedPost.id
+            ? {
+              ...activity,
+              like_count: updatedPost.like_count,
+              comment_count: updatedPost.comment_count,
+              share_count: updatedPost.share_count,
+              is_liked: updatedPost.user_has_reacted || false,
+              is_bookmarked: updatedPost.user_has_bookmarked || false,
+              user_reaction_type: updatedPost.user_reaction_type as any,
+            }
+            : activity
+        )
+      )
+    }, [])
 
     // Performance optimization: Cleanup cache on unmount
     useEffect(() => {
@@ -654,7 +680,7 @@ const EnterpriseTimelineActivities = React.memo(
       return () => {
         try {
           supabase.removeChannel(channel)
-        } catch {}
+        } catch { }
       }
     }, [enableRealTime, supabase, memoizedEntityType, memoizedUserId, fetchActivities])
 
@@ -717,6 +743,7 @@ const EnterpriseTimelineActivities = React.memo(
               showEngagement={true}
               className=""
               onPostDeleted={handlePostDeleted}
+              onPostUpdated={handlePostUpdated}
               profileOwnerId={entityType === 'user' ? entityId : undefined}
               profileOwnerUserStats={profileOwnerUserStats ?? undefined}
             />
@@ -755,7 +782,14 @@ const EnterpriseTimelineActivities = React.memo(
           </div>
         )
       },
-      [transformActivityToPost, entityType, entityId, profileOwnerUserStats]
+      [
+        transformActivityToPost,
+        entityType,
+        entityId,
+        profileOwnerUserStats,
+        handlePostDeleted,
+        handlePostUpdated,
+      ]
     )
 
     // Memoized loading skeleton
@@ -956,7 +990,7 @@ const EnterpriseTimelineActivities = React.memo(
         setIsPosting(true)
         try {
           const now = new Date().toISOString()
-          
+
           // Determine content type
           let contentType = 'text'
           if (data.image_url) {
@@ -1092,9 +1126,9 @@ const EnterpriseTimelineActivities = React.memo(
             link_url: postForm.linkUrl || null,
             hashtags: postForm.hashtags
               ? postForm.hashtags
-                  .split(',')
-                  .map((t) => t.trim())
-                  .filter(Boolean)
+                .split(',')
+                .map((t) => t.trim())
+                .filter(Boolean)
               : [],
             data: {
               content: trimmed,
@@ -1157,11 +1191,6 @@ const EnterpriseTimelineActivities = React.memo(
       ]
     )
 
-    const handlePostDeleted = useCallback((postId: string) => {
-      // Remove the deleted post from the activities list
-      setActivities((prev) => prev.filter((activity) => activity.id !== postId))
-    }, [])
-
     const handlePhotoUpload = useCallback(() => {
       const input = document.createElement('input')
       input.type = 'file'
@@ -1185,9 +1214,9 @@ const EnterpriseTimelineActivities = React.memo(
           }
           const current = postForm.imageUrl
             ? postForm.imageUrl
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean)
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
             : []
           setPostForm((prev) => ({ ...prev, imageUrl: [...current, ...uploaded].join(', ') }))
           toast({ title: 'Photos uploaded', description: `${uploaded.length} photo(s) ready` })

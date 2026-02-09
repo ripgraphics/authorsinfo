@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
 import { validateAndFilterPayload } from '@/lib/schema/schema-validators'
+import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     if (filteredData.length > 0) {
       try {
         const postIds = filteredData.map((row: any) => row.id)
-        const postTypes = filteredData.map((row: any) => row.entity_type === 'book' ? 'book' : 'post')
+        const postTypes = filteredData.map(() => ENGAGEMENT_ENTITY_TYPE_POST)
         
         const { data: batchCounts, error: batchError } = await (supabase.rpc as any)('get_multiple_entities_engagement', {
           p_entity_ids: postIds,

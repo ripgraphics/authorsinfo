@@ -69,6 +69,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   const [isLoadingComments, setIsLoadingComments] = useState(false)
   const [internalReactionCount, setInternalReactionCount] = useState(reactionCount)
   const [internalCommentCount, setInternalCommentCount] = useState(commentCount)
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   // Update internal counts if props change
   useEffect(() => {
@@ -207,8 +208,10 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                 .map((type, idx) => (
                   <div
                     key={type}
+                    onMouseEnter={() => setActiveFilter(type)}
+                    onMouseLeave={() => setActiveFilter(null)}
                     className={cn(
-                      'engagement-reaction-icon rounded-full p-1 border-2 border-white shadow-sm ring-1 ring-black/5 z-[3]',
+                      'engagement-reaction-icon rounded-full p-1 border-2 border-white shadow-sm ring-1 ring-black/5 z-[3] transition-transform hover:scale-110 cursor-pointer',
                       `bg-gradient-to-r ${getReactionColor(type)}`
                     )}
                     style={{ zIndex: 10 - idx }}
@@ -222,6 +225,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
             <span
               className="engagement-reaction-count text-sm text-gray-500 hover:text-blue-600 cursor-pointer font-medium transition-colors duration-200"
               onClick={onReactionsClick}
+              onMouseEnter={() => setActiveFilter(null)}
             >
               {internalReactionCount}
             </span>
@@ -232,14 +236,19 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
               className="absolute bottom-full left-0 mb-2 px-4 py-3 border-none rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-40 max-h-80 overflow-y-auto"
             >
               <div className="text-sm font-bold text-white mb-2 pb-1 border-b border-white/20">
-                {reactions.length > 0 && new Set(reactions.map(r => r.reaction_type)).size > 1
-                  ? 'Reactions'
-                  : (userReactionType ? userReactionType.charAt(0).toUpperCase() + userReactionType.slice(1) : 'Reactions')}
+                {activeFilter
+                  ? activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1)
+                  : (reactions.length > 0 && new Set(reactions.map(r => r.reaction_type)).size > 1
+                    ? 'Reactions'
+                    : (userReactionType ? userReactionType.charAt(0).toUpperCase() + userReactionType.slice(1) : 'Reactions'))}
               </div>
 
-              {!isLoadingReactions && reactions.length > 0 ? (
+              {!isLoadingReactions && (activeFilter ? reactions.filter(r => r.reaction_type === activeFilter) : reactions).length > 0 ? (
                 <div className="space-y-0.5">
-                  {reactions.slice(0, 15).map((reaction) => {
+                  {(activeFilter
+                    ? reactions.filter(r => r.reaction_type === activeFilter)
+                    : reactions
+                  ).slice(0, 15).map((reaction) => {
                     if (!reaction || !reaction.user) return null
                     return (
                       <div
@@ -254,20 +263,15 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                       </div>
                     )
                   })}
-                  {internalReactionCount > 15 && (
+                  {(!activeFilter ? internalReactionCount : reactions.filter(r => r.reaction_type === activeFilter).length) > 15 && (
                     <div className="text-sm text-white font-normal pt-1 mt-1">
-                      and {internalReactionCount - 15} more...
+                      and {(!activeFilter ? internalReactionCount : reactions.filter(r => r.reaction_type === activeFilter).length) - 15} more...
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-xs text-blue-100 text-center py-4">
-                  {isLoadingReactions ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>
-                  ) : (
-                    <Heart className="h-6 w-6 mx-auto mb-2 text-white/50" />
-                  )}
-                  {isLoadingReactions ? 'Loading...' : 'No reactions yet'}
+                <div className="text-sm text-white/80 font-normal py-2 italic text-center">
+                  {isLoadingReactions ? 'Loading...' : `No ${activeFilter || 'recent'} reactions`}
                 </div>
               )}
             </div>

@@ -247,7 +247,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                         className="flex items-center gap-2 py-0.5"
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white truncate">
+                          <div className="text-sm font-normal text-white truncate">
                             {reaction.user?.name || 'Unknown User'}
                           </div>
                         </div>
@@ -255,7 +255,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                     )
                   })}
                   {internalReactionCount > 15 && (
-                    <div className="text-sm text-white font-medium pt-1 mt-1">
+                    <div className="text-sm text-white font-normal pt-1 mt-1">
                       and {internalReactionCount - 15} more...
                     </div>
                   )}

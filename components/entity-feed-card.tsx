@@ -1805,9 +1805,10 @@ export default function EntityFeedCard({
     return (
       <EngagementDisplay
         entityId={post.id}
-        entityType={'post'}
+        entityType={engagementEntityType}
         reactionCount={post.like_count || 0}
         commentCount={post.comment_count || 0}
+        userReactionType={post.user_reaction_type}
         onReactionsClick={() => setShowLikesModal(true)}
         onCommentsClick={() => setShowCommentsModal(true)}
         onUserClick={(userId) => {
@@ -1818,8 +1819,6 @@ export default function EntityFeedCard({
           console.log('Send friend request to:', userId)
           // Add friend request logic here
         }}
-        customReactionIcon={<Heart className="h-3.5 w-3.5" />}
-        customReactionColor="from-red-500 to-pink-500"
         showReactionTypes={false}
         maxPreviewItems={6}
         showAddFriendButtons={true}

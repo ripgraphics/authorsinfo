@@ -146,7 +146,9 @@ export async function GET(request: NextRequest) {
     if (Array.isArray(data) && data.length > 0) {
       try {
         const postIds = data.map((row: any) => row.id)
-        const postTypes = data.map((row: any) => row.entity_type === 'book' ? 'book' : 'post')
+        const postTypes = data.map((row: any) => 
+          row.entity_type === 'book' ? 'book' : ENGAGEMENT_ENTITY_TYPE_POST
+        )
         
         const { data: batchCounts, error: batchError } = await (readClient.rpc as any)('get_multiple_entities_engagement', {
           p_entity_ids: postIds,

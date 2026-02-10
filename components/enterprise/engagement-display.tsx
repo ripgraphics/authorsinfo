@@ -40,6 +40,7 @@ export interface EngagementDisplayProps {
     amount?: string | number
     currency?: string
   }
+  userReactionType?: string | null
 }
 
 export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
@@ -59,12 +60,24 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   showAddFriendButtons = true,
   showAnalytics = false,
   monetization,
+  userReactionType,
 }) => {
   const { user } = useAuth()
   const [reactions, setReactions] = useState<EngagementUser[]>([])
   const [comments, setComments] = useState<EngagementUser[]>([])
   const [isLoadingReactions, setIsLoadingReactions] = useState(false)
   const [isLoadingComments, setIsLoadingComments] = useState(false)
+  const [internalReactionCount, setInternalReactionCount] = useState(reactionCount)
+  const [internalCommentCount, setInternalCommentCount] = useState(commentCount)
+
+  // Update internal counts if props change
+  useEffect(() => {
+    setInternalReactionCount(reactionCount)
+  }, [reactionCount])
+
+  useEffect(() => {
+    setInternalCommentCount(commentCount)
+  }, [commentCount])
 
   // Fetch engagement data
   const fetchEngagementData = useCallback(async () => {
@@ -80,6 +93,15 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
 
       if (response.ok) {
         const data = await response.json()
+
+        if (data.ok || data.likes_count !== undefined) {
+          if (typeof data.likes_count === 'number') {
+            setInternalReactionCount(data.likes_count)
+          }
+          if (typeof data.comments_count === 'number') {
+            setInternalCommentCount(data.comments_count)
+          }
+        }
 
         if (data.recent_likes && Array.isArray(data.recent_likes)) {
           setReactions(data.recent_likes.slice(0, maxPreviewItems))
@@ -103,8 +125,8 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   }, [fetchEngagementData])
 
   // Get reaction icon based on type
-  const getReactionIcon = (reactionType?: string) => {
-    if (customReactionIcon) return customReactionIcon
+  const getReactionIcon = (reactionType?: string | null) => {
+    if (customReactionIcon && !reactionType) return customReactionIcon
 
     switch (reactionType?.toLowerCase()) {
       case 'love':
@@ -177,21 +199,21 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
     >
       <div className="engagement-left flex items-center gap-2">
         {/* Reactions Display */}
-        {reactionCount > 0 && (
+        {internalReactionCount > 0 && (
           <div className="engagement-reactions flex items-center gap-2 relative group">
             <div
               className={cn(
                 'engagement-reaction-icon rounded-full p-1.5 shadow-xs',
-                `bg-gradient-to-r ${getReactionColor()}`
+                `bg-gradient-to-r ${getReactionColor(userReactionType || undefined)}`
               )}
             >
-              {customReactionIcon || <Heart className="h-3.5 w-3.5 text-white" />}
+              {getReactionIcon(userReactionType) || <Heart className="h-3.5 w-3.5 text-white" />}
             </div>
             <span
               className="engagement-reaction-count text-sm text-gray-600 hover:text-red-600 cursor-pointer font-medium px-2 py-1 rounded-md hover:bg-red-50 transition-all duration-200"
               onClick={onReactionsClick}
             >
-              {reactionCount} like{reactionCount !== 1 ? 's' : ''}
+              {internalReactionCount} like{internalReactionCount !== 1 ? 's' : ''}
             </span>
 
             {/* Enhanced Facebook-style hover dropdown for reactions */}
@@ -265,13 +287,13 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
         )}
 
         {/* Comments Display */}
-        {commentCount > 0 && (
+        {internalCommentCount > 0 && (
           <div className="engagement-comments text-sm text-gray-600 hover:text-blue-600 cursor-pointer relative group transition-colors duration-200">
             <span
               onClick={onCommentsClick}
               className="cursor-pointer font-medium hover:underline px-2 py-1 rounded-md hover:bg-blue-50 transition-all duration-200"
             >
-              {commentCount} comment{commentCount !== 1 ? 's' : ''}
+              {internalCommentCount} comment{internalCommentCount !== 1 ? 's' : ''}
             </span>
 
             {/* Enhanced hover dropdown for comments */}

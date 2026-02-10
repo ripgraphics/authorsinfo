@@ -54,7 +54,6 @@ import {
   Star,
   AlertTriangle,
   Loader2,
-  User,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -74,11 +73,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/hover-card'
 import { Separator } from '@/components/ui/separator'
 import { Avatar } from '@/components/ui/avatar'
 
@@ -123,9 +117,11 @@ export interface EnterpriseEngagementActionsProps {
   showBookmarkOptions?: boolean
   showViewTracking?: boolean
   showAnalytics?: boolean
+  maxVisibleReactions?: number
   reactionPopupPosition?: 'top' | 'bottom' | 'left' | 'right'
   autoTrackViews?: boolean
   enableQuickReactions?: boolean
+  showReactionSummary?: boolean
   customReactionIcons?: Record<ReactionType, React.ReactNode>
   customColors?: Record<ReactionType, { color: string; bgColor: string }>
   onCommentClick?: () => void
@@ -163,9 +159,11 @@ export function EnterpriseEngagementActions({
   showBookmarkOptions = true,
   showViewTracking = true,
   showAnalytics = false,
+  maxVisibleReactions = 5,
   reactionPopupPosition = 'bottom',
   autoTrackViews = true,
   enableQuickReactions = true,
+  showReactionSummary = true,
   customReactionIcons,
   customColors,
   onCommentClick,
@@ -238,7 +236,36 @@ export function EnterpriseEngagementActions({
   // EVENT HANDLERS
   // ============================================================================
 
+  const handleReactionButtonHover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget
+    const rect = button.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
 
+    // Determine optimal popup position
+    const spaceBelow = viewportHeight - rect.bottom
+    const spaceAbove = rect.top
+
+    if (spaceBelow < 120 && spaceAbove > 120) {
+      setReactionPopupPositionState('top')
+    } else {
+      setReactionPopupPositionState('bottom')
+    }
+
+    setShowReactionPopup(true)
+  }, [])
+
+  const handleReactionButtonLeave = useCallback(() => {
+    // Small delay to allow moving mouse to popup
+    setTimeout(() => {
+      if (!showReactionPopup) return
+
+      // Check if mouse is over the popup
+      const popup = document.querySelector('[data-reaction-popup]')
+      if (popup && popup.matches(':hover')) return
+
+      setShowReactionPopup(false)
+    }, 100)
+  }, [showReactionPopup])
 
   const handleReactionSelect = useCallback(
     async (reactionType: ReactionType) => {
@@ -436,83 +463,76 @@ export function EnterpriseEngagementActions({
 
     return (
       <div className="relative flex-1">
-        <HoverCard openDelay={200} closeDelay={150}>
-          <HoverCardTrigger asChild>
-            <Button
-              ref={reactionButtonRef}
-              variant="ghost"
-              size="sm"
-              onClick={handleQuickLike}
-              disabled={!!engagement?.isLoading}
-              aria-busy={!!engagement?.isLoading}
-              aria-label={
-                engagement?.isLoading
-                  ? 'Reaction in progress'
-                  : contextReaction || currentReaction
-                    ? `You reacted with ${currentDisplay.label}. Click to remove or hover for more reactions.`
-                    : 'Like. Click to like or hover for more reactions.'
-              }
+        <Button
+          ref={reactionButtonRef}
+          variant="ghost"
+          size="sm"
+          onMouseEnter={handleReactionButtonHover}
+          onMouseLeave={handleReactionButtonLeave}
+          onClick={handleQuickLike}
+          disabled={!!engagement?.isLoading}
+          aria-busy={!!engagement?.isLoading}
+          aria-label={
+            engagement?.isLoading
+              ? 'Reaction in progress'
+              : contextReaction || currentReaction
+                ? `You reacted with ${currentDisplay.label}. Click to remove or hover for more reactions.`
+                : 'Like. Click to like or hover for more reactions.'
+          }
+          className={cn(
+            'engagement-action-button w-full h-10 rounded-lg transition-colors',
+            'flex items-center justify-center gap-2',
+            contextReaction || currentReaction
+              ? `${currentDisplay.color} hover:bg-gray-50`
+              : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
+          )}
+        >
+          {engagement?.isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+          ) : (
+            <span
               className={cn(
-                'engagement-action-button w-full h-10 rounded-lg transition-colors',
-                'flex items-center justify-center gap-2',
-                contextReaction || currentReaction
-                  ? `${currentDisplay.color} hover:bg-gray-50`
-                  : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
+                'flex items-center',
+                contextReaction || (currentReaction && 'fill-current')
               )}
             >
-              {engagement?.isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-              ) : (
-                <span
-                  className={cn(
-                    'flex items-center',
-                    contextReaction || (currentReaction && 'fill-current')
-                  )}
-                >
-                  {currentDisplay.icon}
-                </span>
-              )}
-              <span className="engagement-action-label">
-                {engagement?.isLoading ? 'Updating…' : currentDisplay.label}
-              </span>
-            </Button>
-          </HoverCardTrigger>
-          <HoverCardContent
-            side="top"
-            align="center"
-            className="w-auto p-0 border-none bg-transparent shadow-none"
-            avoidCollisions={true}
-          >
-            <EnterpriseReactionPopup
-              entityId={entityId}
-              entityType={entityType}
-              isVisible={true}
-              onClose={() => { }} // HoverCard handles closing
-              position={reactionPopupPositionState}
-              currentReaction={contextReaction || currentReaction}
-              showReactionCounts={showReactionCounts}
-              showQuickReactions={enableQuickReactions}
-              maxQuickReactions={3}
-              onReactionChange={(rt) => {
-                if (rt) {
-                  handleReactionSelect(rt)
-                }
-              }}
-              triggerRef={reactionButtonRef as unknown as React.RefObject<HTMLElement>}
-              autoPosition={false}
-              staticPosition={true}
-              variant="facebook"
-              size="md"
-              animation="scale"
-              className="mt-0 shadow-xl border border-gray-200"
-            />
-          </HoverCardContent>
-        </HoverCard>
+              {currentDisplay.icon}
+            </span>
+          )}
+          <span className="engagement-action-label">
+            {engagement?.isLoading ? 'Updating…' : currentDisplay.label}
+          </span>
+        </Button>
+
+        {/* Reaction Popup */}
+        {showReactionPopup && (
+          <EnterpriseReactionPopup
+            entityId={entityId}
+            entityType={entityType}
+            isVisible={showReactionPopup}
+            onClose={() => setShowReactionPopup(false)}
+            position={reactionPopupPositionState}
+            currentReaction={contextReaction || currentReaction}
+            showReactionCounts={showReactionCounts}
+            showQuickReactions={enableQuickReactions}
+            maxQuickReactions={3}
+            onReactionChange={(rt) => {
+              if (rt) {
+                handleReactionSelect(rt)
+              }
+            }}
+            triggerRef={reactionButtonRef as unknown as React.RefObject<HTMLElement>}
+            autoPosition={true}
+            size="md"
+            animation="scale"
+          />
+        )}
       </div>
     )
   }, [
     contextReaction,
     currentReaction,
+    showReactionPopup,
     reactionPopupPositionState,
     entityId,
     entityType,
@@ -520,6 +540,8 @@ export function EnterpriseEngagementActions({
     enableQuickReactions,
     handleReactionSelect,
     getCurrentReactionDisplay,
+    handleReactionButtonHover,
+    handleReactionButtonLeave,
     handleQuickLike,
     engagement?.isLoading,
   ])
@@ -705,6 +727,58 @@ export function EnterpriseEngagementActions({
     )
   }, [isCommentInputVisible, commentText, isSubmittingComment, user, handleCommentSubmit])
 
+  const renderEngagementSummary = useCallback(() => {
+    if (variant === 'minimal') return null
+
+    const hasEngagement = (stats?.reactionCount || 0) > 0 || (stats?.commentCount || 0) > 0
+
+    if (!hasEngagement) return null
+
+    return (
+      <div className="engagement-reactions-display flex items-center justify-between px-4 py-2 border-b border-gray-100">
+        <div className="engagement-reactions-left flex items-center gap-2">
+          {/* Reaction Summary */}
+          {showReactionSummary && stats?.reactionCount > 0 && (
+            <div className="engagement-reactions-likes flex items-center gap-1">
+              <ReactionSummary
+                entityId={entityId}
+                entityType={entityType}
+                maxReactions={maxVisibleReactions}
+                className="text-sm text-gray-600"
+              />
+            </div>
+          )}
+
+          {/* Comment Count */}
+          {stats?.commentCount > 0 && (
+            <div className="engagement-comment-count text-sm text-gray-600 hover:underline cursor-pointer">
+              {formatCount(stats.commentCount, 'comment')}
+            </div>
+          )}
+        </div>
+
+        {/* Right side - Analytics or additional info */}
+        {showAnalytics && (
+          <div className="engagement-reactions-right flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+              <BarChart3 className="h-3 w-3 mr-1" />
+              Analytics
+            </Button>
+          </div>
+        )}
+      </div>
+    )
+  }, [
+    variant,
+    stats,
+    showReactionSummary,
+    entityId,
+    entityType,
+    maxVisibleReactions,
+    showAnalytics,
+    formatCount,
+  ])
+
   // ============================================================================
   // MAIN RENDER
   // ============================================================================
@@ -727,6 +801,9 @@ export function EnterpriseEngagementActions({
       ref={containerRef}
       className={cn('enterprise-engagement-actions', getVariantClasses(), className)}
     >
+      {/* Engagement Summary */}
+      {renderEngagementSummary()}
+
       {/* Action Buttons Row */}
       <div className="engagement-action-buttons flex items-center justify-between px-4 py-2 border-b border-gray-100">
         {renderReactionButton()}

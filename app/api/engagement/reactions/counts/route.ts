@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
 import { supabaseAdmin } from '@/lib/supabase/server'
 
@@ -16,35 +15,47 @@ export async function GET(request: Request) {
       )
     }
 
-    // Use likes table for all entity types (activity_likes doesn't exist)
-    const { count, error } = await supabaseAdmin
+    // Query likes table and group by like_type to get counts for each reaction type
+    const { data: reactionData, error } = await supabaseAdmin
       .from('likes')
-      .select('*', { count: 'exact', head: true })
+      .select('like_type')
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
 
     if (error) {
-      console.error('Error fetching like count:', error)
-      return NextResponse.json({ error: 'Failed to fetch like count' }, { status: 500 })
+      console.error('Error fetching reaction counts:', error)
+      return NextResponse.json({ error: 'Failed to fetch reaction counts' }, { status: 500 })
     }
 
-    // Return counts with all reaction types set to 0 except 'like'
-    // Note: The likes table doesn't support reaction types, so only 'like' is available
+    // Count reactions by type
     const allReactionTypes = ['like', 'love', 'care', 'haha', 'wow', 'sad', 'angry']
-    const completeCounts = allReactionTypes.reduce(
-      (acc, type) => {
-        acc[type] = type === 'like' ? count || 0 : 0
-        return acc
-      },
-      {} as Record<string, number>
-    )
+    const counts: Record<string, number> = {}
+    
+    // Initialize all types to 0
+    allReactionTypes.forEach(type => {
+      counts[type] = 0
+    })
+
+    // Count each reaction type from the data
+    let totalReactions = 0
+    if (reactionData) {
+      reactionData.forEach((row: { like_type: string }) => {
+        const reactionType = row.like_type || 'like'
+        if (counts[reactionType] !== undefined) {
+          counts[reactionType]++
+        } else {
+          counts[reactionType] = 1
+        }
+        totalReactions++
+      })
+    }
 
     return NextResponse.json({
       success: true,
       entity_id: entityId,
       entity_type: entityType,
-      counts: completeCounts,
-      total_reactions: count || 0,
+      counts,
+      total_reactions: totalReactions,
     })
   } catch (error) {
     console.error('Unexpected error in reaction counts API:', error)

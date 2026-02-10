@@ -1398,6 +1398,24 @@ export function EnterprisePhotoGrid({
         photos={photos}
         currentIndex={currentPhotoIndex}
         onIndexChange={setCurrentPhotoIndex}
+        onPhotoDeleted={(photoId) => {
+          console.info('[PhotoGrid] onPhotoDeleted', { photoId, albumId })
+          setPhotos((prev) => {
+            const next = prev.filter((p) => p.id !== photoId)
+            console.info('[PhotoGrid] photos after remove', { removed: photoId, count: next.length })
+            return next
+          })
+          setSelectedPhotos((prev) => prev.filter((id) => id !== photoId))
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              console.info('[PhotoGrid] reloading photos after delete')
+              loadPhotos(0, true, true)
+            }, 150)
+          })
+          window.dispatchEvent(new CustomEvent('albumRefresh'))
+          window.dispatchEvent(new CustomEvent('photoDeleted', { detail: { photoId, albumId } }))
+          onCoverImageChange?.()
+        }}
         albumId={albumId}
         entityId={entityId}
         entityType={entityType}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { checkColumnExists } from '@/lib/schema/schema-validators'
+import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,22 +65,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Attach the current user's reaction for each post (if authenticated)
+    // Timeline posts use engagement entity type from config (activity = post)
     let userReactionByActivity: Record<string, string | null> = {}
     try {
       const currentUserId = user?.id
       if (currentUserId && Array.isArray(data) && data.length > 0) {
         const postIds = data.map((row: any) => row.id)
-        // Use likes table for all entity types
         const { data: reactions } = await (supabase.from('likes') as any)
-          .select('entity_id')
-          .eq('entity_type', 'post') // Changed from 'activity' to 'post'
+          .select('entity_id, like_type')
+          .eq('entity_type', ENGAGEMENT_ENTITY_TYPE_POST)
           .eq('user_id', currentUserId)
           .in('entity_id', postIds)
         if (Array.isArray(reactions)) {
-          userReactionByActivity = reactions.reduce((acc: Record<string, string>, r: any) => {
-            acc[r.entity_id] = 'like'
-            return acc
-          }, {})
+          userReactionByActivity = reactions.reduce(
+            (acc: Record<string, string | null>, r: { entity_id: string; like_type?: string | null }) => {
+              acc[r.entity_id] = r.like_type ?? 'like'
+              return acc
+            },
+            {}
+          )
         }
       }
     } catch (_) {

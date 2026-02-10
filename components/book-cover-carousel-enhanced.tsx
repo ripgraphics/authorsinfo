@@ -95,14 +95,20 @@ export function BookCoverCarouselEnhanced({
         } catch (error) {
           const isLastAttempt = attempt === MAX_RETRIES
           const errorMessage = error instanceof Error ? error.message : String(error)
-          
+
           if (isLastAttempt) {
-            console.error(`❌ ${operationName} failed after ${MAX_RETRIES + 1} attempts:`, errorMessage)
+            console.error(
+              `❌ ${operationName} failed after ${MAX_RETRIES + 1} attempts:`,
+              errorMessage
+            )
             throw error
           }
 
           const backoffDelay = RETRY_DELAY * Math.pow(2, attempt)
-          console.warn(`⚠️ ${operationName} failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying in ${backoffDelay}ms...`, errorMessage)
+          console.warn(
+            `⚠️ ${operationName} failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying in ${backoffDelay}ms...`,
+            errorMessage
+          )
           setRetryCount(attempt + 1)
           await new Promise((resolve) => setTimeout(resolve, backoffDelay))
         }
@@ -113,28 +119,35 @@ export function BookCoverCarouselEnhanced({
   )
 
   // Transform image data to BookImage format with type safety
-  const transformImageToBookImage = useCallback((img: any, imageType: 'book_cover_front' | 'book_cover_back' | 'book_gallery', displayOrder: number): BookImage | null => {
-    if (!img || !img.id || !img.url) {
-      console.warn('⚠️ Invalid image data:', img)
-      return null
-    }
+  const transformImageToBookImage = useCallback(
+    (
+      img: any,
+      imageType: 'book_cover_front' | 'book_cover_back' | 'book_gallery',
+      displayOrder: number
+    ): BookImage | null => {
+      if (!img || !img.id || !img.url) {
+        console.warn('⚠️ Invalid image data:', img)
+        return null
+      }
 
-    return {
-      id: img.id,
-      image_id: img.id,
-      image_url: img.url,
-      thumbnail_url: img.thumbnail_url || null,
-      large_url: img.large_url || null,
-      medium_url: img.medium_url || null,
-      alt_text: img.alt_text || null,
-      caption: img.caption || null,
-      image_type: imageType,
-      display_order: displayOrder,
-      is_cover: imageType === 'book_cover_front',
-      is_featured: (img.metadata?.is_featured || false) as boolean,
-      created_at: img.created_at || new Date().toISOString(),
-    }
-  }, [])
+      return {
+        id: img.id,
+        image_id: img.id,
+        image_url: img.url,
+        thumbnail_url: img.thumbnail_url || null,
+        large_url: img.large_url || null,
+        medium_url: img.medium_url || null,
+        alt_text: img.alt_text || null,
+        caption: img.caption || null,
+        image_type: imageType,
+        display_order: displayOrder,
+        is_cover: imageType === 'book_cover_front',
+        is_featured: (img.metadata?.is_featured || false) as boolean,
+        created_at: img.created_at || new Date().toISOString(),
+      }
+    },
+    []
+  )
 
   // Fetch book images with enterprise-grade implementation
   const fetchBookImages = useCallback(
@@ -156,7 +169,7 @@ export function BookCoverCarouselEnhanced({
         if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
           console.log('🚀 Cache hit for:', cacheKey)
           const cachedImages = cached.data
-          
+
           startTransition(() => {
             if (append) {
               setImages((prev) => [...prev, ...cachedImages])
@@ -177,14 +190,16 @@ export function BookCoverCarouselEnhanced({
           return trackQueryPerformance('fetchBookFrontCover', async () => {
             const { data: bookData, error } = await supabase
               .from('books')
-              .select('cover_image_id, cover_image:images!books_cover_image_id_fkey(id, url, alt_text, thumbnail_url, large_url, medium_url, caption, created_at)')
+              .select(
+                'cover_image_id, cover_image:images!books_cover_image_id_fkey(id, url, alt_text, thumbnail_url, large_url, medium_url, caption, created_at)'
+              )
               .eq('id', bookId)
               .single()
 
             if (error) {
               throw new Error(`Failed to fetch front cover: ${error.message}`)
             }
-            
+
             // Return the cover_image from the foreign key relationship
             // Check if cover_image exists and is not deleted
             const typedBookData = bookData as any
@@ -199,65 +214,144 @@ export function BookCoverCarouselEnhanced({
           })
         }, 'Fetch front cover')
 
-        // Fetch back cover image directly from images table using entity_id and image_type
-        const backCoverData = await executeWithRetry(async () => {
-          return trackQueryPerformance('fetchBookBackCover', async () => {
-            const { data, error } = await supabase
-              .from('images')
-              .select('id, url, alt_text, thumbnail_url, large_url, medium_url, caption, created_at')
-              .eq('entity_id', bookId)
-              .eq('image_type', 'book_cover_back')
-              .is('deleted_at', null)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle()
+        // Fetch back cover and gallery images from the dedicated "Book Images" album
+        // This ensures we ONLY get images uploaded via the book uploader, not timeline posts
+        const albumImagesData = await executeWithRetry(async () => {
+          return trackQueryPerformance('fetchBookAlbumImages', async () => {
+            // Use the get_book_images database function which queries from "Book Images - {title}" album only
+            // Omit p_image_type to get all types (front, back, gallery)
+            const { data, error } = await (supabase.rpc as any)('get_book_images', {
+              p_book_id: bookId,
+            })
 
             if (error) {
-              throw new Error(`Failed to fetch back cover: ${error.message}`)
-            }
+              // Fallback: If RPC fails, try querying through album_images directly
+              console.warn('⚠️ get_book_images RPC failed, using fallback query:', error.message)
 
-            return data || null
-          })
-        }, 'Fetch back cover')
+              // Find the book's dedicated album (name starts with "Book Images - ")
+              const { data: albumData, error: albumError } = await supabase
+                .from('photo_albums')
+                .select('id')
+                .eq('entity_id', bookId)
+                .eq('entity_type', 'book')
+                .ilike('name', 'Book Images - %')
+                .limit(1)
+                .maybeSingle()
 
-        // Fetch gallery images directly from images table using entity_id and image_type
-        const galleryData = await executeWithRetry(async () => {
-          return trackQueryPerformance('fetchBookGalleryImages', async () => {
-            const { data, error } = await supabase
-              .from('images')
-              .select('id, url, alt_text, thumbnail_url, large_url, medium_url, caption, created_at')
-              .eq('entity_id', bookId)
-              .eq('image_type', 'book_gallery')
-              .is('deleted_at', null)
-              .order('created_at', { ascending: false })
+              const album = albumData as { id: string } | null
 
-            if (error) {
-              throw new Error(`Failed to fetch gallery images: ${error.message}`)
+              if (albumError || !album) {
+                console.log('📭 No Book Images album found for book:', bookId)
+                return []
+              }
+
+              // Get images from that specific album only
+              const { data: albumImages, error: imagesError } = await (
+                supabase.from('album_images') as any
+              )
+                .select(
+                  `
+                  id,
+                  image_id,
+                  image_type,
+                  display_order,
+                  is_cover,
+                  is_featured,
+                  created_at,
+                  images:image_id (
+                    id,
+                    url,
+                    alt_text,
+                    thumbnail_url,
+                    large_url,
+                    medium_url,
+                    caption,
+                    created_at
+                  )
+                `
+                )
+                .eq('album_id', album.id)
+                .order('display_order', { ascending: true })
+
+              if (imagesError) {
+                throw new Error(`Failed to fetch album images: ${imagesError.message}`)
+              }
+
+              // Transform to match RPC output format
+              return (albumImages || [])
+                .map((ai: any) => ({
+                  id: ai.id,
+                  album_id: album.id,
+                  image_id: ai.image_id,
+                  image_url: ai.images?.url,
+                  thumbnail_url: ai.images?.thumbnail_url,
+                  large_url: ai.images?.large_url,
+                  medium_url: ai.images?.medium_url,
+                  alt_text: ai.images?.alt_text,
+                  caption: ai.images?.caption,
+                  image_type: ai.image_type,
+                  display_order: ai.display_order,
+                  is_cover: ai.is_cover,
+                  is_featured: ai.is_featured,
+                  created_at: ai.created_at,
+                }))
+                .filter((img: any) => img.image_url) // Filter out any with missing image data
             }
 
             return data || []
           })
-        }, 'Fetch gallery images')
+        }, 'Fetch book album images')
+
+        // Extract back cover and gallery from album data
+        const backCoverData =
+          albumImagesData.find((img: any) => img.image_type === 'book_cover_back') || null
+        const galleryData = albumImagesData.filter((img: any) => img.image_type === 'book_gallery')
 
         // Transform images to BookImage format
         const transformedImages: BookImage[] = []
 
-        // Front cover (always first)
+        // Front cover (always first) - from books.cover_image_id
         if (frontCoverData) {
           const transformed = transformImageToBookImage(frontCoverData, 'book_cover_front', 0)
           if (transformed) transformedImages.push(transformed)
         }
 
-        // Back cover (second)
+        // Back cover (second) - from Book Images album
         if (backCoverData) {
-          const transformed = transformImageToBookImage(backCoverData, 'book_cover_back', 1)
+          // Album data uses image_url instead of url
+          const normalizedBackCover = {
+            id: backCoverData.image_id || backCoverData.id,
+            url: backCoverData.image_url || backCoverData.url,
+            alt_text: backCoverData.alt_text,
+            thumbnail_url: backCoverData.thumbnail_url,
+            large_url: backCoverData.large_url,
+            medium_url: backCoverData.medium_url,
+            caption: backCoverData.caption,
+            created_at: backCoverData.created_at,
+          }
+          const transformed = transformImageToBookImage(normalizedBackCover, 'book_cover_back', 1)
           if (transformed) transformedImages.push(transformed)
         }
 
-        // Gallery images (follow)
+        // Gallery images (follow) - from Book Images album
         if (galleryData && Array.isArray(galleryData)) {
-          galleryData.forEach((galleryImg, index) => {
-            const transformed = transformImageToBookImage(galleryImg, 'book_gallery', index + 2)
+          galleryData.forEach((galleryImg: any, index: number) => {
+            // Album data uses image_url instead of url
+            const normalizedGallery = {
+              id: galleryImg.image_id || galleryImg.id,
+              url: galleryImg.image_url || galleryImg.url,
+              alt_text: galleryImg.alt_text,
+              thumbnail_url: galleryImg.thumbnail_url,
+              large_url: galleryImg.large_url,
+              medium_url: galleryImg.medium_url,
+              caption: galleryImg.caption,
+              created_at: galleryImg.created_at,
+            }
+            const transformed = transformImageToBookImage(
+              normalizedGallery,
+              'book_gallery',
+              index + 2
+            )
             if (transformed) transformedImages.push(transformed)
           })
         }
@@ -276,11 +370,15 @@ export function BookCoverCarouselEnhanced({
 
           // Set selected image index
           if (currentImageId) {
-            const currentIndex = transformedImages.findIndex((img) => img.image_id === currentImageId)
+            const currentIndex = transformedImages.findIndex(
+              (img) => img.image_id === currentImageId
+            )
             if (currentIndex >= 0) {
               setSelectedImageIndex(currentIndex)
             } else {
-              const frontCoverIndex = transformedImages.findIndex((img) => img.image_type === 'book_cover_front')
+              const frontCoverIndex = transformedImages.findIndex(
+                (img) => img.image_type === 'book_cover_front'
+              )
               if (frontCoverIndex >= 0) {
                 setSelectedImageIndex(frontCoverIndex)
               } else if (transformedImages.length > 0) {
@@ -288,7 +386,9 @@ export function BookCoverCarouselEnhanced({
               }
             }
           } else {
-            const frontCoverIndex = transformedImages.findIndex((img) => img.image_type === 'book_cover_front')
+            const frontCoverIndex = transformedImages.findIndex(
+              (img) => img.image_type === 'book_cover_front'
+            )
             if (frontCoverIndex >= 0) {
               setSelectedImageIndex(frontCoverIndex)
             } else if (transformedImages.length > 0) {
@@ -300,8 +400,9 @@ export function BookCoverCarouselEnhanced({
         })
       } catch (err) {
         console.error('❌ Error fetching book images:', err)
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load images. Please try again.'
-        
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to load images. Please try again.'
+
         // Determine user-friendly error message
         let userMessage = 'Failed to load images. Please try again.'
         if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
@@ -348,9 +449,9 @@ export function BookCoverCarouselEnhanced({
     }
   }, [bookId, currentImageId, fetchBookImages])
 
-  const frontCover = images.find(img => img.image_type === 'book_cover_front')
-  const backCover = images.find(img => img.image_type === 'book_cover_back')
-  const galleryImages = images.filter(img => img.image_type === 'book_gallery')
+  const frontCover = images.find((img) => img.image_type === 'book_cover_front')
+  const backCover = images.find((img) => img.image_type === 'book_cover_back')
+  const galleryImages = images.filter((img) => img.image_type === 'book_gallery')
 
   // Get currently displayed image
   const currentImage = images[selectedImageIndex] || frontCover || images[0]
@@ -358,7 +459,7 @@ export function BookCoverCarouselEnhanced({
   const handleThumbnailClick = (index: number) => {
     setSelectedImageIndex(index)
     const image = images[index]
-    
+
     if (image && onImageChange) {
       onImageChange(image.image_id, image.image_url)
     }
@@ -375,7 +476,9 @@ export function BookCoverCarouselEnhanced({
       id: img.image_id,
       url: img.large_url || img.image_url,
       thumbnail_url: img.thumbnail_url || undefined,
-      alt_text: img.alt_text || getBookCoverAltText(bookTitle, img.image_type === 'book_cover_back' ? 'back' : 'front'),
+      alt_text:
+        img.alt_text ||
+        getBookCoverAltText(bookTitle, img.image_type === 'book_cover_back' ? 'back' : 'front'),
       description: img.caption || undefined,
       created_at: img.created_at,
       metadata: {
@@ -403,7 +506,7 @@ export function BookCoverCarouselEnhanced({
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return
-    
+
     const distance = touchStart - touchEnd
     const isLeftSwipe = distance > minSwipeDistance
     const isRightSwipe = distance < -minSwipeDistance
@@ -423,7 +526,8 @@ export function BookCoverCarouselEnhanced({
   // Calculate if thumbnails need pagination dots
   // Each thumbnail is 60px wide + 8px gap = 68px per thumbnail
   // We'll show dots if there are more thumbnails than can fit in a typical viewport
-  const totalThumbnails = (frontCover ? 1 : 0) + (backCover ? 1 : 0) + galleryImages.length + (canEdit ? 1 : 0)
+  const totalThumbnails =
+    (frontCover ? 1 : 0) + (backCover ? 1 : 0) + galleryImages.length + (canEdit ? 1 : 0)
   const [needsPaginationDots, setNeedsPaginationDots] = useState(false)
   const [thumbnailSections, setThumbnailSections] = useState(1)
 
@@ -434,7 +538,7 @@ export function BookCoverCarouselEnhanced({
       const containerWidth = container.clientWidth
       const thumbnailWidth = 68 // 60px thumbnail + 8px gap
       const thumbnailsPerVisibleRow = Math.floor(containerWidth / thumbnailWidth)
-      
+
       const needsDots = totalThumbnails > thumbnailsPerVisibleRow
       setNeedsPaginationDots(needsDots)
       setThumbnailSections(needsDots ? Math.ceil(totalThumbnails / thumbnailsPerVisibleRow) : 1)
@@ -445,24 +549,26 @@ export function BookCoverCarouselEnhanced({
   useEffect(() => {
     if (thumbnailContainerRef.current && images.length > 0) {
       const container = thumbnailContainerRef.current
-      const selectedThumbnail = container.querySelector(`[data-thumbnail-index="${selectedImageIndex}"]`) as HTMLElement
-      
+      const selectedThumbnail = container.querySelector(
+        `[data-thumbnail-index="${selectedImageIndex}"]`
+      ) as HTMLElement
+
       if (selectedThumbnail) {
         const containerRect = container.getBoundingClientRect()
         const thumbnailRect = selectedThumbnail.getBoundingClientRect()
-        
+
         // Check if thumbnail is outside visible area
         if (thumbnailRect.left < containerRect.left) {
           // Scroll left to show thumbnail
           container.scrollTo({
             left: container.scrollLeft + (thumbnailRect.left - containerRect.left) - 16, // 16px padding
-            behavior: 'smooth'
+            behavior: 'smooth',
           })
         } else if (thumbnailRect.right > containerRect.right) {
           // Scroll right to show thumbnail
           container.scrollTo({
             left: container.scrollLeft + (thumbnailRect.right - containerRect.right) + 16, // 16px padding
-            behavior: 'smooth'
+            behavior: 'smooth',
           })
         }
       }
@@ -516,12 +622,7 @@ export function BookCoverCarouselEnhanced({
             <Camera className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No cover image</p>
             {canEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={onUploadClick}
-              >
+              <Button variant="outline" size="sm" className="mt-2" onClick={onUploadClick}>
                 <Plus className="h-4 w-4 mr-2" />
                 Upload Cover
               </Button>
@@ -546,18 +647,26 @@ export function BookCoverCarouselEnhanced({
           <div className="book-page__cover-image w-full h-full relative aspect-[2/3] flex items-center justify-center bg-muted/10">
             <Image
               src={currentImage.large_url || currentImage.image_url}
-              alt={currentImage.image_type === 'book_gallery' 
-                ? getBookGalleryAltText(bookTitle, currentImage.caption || undefined)
-                : getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
-              title={currentImage.image_type === 'book_gallery' 
-                ? getBookGalleryAltText(bookTitle, currentImage.caption || undefined)
-                : getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
+              alt={
+                currentImage.image_type === 'book_gallery'
+                  ? getBookGalleryAltText(bookTitle, currentImage.caption || undefined)
+                  : getBookCoverAltText(
+                      bookTitle,
+                      currentImage.image_type === 'book_cover_back' ? 'back' : 'front'
+                    )
+              }
+              title={
+                currentImage.image_type === 'book_gallery'
+                  ? getBookGalleryAltText(bookTitle, currentImage.caption || undefined)
+                  : getBookCoverAltText(
+                      bookTitle,
+                      currentImage.image_type === 'book_cover_back' ? 'back' : 'front'
+                    )
+              }
               width={400}
               height={600}
               className={`w-full h-full ${
-                currentImage.image_type === 'book_gallery' 
-                  ? 'object-contain' 
-                  : 'object-cover'
+                currentImage.image_type === 'book_gallery' ? 'object-contain' : 'object-cover'
               }`}
               priority={currentImage.image_type === 'book_cover_front'}
             />
@@ -572,7 +681,7 @@ export function BookCoverCarouselEnhanced({
 
       {/* Thumbnail Row */}
       <div className="space-y-2">
-        <div 
+        <div
           ref={thumbnailContainerRef}
           className="flex gap-2 overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
@@ -643,9 +752,7 @@ export function BookCoverCarouselEnhanced({
                 data-thumbnail-index={index}
                 onClick={() => handleThumbnailClick(index)}
                 className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
-                  selectedImageIndex === index
-                    ? 'shadow-lg'
-                    : 'shadow-sm hover:shadow-md'
+                  selectedImageIndex === index ? 'shadow-lg' : 'shadow-sm hover:shadow-md'
                 }`}
               >
                 <Image
@@ -691,7 +798,7 @@ export function BookCoverCarouselEnhanced({
                       const containerWidth = thumbnailContainerRef.current.clientWidth
                       thumbnailContainerRef.current.scrollTo({
                         left: index * containerWidth,
-                        behavior: 'smooth'
+                        behavior: 'smooth',
                       })
                     }
                   }}

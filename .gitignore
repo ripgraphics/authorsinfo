@@ -53,3 +53,7 @@ dev-server.log
 *et --hard*
 *how cbf4e9b*
 *tatus --porcelain*
+
+# Python cache and temporary output
+__pycache__/
+vercel_list_output.txt

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase'
+import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -88,6 +89,32 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const finalActivities = activities || fallbackActivities || []
     console.log('🔍 Final activities to transform:', finalActivities?.length || 0)
 
+    // Current user's reaction per post (timeline posts use engagement entity type from config)
+    let userReactionByPost: Record<string, string | null> = {}
+    try {
+      const supabase = await createRouteHandlerClientAsync()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.id && Array.isArray(finalActivities) && finalActivities.length > 0) {
+        const postIds = finalActivities.map((row: { id: string }) => row.id)
+        const { data: reactions } = await supabase
+          .from('likes')
+          .select('entity_id, like_type')
+          .eq('entity_type', ENGAGEMENT_ENTITY_TYPE_POST)
+          .eq('user_id', user.id)
+          .in('entity_id', postIds)
+        if (Array.isArray(reactions)) {
+          userReactionByPost = (reactions as { entity_id: string; like_type: string | null }[]).reduce<
+            Record<string, string | null>
+          >((acc, r) => {
+            acc[r.entity_id] = r.like_type ?? 'like'
+            return acc
+          }, {})
+        }
+      }
+    } catch (_) {
+      // Non-fatal
+    }
+
     // Fetch dynamic counts for all posts in a single batch RPC call
     let countsMap: Record<string, { likes_count: number; comments_count: number }> = {}
     if (Array.isArray(finalActivities) && finalActivities.length > 0) {
@@ -123,6 +150,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       finalActivities?.map((activity: any) => {
         const engagement = countsMap[activity.id] || { likes_count: 0, comments_count: 0 }
         
+        const userReaction = userReactionByPost[activity.id] ?? activity.user_reaction_type ?? null
         return {
           id: activity.id,
           user_id: activity.user_id,
@@ -136,7 +164,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
           comment_count: engagement.comments_count,
           share_count: activity.share_count,
           view_count: activity.view_count,
-          is_liked: activity.is_liked,
+          is_liked: !!userReaction,
           entity_type: activity.entity_type,
           entity_id: activity.entity_id,
           // New enhanced columns
@@ -156,8 +184,8 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
           ai_enhanced_text: activity.ai_enhanced_text,
           ai_enhanced_performance: activity.ai_enhanced_performance,
           metadata: activity.metadata,
-          // User reaction information
-          user_reaction_type: activity.user_reaction_type,
+          // User reaction information (server-resolved for current user)
+          user_reaction_type: userReaction,
         }
       }) || []
 

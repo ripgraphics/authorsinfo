@@ -12,23 +12,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 
 // ============================================================================
-// ENTERPRISE-GRADE TYPE DEFINITIONS
+// ENTERPRISE-GRADE TYPE DEFINITIONS (from engagement config — single source of truth)
 // ============================================================================
 
-export type EntityType =
-  | 'user'
-  | 'book'
-  | 'author'
-  | 'publisher'
-  | 'group'
-  | 'activity'
-  | 'event'
-  | 'photo'
-  | 'album'
-  | 'review'
-  | 'comment'
+import type { EntityType, ReactionType } from '@/lib/engagement/config'
 
-export type ReactionType = 'like' | 'love' | 'care' | 'haha' | 'wow' | 'sad' | 'angry'
+export type { EntityType, ReactionType }
 
 export type EngagementAction = 'reaction' | 'comment' | 'share' | 'bookmark' | 'view' | 'follow'
 
@@ -93,40 +82,40 @@ export interface EngagementContextValue extends EngagementContextState {
 
 type EngagementActionType =
   | {
-    type: 'SET_ENTITY_ENGAGEMENT'
-    payload: { entityId: string; entityType: EntityType; state: Partial<EngagementState> }
-  }
-  | {
-    type: 'SET_REACTION'
-    payload: { entityId: string; entityType: EntityType; reactionType: ReactionType | null }
-  }
-  | {
-    type: 'INCREMENT_COUNT'
-    payload: {
-      entityId: string
-      entityType: EntityType
-      countType: keyof Pick<
-        EngagementState,
-        'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
-      >
+      type: 'SET_ENTITY_ENGAGEMENT'
+      payload: { entityId: string; entityType: EntityType; state: Partial<EngagementState> }
     }
-  }
   | {
-    type: 'DECREMENT_COUNT'
-    payload: {
-      entityId: string
-      entityType: EntityType
-      countType: keyof Pick<
-        EngagementState,
-        'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
-      >
+      type: 'SET_REACTION'
+      payload: { entityId: string; entityType: EntityType; reactionType: ReactionType | null }
     }
-  }
+  | {
+      type: 'INCREMENT_COUNT'
+      payload: {
+        entityId: string
+        entityType: EntityType
+        countType: keyof Pick<
+          EngagementState,
+          'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
+        >
+      }
+    }
+  | {
+      type: 'DECREMENT_COUNT'
+      payload: {
+        entityId: string
+        entityType: EntityType
+        countType: keyof Pick<
+          EngagementState,
+          'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
+        >
+      }
+    }
   | { type: 'SET_LOADING'; payload: { entityId: string; entityType: EntityType; loading: boolean } }
   | {
-    type: 'SET_ERROR'
-    payload: { entityId: string; entityType: EntityType; error: string | null }
-  }
+      type: 'SET_ERROR'
+      payload: { entityId: string; entityType: EntityType; error: string | null }
+    }
   | { type: 'SET_GLOBAL_LOADING'; payload: boolean }
   | { type: 'SET_GLOBAL_ERROR'; payload: string | null }
   | { type: 'RESET_ENTITY'; payload: { entityId: string; entityType: EntityType } }
@@ -182,24 +171,29 @@ function engagementReducer(
       const key = `${entityType}:${entityId}`
       const existing = state.entities.get(key)
 
-      if (!existing) return state
-
-      // Determine reaction count change
-      let countChange = 0
-      if (reactionType && !existing.userReaction) {
-        // Adding new reaction
-        countChange = 1
-      } else if (!reactionType && existing.userReaction) {
-        // Removing reaction
-        countChange = -1
-      }
-      // If switching reaction types (reactionType && existing.userReaction), countChange is 0
-
       const updatedEntities = new Map(state.entities)
+      const baseState = existing ?? {
+        entityId,
+        entityType,
+        reactionCount: 0,
+        commentCount: 0,
+        shareCount: 0,
+        bookmarkCount: 0,
+        viewCount: 0,
+        userReaction: null,
+        userHasCommented: false,
+        userHasShared: false,
+        userHasBookmarked: false,
+        userHasViewed: false,
+        isLoading: false,
+        error: null,
+      }
       updatedEntities.set(key, {
-        ...existing,
+        ...baseState,
         userReaction: reactionType,
-        reactionCount: Math.max(0, existing.reactionCount + countChange),
+        reactionCount: reactionType
+          ? baseState.reactionCount + 1
+          : Math.max(0, baseState.reactionCount - 1),
       })
 
       return { ...state, entities: updatedEntities }
@@ -357,39 +351,51 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
         const result = await response.json()
 
         if (result.success) {
-          // Update local state based on ACTION performed, not just the new type
-          // If we are removing the reaction (new type is null)
-          // The API might return the action taken ('added', 'removed', or implicitly updated if different)
+          // Server is source of truth: use total_count and user_reaction from response when present
+          const totalCount = typeof result.total_count === 'number' ? result.total_count : undefined
+          const userReactionFromServer =
+            result.user_reaction === null || typeof result.user_reaction === 'string'
+              ? result.user_reaction
+              : undefined
+
+          if (totalCount !== undefined || userReactionFromServer !== undefined) {
+            dispatch({
+              type: 'SET_ENTITY_ENGAGEMENT',
+              payload: {
+                entityId,
+                entityType,
+                state: {
+                  ...(totalCount !== undefined && { reactionCount: totalCount }),
+                  ...(userReactionFromServer !== undefined && {
+                    userReaction: userReactionFromServer as ReactionType | null,
+                  }),
+                },
+              },
+            })
+          } else {
+            // Fallback: derive from action (legacy path)
+            if (currentReaction === reactionType) {
+              dispatch({
+                type: 'SET_REACTION',
+                payload: { entityId, entityType, reactionType: null },
+              })
+            } else {
+              dispatch({ type: 'SET_REACTION', payload: { entityId, entityType, reactionType } })
+            }
+          }
 
           if (currentReaction === reactionType) {
-            // Case 1: Removing reaction (toggling off)
-            dispatch({
-              type: 'SET_REACTION',
-              payload: { entityId, entityType, reactionType: null },
-            })
             toast({
               title: 'Reaction removed',
               description: 'Your reaction has been removed',
               variant: 'default',
             })
           } else {
-            // Case 2: Adding or Changing reaction
-            const isUpdate = !!currentReaction
-            dispatch({ type: 'SET_REACTION', payload: { entityId, entityType, reactionType } })
-
-            if (isUpdate) {
-              toast({
-                title: 'Reaction updated',
-                description: `You changed your reaction to ${reactionType}`,
-                variant: 'default',
-              })
-            } else {
-              toast({
-                title: 'Reaction added!',
-                description: `You reacted with ${reactionType}!`,
-                variant: 'default',
-              })
-            }
+            toast({
+              title: 'Reaction added!',
+              description: `You reacted with ${reactionType}!`,
+              variant: 'default',
+            })
           }
 
           return true
@@ -418,7 +424,7 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
         dispatch({ type: 'SET_LOADING', payload: { entityId, entityType, loading: false } })
       }
     },
-    [user, toast, state.entities]
+    [user, toast]
   )
 
   const removeReaction = useCallback(
@@ -428,7 +434,7 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
 
       return setReaction(entityId, entityType, existing.userReaction)
     },
-    [setReaction, state.entities]
+    [setReaction]
   )
 
   const addComment = useCallback(

@@ -34,6 +34,12 @@ export interface EngagementDisplayProps {
   showReactionTypes?: boolean
   maxPreviewItems?: number
   showAddFriendButtons?: boolean
+  showAnalytics?: boolean
+  monetization?: {
+    type: string
+    amount?: string | number
+    currency?: string
+  }
 }
 
 export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
@@ -51,6 +57,8 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   showReactionTypes = false,
   maxPreviewItems = 6,
   showAddFriendButtons = true,
+  showAnalytics = false,
+  monetization,
 }) => {
   const { user } = useAuth()
   const [reactions, setReactions] = useState<EngagementUser[]>([])
@@ -328,7 +336,40 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
         )}
       </div>
 
-      <div className="engagement-right"></div>
+      <div className="engagement-right flex items-center gap-2">
+        {showAnalytics && (
+          <button className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200 border border-gray-200">
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+            Analytics
+          </button>
+        )}
+        {monetization && (
+          <div className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md border border-green-100 shadow-xs">
+            {monetization.type === 'subscription' && (
+              <span className="uppercase tracking-wider mr-1">Premium</span>
+            )}
+            {monetization.amount && (
+              <span>
+                {monetization.currency || '$'}
+                {monetization.amount}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

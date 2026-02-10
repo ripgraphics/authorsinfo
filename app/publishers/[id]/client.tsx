@@ -142,8 +142,8 @@ export function ClientPublisherPage({
     publisher?.state && publisher?.country_details?.code
       ? `${publisher.state}, ${publisher.country_details.code}`
       : publisher?.state ||
-        publisher?.country ||
-        (publisher?.country_details ? publisher.country_details.name : '')
+      publisher?.country ||
+      (publisher?.country_details ? publisher.country_details.name : '')
 
   // Note: Publishers don't have personal reading stats or friends like users do
   // Real data is passed from server via props (followers, followersCount, books, booksCount)
@@ -201,8 +201,8 @@ export function ClientPublisherPage({
                   <div className="text-2xl font-semibold leading-none tracking-tight">
                     Recent Books
                   </div>
-                  <Link 
-                    href={`/publishers/${params.id}?tab=books`} 
+                  <Link
+                    href={`/publishers/${params.id}?tab=books`}
                     className="app-text-link text-sm"
                   >
                     See All
@@ -244,11 +244,11 @@ export function ClientPublisherPage({
                   entityDisplayInfo={
                     publisher
                       ? {
-                          id: params.id,
-                          name: publisher.name,
-                          type: 'publisher' as const,
-                          bookCount: booksCount || 0,
-                        }
+                        id: params.id,
+                        name: publisher.name,
+                        type: 'publisher' as const,
+                        bookCount: booksCount || 0,
+                      }
                       : undefined
                   }
                 />
@@ -337,12 +337,12 @@ export function ClientPublisherPage({
             entityDisplayInfo={
               publisher
                 ? {
-                    id: params.id,
-                    name: publisher.name,
-                    type: 'publisher' as const,
-                    publisher_image: publisher.publisher_image,
-                    bookCount: booksCount || 0,
-                  }
+                  id: params.id,
+                  name: publisher.name,
+                  type: 'publisher' as const,
+                  publisher_image: publisher.publisher_image,
+                  bookCount: booksCount || 0,
+                }
                 : undefined
             }
           />

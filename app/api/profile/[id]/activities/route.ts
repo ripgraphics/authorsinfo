@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/server'
+import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -100,7 +101,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (Array.isArray(activities) && activities.length > 0) {
       try {
         const postIds = activities.map((row: any) => row.id)
-        const postTypes = activities.map((row: any) => row.entity_type === 'book' ? 'book' : 'post')
+        const postTypes = activities.map(() => ENGAGEMENT_ENTITY_TYPE_POST)
         
         const { data: batchCounts, error: batchError } = await (supabaseAdmin.rpc as any)('get_multiple_entities_engagement', {
           p_entity_ids: postIds,

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabaseClient } from '@/lib/supabase/client'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { ReusableModal } from '@/components/ui/reusable-modal'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
@@ -134,6 +135,8 @@ interface EnterprisePhotoViewerProps {
   photos: Photo[]
   currentIndex: number
   onIndexChange: (index: number) => void
+  /** Called after a photo is successfully deleted so the parent can update its list and count. */
+  onPhotoDeleted?: (photoId: string) => void
   albumId?: string
   entityId?: string
   entityType?: string
@@ -157,6 +160,7 @@ export function EnterprisePhotoViewer({
   photos,
   currentIndex,
   onIndexChange,
+  onPhotoDeleted,
   albumId,
   entityId,
   entityType,
@@ -182,6 +186,8 @@ export function EnterprisePhotoViewer({
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [isPhotoDataLoaded, setIsPhotoDataLoaded] = useState(false)
   const [photoData, setPhotoData] = useState<any>(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -727,28 +733,43 @@ export function EnterprisePhotoViewer({
   const handleDeletePhoto = async () => {
     if (!photo) return
 
-    // Confirm deletion
-    if (!confirm('Are you sure you want to delete this photo? This action cannot be undone.')) {
-      return
-    }
-
+    const photoId = photo.id
+    const logPrefix = '[PhotoViewer] delete'
+    console.info(logPrefix, 'start', { photoId, albumId, photosCount: photos.length })
+    setIsDeleting(true)
     try {
-      // Delete from album first
-      if (albumId) {
-        await supabase
-          .from('album_images')
-          .delete()
-          .eq('album_id', albumId)
-          .eq('image_id', photo.id)
-      }
+      // Call the delete API which performs full cleanup:
+      // 1. Deletes from album_images
+      // 2. Deletes from images table
+      // 3. Deletes from Cloudinary
+      const deleteUrl = albumId
+        ? `/api/photos/${photoId}?albumId=${albumId}`
+        : `/api/photos/${photoId}`
 
-      // TODO: Consider if we should delete the image entirely or just remove from album
-      // For now, we'll just remove from album
+      const response = await fetch(deleteUrl, { method: 'DELETE' })
+      const result = await response.json()
+
+      console.info(logPrefix, 'API delete result', {
+        photoId,
+        albumId,
+        success: result.success,
+        error: result.error ?? null,
+      })
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete photo')
+      }
 
       toast({
         title: 'Photo deleted',
-        description: 'Photo has been removed from the album',
+        description: 'Photo has been permanently removed',
       })
+
+      setShowDeleteConfirmDialog(false)
+
+      console.info(logPrefix, 'calling onPhotoDeleted', { photoId })
+      // Notify parent so it can remove the photo from its list and update count
+      onPhotoDeleted?.(photoId)
 
       // Navigate to next photo or close if last one
       if (photos.length > 1) {
@@ -761,12 +782,14 @@ export function EnterprisePhotoViewer({
         onClose()
       }
     } catch (error) {
-      console.error('Error deleting photo:', error)
+      console.error('[PhotoViewer] delete failed', { photoId, albumId, error })
       toast({
         title: 'Error',
-        description: 'Failed to delete photo',
+        description: error instanceof Error ? error.message : 'Failed to delete photo',
         variant: 'destructive',
       })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -866,7 +889,7 @@ export function EnterprisePhotoViewer({
     if (isDragging) {
       return
     }
-    
+
     if (isTagging) {
       const rect = e.currentTarget.getBoundingClientRect()
       const x = ((e.clientX - rect.left) / rect.width) * 100
@@ -954,269 +977,271 @@ export function EnterprisePhotoViewer({
   if (!photo) return null
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        className="max-w-[95vw] max-h-[85vh] md:max-h-[95vh] p-0 overflow-hidden bg-black/95"
-        aria-describedby="photo-viewer-description"
-      >
-        <DialogTitle className="sr-only">Photo Viewer</DialogTitle>
-        <div id="photo-viewer-description" className="sr-only">
-          Photo viewer for {photo.alt_text || 'photo'} - Navigate through photos, zoom, rotate, and
-          view details
-        </div>
-        <div className="flex flex-col md:flex-row h-[85vh] md:h-[95vh] max-h-[85vh] md:max-h-[95vh]">
-          {/* Main Image Area */}
-          <div className="flex-1 relative flex items-center justify-center min-h-0">
-            {/* Navigation Buttons */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-4 z-10 bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-              onClick={() => onIndexChange((currentIndex - 1 + photos.length) % photos.length)}
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent
+          className="max-w-[95vw] max-h-[85vh] md:max-h-[95vh] p-0 overflow-hidden bg-black/95"
+          aria-describedby="photo-viewer-description"
+        >
+          <DialogTitle className="sr-only">Photo Viewer</DialogTitle>
+          <div id="photo-viewer-description" className="sr-only">
+            Photo viewer for {photo.alt_text || 'photo'} - Navigate through photos, zoom, rotate,
+            and view details
+          </div>
+          <div className="flex flex-col md:flex-row h-[85vh] md:h-[95vh] max-h-[85vh] md:max-h-[95vh]">
+            {/* Main Image Area */}
+            <div className="flex-1 relative flex items-center justify-center min-h-0">
+              {/* Navigation Buttons */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-4 z-10 bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                onClick={() => onIndexChange((currentIndex - 1 + photos.length) % photos.length)}
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-4 z-10 bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-              onClick={() => onIndexChange((currentIndex + 1) % photos.length)}
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-4 z-10 bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                onClick={() => onIndexChange((currentIndex + 1) % photos.length)}
+              >
+                <ChevronRight className="h-6 w-6" />
+              </Button>
 
-            {/* Top Controls */}
-            <div className="absolute top-4 left-4 right-14 md:right-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 z-10">
-              <div className="flex items-center gap-2 order-2 sm:order-1">
-                <Badge variant="secondary" className="bg-black/50 text-white">
-                  {currentIndex + 1} of {photos.length}
-                </Badge>
-                {photo.tags && photo.tags.length > 0 && (
+              {/* Top Controls */}
+              <div className="absolute top-4 left-4 right-14 md:right-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 z-10">
+                <div className="flex items-center gap-2 order-2 sm:order-1">
+                  <Badge variant="secondary" className="bg-black/50 text-white">
+                    {currentIndex + 1} of {photos.length}
+                  </Badge>
+                  {photo.tags && photo.tags.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                      onClick={() => setShowTags(!showTags)}
+                    >
+                      <Tag className="h-4 w-4 mr-2" />
+                      {photo.tags.length} Tags
+                    </Button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 order-1 sm:order-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                    onClick={() => setZoom(zoom === 1 ? 2 : 1)}
+                  >
+                    {zoom === 1 ? <ZoomIn className="h-4 w-4" /> : <ZoomOut className="h-4 w-4" />}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                    onClick={() => setRotation(rotation + 90)}
+                  >
+                    <RotateCw className="h-4 w-4" />
+                  </Button>
+
+                  {/* Info Button - Photo Details Modal */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="photo-details-info-button bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                    onClick={async () => {
+                      // Refresh photo data when opening info modal
+                      if (photo && albumId) {
+                        console.log('🔄 Refreshing photo data for Info modal...')
+                        await loadPhotoData(photo.id, albumId)
+                      } else if (photo) {
+                        console.log('🔄 Refreshing photo data for Info modal (no album)...')
+                        await loadPhotoData(photo.id)
+                      }
+                      setShowDetailsModal(!showDetailsModal)
+                    }}
+                  >
+                    <Info className="photo-details-info-icon h-4 w-4" />
+                  </Button>
+
+                  {(isOwner || isAdmin) && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                        onClick={() => {
+                          // Initialize form with current photo data
+                          if (photo) {
+                            console.log('🔄 Initializing edit form with current photo data:', {
+                              alt_text: photo.alt_text || '',
+                              description: photo.description || '',
+                              is_featured: photo.is_featured || false,
+                              shouldSetAsCover: photo.is_cover || false,
+                            })
+
+                            setEditForm({
+                              alt_text: photo.alt_text || '',
+                              description: photo.description || '',
+                              is_featured: photo.is_featured || false,
+                              shouldSetAsCover: photo.is_cover || false,
+                            })
+                          }
+                          setShowEditModal(true)
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                        onClick={() => setShowDeleteConfirmDialog(true)}
+                        aria-label="Delete photo"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Main Image */}
+              <div
+                className={`relative w-full h-full flex items-center justify-center select-none ${isTagging ? 'cursor-crosshair' : isDragging ? 'cursor-grabbing' : 'cursor-pointer'}`}
+                onClick={isDragging ? undefined : handleImageClick}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+                onMouseDown={onMouseDown}
+                onMouseMove={onMouseMove}
+                onMouseUp={onMouseUp}
+                onMouseLeave={onMouseLeave}
+                style={{ touchAction: 'pan-y' }}
+                title={
+                  isTagging
+                    ? 'Click to add tag'
+                    : isDragging
+                      ? 'Release to navigate'
+                      : 'Click to go to next image or drag to navigate'
+                }
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.alt_text || 'Photo'}
+                  className="max-w-full max-h-full object-contain"
+                  style={{
+                    transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                    transition: 'transform 0.3s ease',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    width: 'auto',
+                    height: 'auto',
+                  }}
+                />
+
+                {/* Photo Tags */}
+                {showTags &&
+                  photo.tags?.map((tag) => (
+                    <div
+                      key={tag.id}
+                      className="absolute bg-blue-500 text-white px-2 py-1 rounded-sm text-xs transform -translate-x-1/2 -translate-y-1/2"
+                      style={{ left: `${tag.x_position}%`, top: `${tag.y_position}%` }}
+                    >
+                      {tag.entity_name}
+                    </div>
+                  ))}
+
+                {/* Tag Position Indicator */}
+                {isTagging && tagPosition && (
+                  <div
+                    className="absolute w-4 h-4 bg-blue-500 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: `${tagPosition.x}%`, top: `${tagPosition.y}%` }}
+                  />
+                )}
+              </div>
+
+              {/* Bottom Controls */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row items-center gap-2 z-10">
+                <div className="flex items-center gap-2 order-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground ${isLiked ? 'text-red-500' : ''}`}
+                    onClick={handleLike}
+                  >
+                    <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+                    {photo.likes?.length || 0}
+                  </Button>
+
                   <Button
                     variant="ghost"
                     size="sm"
                     className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                    onClick={() => setShowTags(!showTags)}
+                    onClick={() => setShowComments(!showComments)}
                   >
-                    <Tag className="h-4 w-4 mr-2" />
-                    {photo.tags.length} Tags
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    {photo.comments?.length || 0}
                   </Button>
-                )}
-              </div>
+                </div>
 
-              <div className="flex items-center gap-2 order-1 sm:order-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                  onClick={() => setZoom(zoom === 1 ? 2 : 1)}
-                >
-                  {zoom === 1 ? <ZoomIn className="h-4 w-4" /> : <ZoomOut className="h-4 w-4" />}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                  onClick={() => setRotation(rotation + 90)}
-                >
-                  <RotateCw className="h-4 w-4" />
-                </Button>
-
-                {/* Info Button - Photo Details Modal */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="photo-details-info-button bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                  onClick={async () => {
-                    // Refresh photo data when opening info modal
-                    if (photo && albumId) {
-                      console.log('🔄 Refreshing photo data for Info modal...')
-                      await loadPhotoData(photo.id, albumId)
-                    } else if (photo) {
-                      console.log('🔄 Refreshing photo data for Info modal (no album)...')
-                      await loadPhotoData(photo.id)
-                    }
-                    setShowDetailsModal(!showDetailsModal)
-                  }}
-                >
-                  <Info className="photo-details-info-icon h-4 w-4" />
-                </Button>
-
-                {(isOwner || isAdmin) && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                      onClick={() => {
-                        // Initialize form with current photo data
-                        if (photo) {
-                          console.log('🔄 Initializing edit form with current photo data:', {
-                            alt_text: photo.alt_text || '',
-                            description: photo.description || '',
-                            is_featured: photo.is_featured || false,
-                            shouldSetAsCover: photo.is_cover || false,
-                          })
-
-                          setEditForm({
-                            alt_text: photo.alt_text || '',
-                            description: photo.description || '',
-                            is_featured: photo.is_featured || false,
-                            shouldSetAsCover: photo.is_cover || false,
-                          })
-                        }
-                        setShowEditModal(true)
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                      onClick={handleDeletePhoto}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Main Image */}
-            <div
-              className={`relative w-full h-full flex items-center justify-center select-none ${isTagging ? 'cursor-crosshair' : isDragging ? 'cursor-grabbing' : 'cursor-pointer'}`}
-              onClick={isDragging ? undefined : handleImageClick}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
-              onMouseDown={onMouseDown}
-              onMouseMove={onMouseMove}
-              onMouseUp={onMouseUp}
-              onMouseLeave={onMouseLeave}
-              style={{ touchAction: 'pan-y' }}
-              title={
-                isTagging
-                  ? 'Click to add tag'
-                  : isDragging
-                  ? 'Release to navigate'
-                  : 'Click to go to next image or drag to navigate'
-              }
-            >
-              <img
-                src={photo.url}
-                alt={photo.alt_text || 'Photo'}
-                className="max-w-full max-h-full object-contain"
-                style={{
-                  transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                  transition: 'transform 0.3s ease',
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  width: 'auto',
-                  height: 'auto',
-                }}
-              />
-
-              {/* Photo Tags */}
-              {showTags &&
-                photo.tags?.map((tag) => (
-                  <div
-                    key={tag.id}
-                    className="absolute bg-blue-500 text-white px-2 py-1 rounded-sm text-xs transform -translate-x-1/2 -translate-y-1/2"
-                    style={{ left: `${tag.x_position}%`, top: `${tag.y_position}%` }}
-                  >
-                    {tag.entity_name}
-                  </div>
-                ))}
-
-              {/* Tag Position Indicator */}
-              {isTagging && tagPosition && (
-                <div
-                  className="absolute w-4 h-4 bg-blue-500 rounded-full transform -translate-x-1/2 -translate-y-1/2"
-                  style={{ left: `${tagPosition.x}%`, top: `${tagPosition.y}%` }}
-                />
-              )}
-            </div>
-
-            {/* Bottom Controls */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row items-center gap-2 z-10">
-              <div className="flex items-center gap-2 order-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground ${isLiked ? 'text-red-500' : ''}`}
-                  onClick={handleLike}
-                >
-                  <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
-                  {photo.likes?.length || 0}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                  onClick={() => setShowComments(!showComments)}
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  {photo.comments?.length || 0}
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2 order-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                  onClick={() => handleShare('copy')}
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
-                  onClick={handleDownload}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-
-                {isOwner && (
+                <div className="flex items-center gap-2 order-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground ${isTagging ? 'bg-blue-600' : ''}`}
-                    onClick={() => setIsTagging(!isTagging)}
+                    className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                    onClick={() => handleShare('copy')}
                   >
-                    <Tag className="h-4 w-4 mr-2" />
-                    Tag
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
                   </Button>
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* Right Sidebar - Responsive Width */}
-          <div className="w-full md:w-96 bg-white border-t md:border-l md:border-t-0 border-gray-200 flex flex-col pt-4 md:pt-14 max-h-[50vh] md:max-h-none overflow-y-auto">
-            {/* Sidebar */}
-            {isPhotoDataLoaded ? (
-              <div className="p-4 text-left text-gray-500">
-                Comments are now displayed inline with the post
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-full bg-gray-50">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
-                  <div className="text-sm text-gray-500">Loading photo details...</div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground"
+                    onClick={handleDownload}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+
+                  {isOwner && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground ${isTagging ? 'bg-blue-600' : ''}`}
+                      onClick={() => setIsTagging(!isTagging)}
+                    >
+                      <Tag className="h-4 w-4 mr-2" />
+                      Tag
+                    </Button>
+                  )}
                 </div>
               </div>
-            )}
-            {/* <EntityComments
+            </div>
+
+            {/* Right Sidebar - Responsive Width */}
+            <div className="w-full md:w-96 bg-white border-t md:border-l md:border-t-0 border-gray-200 flex flex-col pt-4 md:pt-14 max-h-[50vh] md:max-h-none overflow-y-auto">
+              {/* Sidebar */}
+              {isPhotoDataLoaded ? (
+                <div className="p-4 text-left text-gray-500">
+                  Comments are now displayed inline with the post
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full bg-gray-50">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+                    <div className="text-sm text-gray-500">Loading photo details...</div>
+                  </div>
+                </div>
+              )}
+              {/* <EntityComments
               entityId={photo.id}
               entityType="photo"
               entityName={photo.user?.name || "User"}
@@ -1225,630 +1250,665 @@ export function EnterprisePhotoViewer({
               isOwner={isOwner}
               entityDisplayInfo={entityDisplayInfo}
             /> */}
+            </div>
           </div>
-        </div>
 
-        {/* Tagging Modal */}
-        {isTagging && tagPosition && (
-          <div className="photo-tagging-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="photo-tagging-modal-content bg-background p-4 rounded-lg max-w-md w-full mx-4">
-              <h3 className="photo-tagging-modal-title font-semibold mb-4">Tag Someone</h3>
+          {/* Tagging Modal */}
+          {isTagging && tagPosition && (
+            <div className="photo-tagging-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="photo-tagging-modal-content bg-background p-4 rounded-lg max-w-md w-full mx-4">
+                <h3 className="photo-tagging-modal-title font-semibold mb-4">Tag Someone</h3>
 
-              <div className="photo-tagging-modal-body space-y-4">
-                <div className="photo-tagging-entity-type-selector">
-                  <Select
-                    value={selectedEntityType}
-                    onValueChange={(value: any) => setSelectedEntityType(value)}
+                <div className="photo-tagging-modal-body space-y-4">
+                  <div className="photo-tagging-entity-type-selector">
+                    <Select
+                      value={selectedEntityType}
+                      onValueChange={(value: any) => setSelectedEntityType(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">User</SelectItem>
+                        <SelectItem value="book">Book</SelectItem>
+                        <SelectItem value="publisher">Publisher</SelectItem>
+                        <SelectItem value="author">Author</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="photo-tagging-search-input">
+                    <Input
+                      placeholder={`Search ${selectedEntityType}s...`}
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value)
+                        searchEntities(e.target.value)
+                      }}
+                    />
+                  </div>
+
+                  {searchResults.length > 0 && (
+                    <div className="photo-tagging-search-results">
+                      <ScrollArea className="h-32">
+                        <div className="photo-tagging-search-results-list space-y-1">
+                          {searchResults.map((result) => (
+                            <Button
+                              key={result.id}
+                              variant="ghost"
+                              className="photo-tagging-search-result-item w-full justify-start"
+                              onClick={() => handleTagPhoto(result.id, result.name)}
+                            >
+                              {result.name}
+                            </Button>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  )}
+                </div>
+
+                <div className="photo-tagging-modal-actions flex gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsTagging(false)}
+                    className="photo-tagging-cancel-button flex-1"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="book">Book</SelectItem>
-                      <SelectItem value="publisher">Publisher</SelectItem>
-                      <SelectItem value="author">Author</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Photo Details Modal */}
+          {showDetailsModal && (
+            <div className="photo-details-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="photo-details-modal-content bg-background p-4 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                <div className="photo-details-modal-header flex items-center justify-between mb-4">
+                  <h3 className="photo-details-modal-title font-semibold text-lg">Photo Details</h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="photo-details-modal-close-button"
+                    onClick={() => setShowDetailsModal(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
 
-                <div className="photo-tagging-search-input">
-                  <Input
-                    placeholder={`Search ${selectedEntityType}s...`}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value)
-                      searchEntities(e.target.value)
-                    }}
-                  />
-                </div>
+                <div className="photo-details-content space-y-4">
+                  {/* Description Section */}
+                  {photo.description && (
+                    <div className="photo-description-section">
+                      <h4 className="photo-description-label font-semibold mb-2">Description</h4>
+                      <p className="photo-description-text text-muted-foreground">
+                        {photo.description}
+                      </p>
+                    </div>
+                  )}
 
-                {searchResults.length > 0 && (
-                  <div className="photo-tagging-search-results">
-                    <ScrollArea className="h-32">
-                      <div className="photo-tagging-search-results-list space-y-1">
-                        {searchResults.map((result) => (
-                          <Button
-                            key={result.id}
-                            variant="ghost"
-                            className="photo-tagging-search-result-item w-full justify-start"
-                            onClick={() => handleTagPhoto(result.id, result.name)}
-                          >
-                            {result.name}
-                          </Button>
+                  {/* Analytics Section */}
+                  <div className="photo-analytics-section">
+                    <h4 className="photo-analytics-label font-semibold mb-2">Analytics</h4>
+                    <div className="photo-analytics-grid grid grid-cols-2 gap-4">
+                      <div className="photo-analytics-item">
+                        <span className="photo-analytics-label text-sm text-muted-foreground">
+                          Views:
+                        </span>
+                        <span className="photo-analytics-value ml-2 font-medium">
+                          {photoData?.view_count || 0}
+                        </span>
+                      </div>
+                      <div className="photo-analytics-item">
+                        <span className="photo-analytics-label text-sm text-muted-foreground">
+                          Likes:
+                        </span>
+                        <span className="photo-analytics-value ml-2 font-medium">
+                          {photoData?.like_count || 0}
+                        </span>
+                      </div>
+                      <div className="photo-analytics-item">
+                        <span className="photo-analytics-label text-sm text-muted-foreground">
+                          Comments:
+                        </span>
+                        <span className="photo-analytics-value ml-2 font-medium">
+                          {photoData?.comment_count || 0}
+                        </span>
+                      </div>
+                      <div className="photo-analytics-item">
+                        <span className="photo-analytics-label text-sm text-muted-foreground">
+                          Downloads:
+                        </span>
+                        <span className="photo-analytics-value ml-2 font-medium">
+                          {photoData?.download_count || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tags Section */}
+                  {photoData?.tags && photoData.tags.length > 0 && (
+                    <div className="photo-tags-section">
+                      <h4 className="photo-tags-label font-semibold mb-2">Tags</h4>
+                      <div className="photo-tags-container flex flex-wrap gap-2">
+                        {photoData.tags.map((tag: string, index: number) => (
+                          <Badge key={index} variant="secondary" className="photo-tag-badge">
+                            {tag}
+                          </Badge>
                         ))}
                       </div>
-                    </ScrollArea>
-                  </div>
-                )}
-              </div>
-
-              <div className="photo-tagging-modal-actions flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsTagging(false)}
-                  className="photo-tagging-cancel-button flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Photo Details Modal */}
-        {showDetailsModal && (
-          <div className="photo-details-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="photo-details-modal-content bg-background p-4 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-              <div className="photo-details-modal-header flex items-center justify-between mb-4">
-                <h3 className="photo-details-modal-title font-semibold text-lg">Photo Details</h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="photo-details-modal-close-button"
-                  onClick={() => setShowDetailsModal(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="photo-details-content space-y-4">
-                {/* Description Section */}
-                {photo.description && (
-                  <div className="photo-description-section">
-                    <h4 className="photo-description-label font-semibold mb-2">Description</h4>
-                    <p className="photo-description-text text-muted-foreground">
-                      {photo.description}
-                    </p>
-                  </div>
-                )}
-
-                {/* Analytics Section */}
-                <div className="photo-analytics-section">
-                  <h4 className="photo-analytics-label font-semibold mb-2">Analytics</h4>
-                  <div className="photo-analytics-grid grid grid-cols-2 gap-4">
-                    <div className="photo-analytics-item">
-                      <span className="photo-analytics-label text-sm text-muted-foreground">
-                        Views:
-                      </span>
-                      <span className="photo-analytics-value ml-2 font-medium">
-                        {photoData?.view_count || 0}
-                      </span>
                     </div>
-                    <div className="photo-analytics-item">
-                      <span className="photo-analytics-label text-sm text-muted-foreground">
-                        Likes:
-                      </span>
-                      <span className="photo-analytics-value ml-2 font-medium">
-                        {photoData?.like_count || 0}
-                      </span>
-                    </div>
-                    <div className="photo-analytics-item">
-                      <span className="photo-analytics-label text-sm text-muted-foreground">
-                        Comments:
-                      </span>
-                      <span className="photo-analytics-value ml-2 font-medium">
-                        {photoData?.comment_count || 0}
-                      </span>
-                    </div>
-                    <div className="photo-analytics-item">
-                      <span className="photo-analytics-label text-sm text-muted-foreground">
-                        Downloads:
-                      </span>
-                      <span className="photo-analytics-value ml-2 font-medium">
-                        {photoData?.download_count || 0}
-                      </span>
+                  )}
+
+                  {/* Upload Info Section */}
+                  <div className="photo-upload-info-section">
+                    <h4 className="photo-upload-info-label font-semibold mb-2">Upload Info</h4>
+                    <div className="photo-upload-info-content text-sm text-muted-foreground space-y-1">
+                      <div className="photo-upload-date">
+                        <span className="photo-upload-date-label">Date:</span>
+                        <span className="photo-upload-date-value ml-2">
+                          {formatDate(photo.created_at)}
+                        </span>
+                      </div>
+                      {photoData?.metadata && (
+                        <>
+                          {photoData.metadata.file_size && (
+                            <div className="photo-upload-file-size">
+                              <span className="photo-upload-file-size-label">Size:</span>
+                              <span className="photo-upload-file-size-value ml-2">
+                                {(photoData.metadata.file_size / 1024 / 1024).toFixed(2)} MB
+                              </span>
+                            </div>
+                          )}
+                          {photoData.metadata.dimensions && (
+                            <div className="photo-upload-dimensions">
+                              <span className="photo-upload-dimensions-label">Dimensions:</span>
+                              <span className="photo-upload-dimensions-value ml-2">
+                                {photoData.metadata.dimensions.width} ×{' '}
+                                {photoData.metadata.dimensions.height}
+                              </span>
+                            </div>
+                          )}
+                          {photoData.metadata.format && (
+                            <div className="photo-upload-format">
+                              <span className="photo-upload-format-label">Format:</span>
+                              <span className="photo-upload-format-value ml-2">
+                                {photoData.metadata.format}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
-                </div>
 
-                {/* Tags Section */}
-                {photoData?.tags && photoData.tags.length > 0 && (
-                  <div className="photo-tags-section">
-                    <h4 className="photo-tags-label font-semibold mb-2">Tags</h4>
-                    <div className="photo-tags-container flex flex-wrap gap-2">
-                      {photoData.tags.map((tag: string, index: number) => (
-                        <Badge key={index} variant="secondary" className="photo-tag-badge">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Upload Info Section */}
-                <div className="photo-upload-info-section">
-                  <h4 className="photo-upload-info-label font-semibold mb-2">Upload Info</h4>
-                  <div className="photo-upload-info-content text-sm text-muted-foreground space-y-1">
-                    <div className="photo-upload-date">
-                      <span className="photo-upload-date-label">Date:</span>
-                      <span className="photo-upload-date-value ml-2">
-                        {formatDate(photo.created_at)}
-                      </span>
-                    </div>
-                    {photoData?.metadata && (
-                      <>
-                        {photoData.metadata.file_size && (
-                          <div className="photo-upload-file-size">
-                            <span className="photo-upload-file-size-label">Size:</span>
-                            <span className="photo-upload-file-size-value ml-2">
-                              {(photoData.metadata.file_size / 1024 / 1024).toFixed(2)} MB
-                            </span>
-                          </div>
-                        )}
-                        {photoData.metadata.dimensions && (
-                          <div className="photo-upload-dimensions">
-                            <span className="photo-upload-dimensions-label">Dimensions:</span>
-                            <span className="photo-upload-dimensions-value ml-2">
-                              {photoData.metadata.dimensions.width} ×{' '}
-                              {photoData.metadata.dimensions.height}
-                            </span>
-                          </div>
-                        )}
-                        {photoData.metadata.format && (
-                          <div className="photo-upload-format">
-                            <span className="photo-upload-format-label">Format:</span>
-                            <span className="photo-upload-format-value ml-2">
-                              {photoData.metadata.format}
-                            </span>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Album Settings Section */}
-                <div className="photo-album-settings-section">
-                  <h4 className="photo-album-settings-label font-semibold mb-2">Album Settings</h4>
-                  <div className="photo-album-settings-content text-sm text-muted-foreground space-y-1">
-                    <div className="photo-cover-status">
-                      <span className="photo-cover-status-label">Cover Image:</span>
-                      <span
-                        className={`photo-cover-status-value ml-2 ${photo.is_cover ? 'text-green-600' : 'text-gray-500'}`}
-                      >
-                        {photo.is_cover ? 'Yes' : 'No'}
-                      </span>
-                    </div>
-                    <div className="photo-featured-status">
-                      <span className="photo-featured-status-label">Featured:</span>
-                      <span
-                        className={`photo-featured-status-value ml-2 ${photo.is_featured ? 'text-blue-600' : 'text-gray-500'}`}
-                      >
-                        {photo.is_featured ? 'Yes' : 'No'}
-                      </span>
+                  {/* Album Settings Section */}
+                  <div className="photo-album-settings-section">
+                    <h4 className="photo-album-settings-label font-semibold mb-2">
+                      Album Settings
+                    </h4>
+                    <div className="photo-album-settings-content text-sm text-muted-foreground space-y-1">
+                      <div className="photo-cover-status">
+                        <span className="photo-cover-status-label">Cover Image:</span>
+                        <span
+                          className={`photo-cover-status-value ml-2 ${photo.is_cover ? 'text-green-600' : 'text-gray-500'}`}
+                        >
+                          {photo.is_cover ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div className="photo-featured-status">
+                        <span className="photo-featured-status-label">Featured:</span>
+                        <span
+                          className={`photo-featured-status-value ml-2 ${photo.is_featured ? 'text-blue-600' : 'text-gray-500'}`}
+                        >
+                          {photo.is_featured ? 'Yes' : 'No'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Edit Modal */}
-        {showEditModal && (
-          <div className="photo-edit-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="photo-edit-modal-content bg-background p-4 rounded-lg max-w-md w-full mx-4">
-              <div className="photo-edit-modal-header flex items-center justify-between mb-4">
-                <h3 className="photo-edit-modal-title font-semibold text-lg">Edit Photo</h3>
-                <CloseButton onClick={() => setShowEditModal(false)} />
-              </div>
-
-              <div className="photo-edit-modal-body space-y-4">
-                <div className="photo-edit-alt-text-field">
-                  <label className="photo-edit-alt-text-label block text-sm font-medium mb-2">
-                    Alt Text
-                  </label>
-                  <Input
-                    value={editForm.alt_text}
-                    onChange={(e) => {
-                      setEditForm((prev) => ({ ...prev, alt_text: e.target.value }))
-                    }}
-                    placeholder="Describe this photo"
-                  />
+          {/* Edit Modal */}
+          {showEditModal && (
+            <div className="photo-edit-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="photo-edit-modal-content bg-background p-4 rounded-lg max-w-md w-full mx-4">
+                <div className="photo-edit-modal-header flex items-center justify-between mb-4">
+                  <h3 className="photo-edit-modal-title font-semibold text-lg">Edit Photo</h3>
+                  <CloseButton onClick={() => setShowEditModal(false)} />
                 </div>
 
-                <div className="photo-edit-description-field">
-                  <label className="photo-edit-description-label block text-sm font-medium mb-2">
-                    Description
-                  </label>
-                  <Textarea
-                    value={editForm.description}
-                    onChange={(e) => {
-                      setEditForm((prev) => ({ ...prev, description: e.target.value }))
-                    }}
-                    placeholder="Add a description"
-                    className="h-20"
-                  />
-                </div>
+                <div className="photo-edit-modal-body space-y-4">
+                  <div className="photo-edit-alt-text-field">
+                    <label className="photo-edit-alt-text-label block text-sm font-medium mb-2">
+                      Alt Text
+                    </label>
+                    <Input
+                      value={editForm.alt_text}
+                      onChange={(e) => {
+                        setEditForm((prev) => ({ ...prev, alt_text: e.target.value }))
+                      }}
+                      placeholder="Describe this photo"
+                    />
+                  </div>
 
-                <div className="photo-edit-featured-checkbox">
-                  <input
-                    type="checkbox"
-                    id="featured"
-                    checked={editForm.is_featured}
-                    onChange={(e) => {
-                      setEditForm((prev) => ({ ...prev, is_featured: e.target.checked }))
-                    }}
-                  />
-                  <label
-                    htmlFor="featured"
-                    className="photo-edit-featured-label text-sm font-medium"
-                  >
-                    Featured Photo
-                  </label>
-                </div>
+                  <div className="photo-edit-description-field">
+                    <label className="photo-edit-description-label block text-sm font-medium mb-2">
+                      Description
+                    </label>
+                    <Textarea
+                      value={editForm.description}
+                      onChange={(e) => {
+                        setEditForm((prev) => ({ ...prev, description: e.target.value }))
+                      }}
+                      placeholder="Add a description"
+                      className="h-20"
+                    />
+                  </div>
 
-                {/* Set as Cover Option - Only show if not already cover and owner */}
-                {isOwner && !photo.is_cover && (
-                  <div className="photo-edit-cover-checkbox">
+                  <div className="photo-edit-featured-checkbox">
                     <input
                       type="checkbox"
-                      id="setAsCover"
-                      checked={editForm.shouldSetAsCover}
+                      id="featured"
+                      checked={editForm.is_featured}
                       onChange={(e) => {
-                        setEditForm((prev) => ({ ...prev, shouldSetAsCover: e.target.checked }))
+                        setEditForm((prev) => ({ ...prev, is_featured: e.target.checked }))
                       }}
                     />
                     <label
-                      htmlFor="setAsCover"
-                      className="photo-edit-cover-label text-sm font-medium"
+                      htmlFor="featured"
+                      className="photo-edit-featured-label text-sm font-medium"
                     >
-                      Set as Cover Image
+                      Featured Photo
                     </label>
                   </div>
-                )}
 
-                {/* Current Cover Status */}
-                {photo.is_cover && (
-                  <div className="photo-edit-current-cover-status flex items-center space-x-2 text-sm text-green-600">
-                    <Star className="h-4 w-4" />
-                    <span>This is currently the cover image</span>
-                  </div>
-                )}
+                  {/* Set as Cover Option - Only show if not already cover and owner */}
+                  {isOwner && !photo.is_cover && (
+                    <div className="photo-edit-cover-checkbox">
+                      <input
+                        type="checkbox"
+                        id="setAsCover"
+                        checked={editForm.shouldSetAsCover}
+                        onChange={(e) => {
+                          setEditForm((prev) => ({ ...prev, shouldSetAsCover: e.target.checked }))
+                        }}
+                      />
+                      <label
+                        htmlFor="setAsCover"
+                        className="photo-edit-cover-label text-sm font-medium"
+                      >
+                        Set as Cover Image
+                      </label>
+                    </div>
+                  )}
 
-                <div className="photo-edit-actions flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowEditModal(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      if (!photo) return
+                  {/* Current Cover Status */}
+                  {photo.is_cover && (
+                    <div className="photo-edit-current-cover-status flex items-center space-x-2 text-sm text-green-600">
+                      <Star className="h-4 w-4" />
+                      <span>This is currently the cover image</span>
+                    </div>
+                  )}
 
-                      try {
-                        console.log('💾 Saving photo updates:', {
-                          photoId: photo.id,
-                          alt_text: editForm.alt_text,
-                          description: editForm.description,
-                          is_featured: editForm.is_featured,
-                          shouldSetAsCover: editForm.shouldSetAsCover,
-                        })
+                  <div className="photo-edit-actions flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setShowEditModal(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        if (!photo) return
 
-                        // Update only album_images table with album-specific customizations
-                        // The images table should remain unchanged - it contains the original image data
-                        if (albumId) {
-                          console.log(
-                            '🔄 Updating album_images table with album-specific metadata...'
-                          )
-                          const { data: albumImageUpdateResult, error: albumImageError } = await (
-                            supabase.from('album_images') as any
-                          )
-                            .update({
-                              alt_text: editForm.alt_text,
-                              description: editForm.description,
-                            })
-                            .eq('album_id', albumId)
-                            .eq('image_id', photo.id)
-                            .select()
+                        try {
+                          console.log('💾 Saving photo updates:', {
+                            photoId: photo.id,
+                            alt_text: editForm.alt_text,
+                            description: editForm.description,
+                            is_featured: editForm.is_featured,
+                            shouldSetAsCover: editForm.shouldSetAsCover,
+                          })
 
-                          if (albumImageError) {
-                            console.error('❌ Error updating album_images table:', albumImageError)
-                            throw albumImageError
-                          } else {
+                          // Update only album_images table with album-specific customizations
+                          // The images table should remain unchanged - it contains the original image data
+                          if (albumId) {
                             console.log(
-                              '✅ Album-specific metadata updated successfully:',
-                              albumImageUpdateResult
+                              '🔄 Updating album_images table with album-specific metadata...'
                             )
-                          }
-                        }
-
-                        // Update album image settings if needed
-                        if (albumId) {
-                          console.log('🖼️ Updating album image settings for album:', albumId)
-
-                          // If setting as cover, first unset all other cover images
-                          if (editForm.shouldSetAsCover) {
-                            console.log(
-                              '🔄 Setting image as cover - unsetting previous cover images'
-                            )
-                            const { data: unsetResult, error: unsetError } = await (
+                            const { data: albumImageUpdateResult, error: albumImageError } = await (
                               supabase.from('album_images') as any
                             )
-                              .update({ is_cover: false })
+                              .update({
+                                alt_text: editForm.alt_text,
+                                description: editForm.description,
+                              })
                               .eq('album_id', albumId)
-                              .eq('is_cover', true)
+                              .eq('image_id', photo.id)
                               .select()
 
-                            if (unsetError) {
-                              console.error('❌ Error unsetting previous cover images:', unsetError)
-                              throw unsetError
+                            if (albumImageError) {
+                              console.error(
+                                '❌ Error updating album_images table:',
+                                albumImageError
+                              )
+                              throw albumImageError
+                            } else {
+                              console.log(
+                                '✅ Album-specific metadata updated successfully:',
+                                albumImageUpdateResult
+                              )
+                            }
+                          }
+
+                          // Update album image settings if needed
+                          if (albumId) {
+                            console.log('🖼️ Updating album image settings for album:', albumId)
+
+                            // If setting as cover, first unset all other cover images
+                            if (editForm.shouldSetAsCover) {
+                              console.log(
+                                '🔄 Setting image as cover - unsetting previous cover images'
+                              )
+                              const { data: unsetResult, error: unsetError } = await (
+                                supabase.from('album_images') as any
+                              )
+                                .update({ is_cover: false })
+                                .eq('album_id', albumId)
+                                .eq('is_cover', true)
+                                .select()
+
+                              if (unsetError) {
+                                console.error(
+                                  '❌ Error unsetting previous cover images:',
+                                  unsetError
+                                )
+                                throw unsetError
+                              }
+
+                              console.log('✅ Previous cover images unset:', unsetResult)
                             }
 
-                            console.log('✅ Previous cover images unset:', unsetResult)
-                          }
-
-                          // Update album image settings
-                          const { data: albumUpdateResult, error: albumError } = await (
-                            supabase.from('album_images') as any
-                          )
-                            .update({
-                              is_featured: editForm.is_featured,
-                              is_cover: editForm.shouldSetAsCover ? true : photo.is_cover,
-                            })
-                            .eq('album_id', albumId)
-                            .eq('image_id', photo.id)
-                            .select()
-
-                          if (albumError) {
-                            console.error('❌ Error updating album image settings:', albumError)
-                            throw albumError
-                          }
-
-                          console.log('✅ Album image settings updated:', albumUpdateResult)
-
-                          // If this is a USER system album, also update the canonical profile pointer.
-                          // Albums are archive/history only; the current avatar/cover lives on profiles.*_image_id.
-                          if (
-                            entityType === 'user' &&
-                            entityId &&
-                            editForm.shouldSetAsCover &&
-                            albumId
-                          ) {
-                            const { data: albumData, error: albumCheckError } = await (
-                              supabase.from('photo_albums') as any
+                            // Update album image settings
+                            const { data: albumUpdateResult, error: albumError } = await (
+                              supabase.from('album_images') as any
                             )
-                              .select('name, entity_type, entity_id')
-                              .eq('id', albumId)
-                              .single()
+                              .update({
+                                is_featured: editForm.is_featured,
+                                is_cover: editForm.shouldSetAsCover ? true : photo.is_cover,
+                              })
+                              .eq('album_id', albumId)
+                              .eq('image_id', photo.id)
+                              .select()
 
-                            if (!albumCheckError && albumData) {
-                              const albumName = (albumData as any).name
-                              const isUserAlbum = (albumData as any).entity_type === 'user'
-                              const albumEntityId = (albumData as any).entity_id
+                            if (albumError) {
+                              console.error('❌ Error updating album image settings:', albumError)
+                              throw albumError
+                            }
 
-                              if (
-                                isUserAlbum &&
-                                albumEntityId &&
-                                (albumName === 'Avatar Images' ||
-                                  albumName === 'Header Cover Images')
-                              ) {
-                                const primaryKind =
-                                  albumName === 'Avatar Images' ? 'avatar' : 'cover'
-                                const resp = await fetch('/api/entity-primary-image', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    entityType: 'user',
-                                    entityId: albumEntityId,
-                                    imageId: photo.id,
-                                    primaryKind,
-                                  }),
-                                })
+                            console.log('✅ Album image settings updated:', albumUpdateResult)
 
-                                const payload = await resp.json().catch(() => null)
-                                if (!resp.ok || !payload?.success) {
-                                  console.error(
-                                    '❌ Failed to update canonical primary image:',
-                                    payload
-                                  )
-                                } else {
-                                  window.dispatchEvent(
-                                    new CustomEvent('entityPrimaryImageChanged', {
-                                      detail: {
-                                        entityType: 'user',
-                                        entityId: albumEntityId,
-                                        primaryKind,
-                                        imageUrl: photo.url || payload.imageUrl,
-                                      },
-                                    })
-                                  )
+                            // If this is a USER system album, also update the canonical profile pointer.
+                            // Albums are archive/history only; the current avatar/cover lives on profiles.*_image_id.
+                            if (
+                              entityType === 'user' &&
+                              entityId &&
+                              editForm.shouldSetAsCover &&
+                              albumId
+                            ) {
+                              const { data: albumData, error: albumCheckError } = await (
+                                supabase.from('photo_albums') as any
+                              )
+                                .select('name, entity_type, entity_id')
+                                .eq('id', albumId)
+                                .single()
+
+                              if (!albumCheckError && albumData) {
+                                const albumName = (albumData as any).name
+                                const isUserAlbum = (albumData as any).entity_type === 'user'
+                                const albumEntityId = (albumData as any).entity_id
+
+                                if (
+                                  isUserAlbum &&
+                                  albumEntityId &&
+                                  (albumName === 'Avatar Images' ||
+                                    albumName === 'Header Cover Images')
+                                ) {
+                                  const primaryKind =
+                                    albumName === 'Avatar Images' ? 'avatar' : 'cover'
+                                  const resp = await fetch('/api/entity-primary-image', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      entityType: 'user',
+                                      entityId: albumEntityId,
+                                      imageId: photo.id,
+                                      primaryKind,
+                                    }),
+                                  })
+
+                                  const payload = await resp.json().catch(() => null)
+                                  if (!resp.ok || !payload?.success) {
+                                    console.error(
+                                      '❌ Failed to update canonical primary image:',
+                                      payload
+                                    )
+                                  } else {
+                                    window.dispatchEvent(
+                                      new CustomEvent('entityPrimaryImageChanged', {
+                                        detail: {
+                                          entityType: 'user',
+                                          entityId: albumEntityId,
+                                          primaryKind,
+                                          imageUrl: photo.url || payload.imageUrl,
+                                        },
+                                      })
+                                    )
+                                  }
                                 }
                               }
                             }
-                          }
 
-                          // Update publisher_image_id when setting avatar as cover for publishers
-                          if (
-                            entityType === 'publisher' &&
-                            entityId &&
-                            editForm.shouldSetAsCover &&
-                            albumId
-                          ) {
-                            // Check if this is an avatar album by querying the album
-                            const { data: albumData, error: albumCheckError } = await (
-                              supabase.from('photo_albums') as any
-                            )
-                              .select('name, metadata')
-                              .eq('id', albumId)
-                              .single()
+                            // Update publisher_image_id when setting avatar as cover for publishers
+                            if (
+                              entityType === 'publisher' &&
+                              entityId &&
+                              editForm.shouldSetAsCover &&
+                              albumId
+                            ) {
+                              // Check if this is an avatar album by querying the album
+                              const { data: albumData, error: albumCheckError } = await (
+                                supabase.from('photo_albums') as any
+                              )
+                                .select('name, metadata')
+                                .eq('id', albumId)
+                                .single()
 
-                            if (!albumCheckError && albumData) {
-                              const isAvatarAlbum =
-                                (albumData as any).name === 'Avatar Images' ||
-                                (albumData as any).metadata?.album_purpose === 'avatar'
+                              if (!albumCheckError && albumData) {
+                                const isAvatarAlbum =
+                                  (albumData as any).name === 'Avatar Images' ||
+                                  (albumData as any).metadata?.album_purpose === 'avatar'
 
-                              if (isAvatarAlbum) {
-                                console.log(
-                                  `🔄 Updating publisher_image_id for publisher ${entityId} with image ${photo.id}`
-                                )
-                                const { error: publisherUpdateError } = await (
-                                  supabase.from('publishers') as any
-                                )
-                                  .update({ publisher_image_id: photo.id })
-                                  .eq('id', entityId)
-
-                                if (publisherUpdateError) {
-                                  console.error(
-                                    '❌ Error updating publisher_image_id:',
-                                    publisherUpdateError
-                                  )
-                                  // Don't fail - the album image is already updated
-                                } else {
+                                if (isAvatarAlbum) {
                                   console.log(
-                                    `✅ publisher_image_id updated for publisher ${entityId}`
+                                    `🔄 Updating publisher_image_id for publisher ${entityId} with image ${photo.id}`
                                   )
+                                  const { error: publisherUpdateError } = await (
+                                    supabase.from('publishers') as any
+                                  )
+                                    .update({ publisher_image_id: photo.id })
+                                    .eq('id', entityId)
+
+                                  if (publisherUpdateError) {
+                                    console.error(
+                                      '❌ Error updating publisher_image_id:',
+                                      publisherUpdateError
+                                    )
+                                    // Don't fail - the album image is already updated
+                                  } else {
+                                    console.log(
+                                      `✅ publisher_image_id updated for publisher ${entityId}`
+                                    )
+                                  }
                                 }
                               }
                             }
                           }
+
+                          // Update local photo state to reflect changes
+                          const updatedPhoto = {
+                            ...photo,
+                            alt_text: editForm.alt_text,
+                            description: editForm.description,
+                            is_featured: editForm.is_featured,
+                            is_cover: editForm.shouldSetAsCover ? true : photo.is_cover,
+                          }
+
+                          console.log('🔄 Updating local photo state:', updatedPhoto)
+                          setPhoto(updatedPhoto)
+
+                          setShowEditModal(false)
+                          toast({
+                            title: 'Photo updated',
+                            description: editForm.shouldSetAsCover
+                              ? 'Photo updated and set as cover image'
+                              : 'Photo details have been saved',
+                          })
+
+                          // Trigger cover image change event if cover was set
+                          if (editForm.shouldSetAsCover) {
+                            window.dispatchEvent(new CustomEvent('entityImageChanged'))
+                          }
+
+                          // Trigger photo updated event to refresh the grid
+                          window.dispatchEvent(new CustomEvent('photoUpdated'))
+
+                          // Also trigger album refresh event to update enhanced data
+                          window.dispatchEvent(new CustomEvent('albumRefresh'))
+
+                          // Verify the update was saved to database
+                          console.log('🔍 Verifying database update...')
+                          const { data: verifyData, error: verifyError } = await supabase
+                            .from('images')
+                            .select('alt_text, description')
+                            .eq('id', photo.id)
+                            .single()
+
+                          if (verifyError) {
+                            console.error('❌ Error verifying update:', verifyError)
+                          } else {
+                            console.log('✅ Database verification successful:', verifyData)
+                          }
+
+                          // Reload photo data to ensure everything is in sync
+                          await loadPhotoData(photo.id, albumId)
+                        } catch (error) {
+                          console.error('Error updating photo:', error)
+                          toast({
+                            title: 'Error',
+                            description: 'Failed to update photo',
+                            variant: 'destructive',
+                          })
                         }
-
-                        // Update local photo state to reflect changes
-                        const updatedPhoto = {
-                          ...photo,
-                          alt_text: editForm.alt_text,
-                          description: editForm.description,
-                          is_featured: editForm.is_featured,
-                          is_cover: editForm.shouldSetAsCover ? true : photo.is_cover,
-                        }
-
-                        console.log('🔄 Updating local photo state:', updatedPhoto)
-                        setPhoto(updatedPhoto)
-
-                        setShowEditModal(false)
-                        toast({
-                          title: 'Photo updated',
-                          description: editForm.shouldSetAsCover
-                            ? 'Photo updated and set as cover image'
-                            : 'Photo details have been saved',
-                        })
-
-                        // Trigger cover image change event if cover was set
-                        if (editForm.shouldSetAsCover) {
-                          window.dispatchEvent(new CustomEvent('entityImageChanged'))
-                        }
-
-                        // Trigger photo updated event to refresh the grid
-                        window.dispatchEvent(new CustomEvent('photoUpdated'))
-
-                        // Also trigger album refresh event to update enhanced data
-                        window.dispatchEvent(new CustomEvent('albumRefresh'))
-
-                        // Verify the update was saved to database
-                        console.log('🔍 Verifying database update...')
-                        const { data: verifyData, error: verifyError } = await supabase
-                          .from('images')
-                          .select('alt_text, description')
-                          .eq('id', photo.id)
-                          .single()
-
-                        if (verifyError) {
-                          console.error('❌ Error verifying update:', verifyError)
-                        } else {
-                          console.log('✅ Database verification successful:', verifyData)
-                        }
-
-                        // Reload photo data to ensure everything is in sync
-                        await loadPhotoData(photo.id, albumId)
-                      } catch (error) {
-                        console.error('Error updating photo:', error)
-                        toast({
-                          title: 'Error',
-                          description: 'Failed to update photo',
-                          variant: 'destructive',
-                        })
-                      }
-                    }}
-                  >
-                    Save Changes
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Share Modal */}
-        {showShareModal && (
-          <div className="photo-share-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="photo-share-modal-content bg-background p-4 rounded-lg max-w-md w-full mx-4">
-              <div className="photo-share-modal-header flex items-center justify-between mb-4">
-                <h3 className="photo-share-modal-title font-semibold text-lg">Share Photo</h3>
-                <CloseButton onClick={() => setShowShareModal(false)} />
-              </div>
-
-              <div className="photo-share-modal-body space-y-4">
-                <div className="photo-share-social-media-section">
-                  <h4 className="photo-share-social-media-title font-semibold mb-2">
-                    Share on Social Media
-                  </h4>
-                  <div className="photo-share-social-media-buttons grid grid-cols-2 gap-2">
-                    <Button variant="outline" onClick={() => handleShare('facebook')}>
-                      <Facebook className="h-4 w-4 mr-2" />
-                      Facebook
-                    </Button>
-                    <Button variant="outline" onClick={() => handleShare('twitter')}>
-                      <Twitter className="h-4 w-4 mr-2" />
-                      Twitter
-                    </Button>
-                    <Button variant="outline" onClick={() => handleShare('instagram')}>
-                      <Instagram className="h-4 w-4 mr-2" />
-                      Instagram
-                    </Button>
-                    <Button variant="outline" onClick={() => handleShare('copy')}>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Link
+                      }}
+                    >
+                      Save Changes
                     </Button>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
 
-                <div className="photo-share-direct-link-section">
-                  <h4 className="photo-share-direct-link-title font-semibold mb-2">Direct Link</h4>
-                  <div className="photo-share-direct-link-input flex gap-2">
-                    <Input
-                      value={`${window.location.origin}/photos/${photo.id}`}
+          {/* Share Modal */}
+          {showShareModal && (
+            <div className="photo-share-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="photo-share-modal-content bg-background p-4 rounded-lg max-w-md w-full mx-4">
+                <div className="photo-share-modal-header flex items-center justify-between mb-4">
+                  <h3 className="photo-share-modal-title font-semibold text-lg">Share Photo</h3>
+                  <CloseButton onClick={() => setShowShareModal(false)} />
+                </div>
+
+                <div className="photo-share-modal-body space-y-4">
+                  <div className="photo-share-social-media-section">
+                    <h4 className="photo-share-social-media-title font-semibold mb-2">
+                      Share on Social Media
+                    </h4>
+                    <div className="photo-share-social-media-buttons grid grid-cols-2 gap-2">
+                      <Button variant="outline" onClick={() => handleShare('facebook')}>
+                        <Facebook className="h-4 w-4 mr-2" />
+                        Facebook
+                      </Button>
+                      <Button variant="outline" onClick={() => handleShare('twitter')}>
+                        <Twitter className="h-4 w-4 mr-2" />
+                        Twitter
+                      </Button>
+                      <Button variant="outline" onClick={() => handleShare('instagram')}>
+                        <Instagram className="h-4 w-4 mr-2" />
+                        Instagram
+                      </Button>
+                      <Button variant="outline" onClick={() => handleShare('copy')}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Link
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="photo-share-direct-link-section">
+                    <h4 className="photo-share-direct-link-title font-semibold mb-2">
+                      Direct Link
+                    </h4>
+                    <div className="photo-share-direct-link-input flex gap-2">
+                      <Input
+                        value={`${window.location.origin}/photos/${photo.id}`}
+                        readOnly
+                        className="flex-1"
+                      />
+                      <Button variant="outline" size="icon" onClick={() => handleShare('copy')}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="photo-share-embed-section">
+                    <h4 className="photo-share-embed-title font-semibold mb-2">Embed Code</h4>
+                    <Textarea
+                      value={`<iframe src="${window.location.origin}/embed/photos/${photo.id}" width="600" height="400"></iframe>`}
                       readOnly
-                      className="flex-1"
+                      className="h-20"
                     />
-                    <Button variant="outline" size="icon" onClick={() => handleShare('copy')}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
                   </div>
-                </div>
-
-                <div className="photo-share-embed-section">
-                  <h4 className="photo-share-embed-title font-semibold mb-2">Embed Code</h4>
-                  <Textarea
-                    value={`<iframe src="${window.location.origin}/embed/photos/${photo.id}" width="600" height="400"></iframe>`}
-                    readOnly
-                    className="h-20"
-                  />
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <ReusableModal
+        open={showDeleteConfirmDialog}
+        onOpenChange={setShowDeleteConfirmDialog}
+        title="Delete photo?"
+        description="Are you sure you want to delete this photo? This action cannot be undone."
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirmDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeletePhoto} disabled={isDeleting}>
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </Button>
+          </>
+        }
+        contentClassName="z-[100] [&>button]:hidden"
+      >
+        {null}
+      </ReusableModal>
+    </>
   )
 }

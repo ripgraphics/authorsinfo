@@ -240,13 +240,12 @@ export function ClientEventPage({
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Status</span>
                         <span
-                          className={`text-sm px-2 py-1 rounded-full ${
-                            registrationActive
+                          className={`text-sm px-2 py-1 rounded-full ${registrationActive
                               ? 'bg-green-100 text-green-800'
                               : registrationClosed
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-yellow-100 text-yellow-800'
-                          }`}
+                            }`}
                         >
                           {registrationActive
                             ? 'Open'

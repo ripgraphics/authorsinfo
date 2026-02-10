@@ -525,10 +525,39 @@ export async function POST(request: NextRequest) {
 
     if (shouldSkipEntityLinking) {
       // Back cover uploads must NEVER overwrite books.cover_image_id (or any entity cover column).
-      // Back covers are managed via the book images album (`/api/books/[id]/images`) only.
+      // Instead, add the back cover to the "Book Images" album using the database function.
       console.log(
         `ℹ️ Skipping entity-table image linking for book back cover upload (entityId=${entityId})`
       )
+      console.log(`📚 Adding back cover to Book Images album via set_book_cover_image()`)
+
+      try {
+        // Use the database function to add back cover to the Book Images album
+        const { data: albumImageId, error: albumError } = await (adminClient.rpc as any)(
+          'set_book_cover_image',
+          {
+            p_book_id: entityId,
+            p_image_id: imageRecord.id,
+            p_cover_type: 'book_cover_back',
+            p_user_id: user.id,
+          }
+        )
+
+        if (albumError) {
+          console.error('❌ Failed to add back cover to Book Images album:', albumError)
+          appendEntityWarning(
+            `Back cover uploaded but failed to add to album: ${albumError.message}`
+          )
+        } else {
+          console.log(`✅ Back cover added to Book Images album, album_image_id: ${albumImageId}`)
+        }
+      } catch (albumError: any) {
+        console.error('❌ Exception adding back cover to album:', albumError)
+        appendEntityWarning(
+          `Back cover uploaded but exception adding to album: ${albumError?.message || 'Unknown error'}`
+        )
+      }
+
       linkSucceeded = true
     } else if (!columnName) {
       appendEntityWarning(
@@ -594,4 +623,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

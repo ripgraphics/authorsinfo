@@ -193,7 +193,7 @@ export function ClientBookPage({
         runId: 'run1',
         hypothesisId: 'A',
       }),
-    }).catch(() => {})
+    }).catch(() => { })
     // #endregion
 
     // SUPABASE IS THE SOURCE OF TRUTH: If bookData has a cover_image_id that differs from book prop,
@@ -216,7 +216,7 @@ export function ClientBookPage({
           runId: 'run1',
           hypothesisId: 'E',
         }),
-      }).catch(() => {})
+      }).catch(() => { })
       // #endregion
       // Keep bookData (Supabase value) and only sync other fields from book prop
       setBookData((prev) => ({
@@ -244,7 +244,7 @@ export function ClientBookPage({
           runId: 'run1',
           hypothesisId: 'E',
         }),
-      }).catch(() => {})
+      }).catch(() => { })
       // #endregion
       setBookData((prev) => ({
         ...book,
@@ -270,7 +270,7 @@ export function ClientBookPage({
           runId: 'run1',
           hypothesisId: 'A',
         }),
-      }).catch(() => {})
+      }).catch(() => { })
       // #endregion
       setJustUpdatedCoverImage(false)
       return
@@ -292,7 +292,7 @@ export function ClientBookPage({
         runId: 'run1',
         hypothesisId: 'C',
       }),
-    }).catch(() => {})
+    }).catch(() => { })
     // #endregion
     setBookData(book)
   }, [book, justUpdatedCoverImage, bookData?.cover_image_id])
@@ -744,7 +744,7 @@ export function ClientBookPage({
           runId: 'run1',
           hypothesisId: 'E',
         }),
-      }).catch(() => {})
+      }).catch(() => { })
       // #endregion
 
       const baseCoverImage =
@@ -754,10 +754,10 @@ export function ClientBookPage({
         ...prev,
         cover_image: baseCoverImage
           ? {
-              ...baseCoverImage,
-              id: newImageId || baseCoverImage.id,
-              url: newImageUrl,
-            }
+            ...baseCoverImage,
+            id: newImageId || baseCoverImage.id,
+            url: newImageUrl,
+          }
           : newImageId
             ? { id: newImageId, url: newImageUrl }
             : null,
@@ -786,7 +786,7 @@ export function ClientBookPage({
           runId: 'run1',
           hypothesisId: 'E',
         }),
-      }).catch(() => {})
+      }).catch(() => { })
       // #endregion
 
       return updated
@@ -813,7 +813,7 @@ export function ClientBookPage({
           runId: 'run1',
           hypothesisId: 'B',
         }),
-      }).catch(() => {})
+      }).catch(() => { })
       // #endregion
       const response = await fetch(`/api/books/${params.id}`)
       if (response.ok) {
@@ -837,7 +837,7 @@ export function ClientBookPage({
               runId: 'run1',
               hypothesisId: 'B',
             }),
-          }).catch(() => {})
+          }).catch(() => { })
           // #endregion
           console.log('✅ Fresh book data received, updating state')
           setBookData(result.data)
@@ -854,7 +854,7 @@ export function ClientBookPage({
               runId: 'run1',
               hypothesisId: 'A',
             }),
-          }).catch(() => {})
+          }).catch(() => { })
           // #endregion
           // Keep the flag set to prevent reset
           setJustUpdatedCoverImage(true)
@@ -875,7 +875,7 @@ export function ClientBookPage({
           runId: 'run1',
           hypothesisId: 'B',
         }),
-      }).catch(() => {})
+      }).catch(() => { })
       // #endregion
     }
 
@@ -991,23 +991,23 @@ export function ClientBookPage({
         author={
           authors && authors.length > 0
             ? {
-                id: authors[0].id,
-                name: authors[0].name,
-                author_image: authors[0].author_image
-                  ? { url: authors[0].author_image.url }
-                  : undefined,
-              }
+              id: authors[0].id,
+              name: authors[0].name,
+              author_image: authors[0].author_image
+                ? { url: authors[0].author_image.url }
+                : undefined,
+            }
             : undefined
         }
         authorBookCount={authors && authors.length > 0 ? authorBookCounts[authors[0].id] : 0}
         publisher={
           publisher
             ? {
-                id: publisher.id,
-                name: publisher.name,
-                publisher_image: publisher.publisher_image,
-                logo_url: publisher.publisher_image?.url,
-              }
+              id: publisher.id,
+              name: publisher.name,
+              publisher_image: publisher.publisher_image,
+              logo_url: publisher.publisher_image?.url,
+            }
             : undefined
         }
         publisherBookCount={publisherBooksCount}
@@ -1041,9 +1041,8 @@ export function ClientBookPage({
                       >
                         {/* Show truncated content initially */}
                         <div
-                          className={`text-sm text-muted-foreground max-w-none synopsis-content prose prose-sm max-h-40 overflow-hidden ${
-                            showFullTimelineAbout ? 'hidden' : ''
-                          }`}
+                          className={`text-sm text-muted-foreground max-w-none synopsis-content prose prose-sm max-h-40 overflow-hidden ${showFullTimelineAbout ? 'hidden' : ''
+                            }`}
                           dangerouslySetInnerHTML={{
                             __html: book.synopsis || book.overview || '',
                           }}
@@ -1160,12 +1159,12 @@ export function ClientBookPage({
                   entityDisplayInfo={
                     authors && authors.length > 0
                       ? {
-                          id: authors[0].id,
-                          name: authors[0].name,
-                          type: 'author' as const,
-                          author_image: authors[0].author_image?.url || undefined,
-                          bookCount: authorBookCounts[authors[0].id] || 0,
-                        }
+                        id: authors[0].id,
+                        name: authors[0].name,
+                        type: 'author' as const,
+                        author_image: authors[0].author_image?.url || undefined,
+                        bookCount: authorBookCounts[authors[0].id] || 0,
+                      }
                       : undefined
                   }
                 />
@@ -1276,12 +1275,12 @@ export function ClientBookPage({
                           {(() => {
                             const displayedAuthors = showAllAuthors ? authors : authors.slice(0, 4)
                             const hasMoreAuthors = authors.length > 4 && !showAllAuthors
-                            
+
                             return (
                               <>
                                 {displayedAuthors.map((author, index) => {
                                   const isLastInDisplayed = index === displayedAuthors.length - 1
-                                  
+
                                   return (
                                     <span key={author.id}>
                                       <EntityHoverCard
@@ -1364,9 +1363,8 @@ export function ClientBookPage({
                         <Collapsible open={showFullAbout} onOpenChange={setShowFullAbout}>
                           {/* Show truncated content initially */}
                           <div
-                            className={`text-muted-foreground max-w-none synopsis-content prose prose-sm ${
-                              !showFullAbout ? 'max-h-60 overflow-hidden' : 'hidden'
-                            }`}
+                            className={`text-muted-foreground max-w-none synopsis-content prose prose-sm ${!showFullAbout ? 'max-h-60 overflow-hidden' : 'hidden'
+                              }`}
                             dangerouslySetInnerHTML={{ __html: book.synopsis }}
                           />
 
@@ -1689,11 +1687,10 @@ export function ClientBookPage({
                                   {Array.from({ length: 5 }).map((_, i) => (
                                     <Star
                                       key={i}
-                                      className={`h-4 w-4 ${
-                                        i < review.rating
+                                      className={`h-4 w-4 ${i < review.rating
                                           ? 'text-yellow-400 fill-yellow-400'
                                           : 'text-gray-300'
-                                      }`}
+                                        }`}
                                     />
                                   ))}
                                   {/* Only show date if created_at exists */}
@@ -1743,14 +1740,14 @@ export function ClientBookPage({
                 entityDisplayInfo={
                   authors && authors.length > 0
                     ? {
-                        id: authors[0].id,
-                        name: authors[0].name,
-                        type: 'author' as const,
-                        author_image: authors[0].author_image
-                          ? { url: authors[0].author_image.url }
-                          : undefined,
-                        bookCount: authorBookCounts[authors[0].id] || 0,
-                      }
+                      id: authors[0].id,
+                      name: authors[0].name,
+                      type: 'author' as const,
+                      author_image: authors[0].author_image
+                        ? { url: authors[0].author_image.url }
+                        : undefined,
+                      bookCount: authorBookCounts[authors[0].id] || 0,
+                    }
                     : undefined
                 }
               />

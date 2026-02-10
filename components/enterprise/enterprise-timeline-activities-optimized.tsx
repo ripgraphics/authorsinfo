@@ -85,6 +85,8 @@ import {
   Info,
 } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
+import { isValidLikeReactionType } from '@/lib/engagement/config'
+import { useEngagement } from '@/contexts/engagement-context'
 import { SophisticatedPhotoGrid } from '../photo-gallery/sophisticated-photo-grid'
 import PostButton from '../ui/post-button'
 import { FeedPost } from '@/types/feed'
@@ -109,7 +111,6 @@ interface EnterpriseActivity {
   is_liked: boolean
   entity_type: string
   entity_id: string
-  user_reaction_type?: string | null // Added field for reaction persistence
   sentiment?: 'positive' | 'negative' | 'neutral'
   is_verified?: boolean
   is_bookmarked?: boolean
@@ -156,6 +157,7 @@ interface EnterpriseActivity {
   view_count?: number
   engagement_score?: number
   metadata?: any
+  user_reaction_type?: string | null
 }
 
 // ============================================================================
@@ -227,6 +229,7 @@ const EnterpriseTimelineActivities = React.memo(
   }) => {
     const { user } = useAuth()
     const { toast } = useToast()
+    const { batchUpdateEngagement } = useEngagement()
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -376,8 +379,7 @@ const EnterpriseTimelineActivities = React.memo(
             is_public: row.is_public,
             like_count: row.like_count || 0,
             comment_count: row.comment_count || 0,
-            is_liked: row.is_liked || false,
-            user_reaction_type: row.user_reaction_type || null,
+            is_liked: !!row.user_reaction_type,
             entity_type: row.entity_type,
             entity_id: row.entity_id,
             content_type: row.content_type,
@@ -391,12 +393,33 @@ const EnterpriseTimelineActivities = React.memo(
             view_count: row.view_count || 0,
             engagement_score: row.engagement_score || 0,
             metadata: row.metadata || {},
+            user_reaction_type: row.user_reaction_type ?? null,
           }))
 
           const fetchTime = performance.now() - startTime
 
           // Performance optimization: Cache the result
           cacheRef.current.set(cacheKey, { data, timestamp: Date.now() })
+
+          // Hydrate engagement context once at data layer (server as source of truth)
+          const toHydrate = data || []
+          if (toHydrate.length > 0) {
+            batchUpdateEngagement(
+              toHydrate.map((post) => ({
+                entityId: post.id,
+                entityType: 'activity' as const,
+                updates: {
+                  reactionCount: post.like_count ?? 0,
+                  commentCount: post.comment_count ?? 0,
+                  shareCount: post.share_count ?? 0,
+                  userReaction:
+                    post.user_reaction_type && isValidLikeReactionType(post.user_reaction_type)
+                      ? post.user_reaction_type
+                      : null,
+                },
+              }))
+            )
+          }
 
           // Performance optimization: Use transition for non-urgent updates
           startTransition(() => {
@@ -602,7 +625,7 @@ const EnterpriseTimelineActivities = React.memo(
         if (!enableReadingProgress) return
         // Placeholder hook to keep parity; real endpoint optional
         setReadingProgress(null)
-      } catch { }
+      } catch {}
     }, [enableReadingProgress])
 
     const fetchPrivacySettings = useCallback(async () => {
@@ -621,30 +644,6 @@ const EnterpriseTimelineActivities = React.memo(
         setPrivacySettingsLoading(false)
       }
     }, [enablePrivacyControls, supabase, memoizedEntityType, memoizedUserId])
-
-    const handlePostDeleted = useCallback((postId: string) => {
-      // Remove the deleted post from the activities list
-      setActivities((prev) => prev.filter((activity) => activity.id !== postId))
-    }, [])
-
-    const handlePostUpdated = useCallback((updatedPost: FeedPost) => {
-      // Update the activity in the list
-      setActivities((prev) =>
-        prev.map((activity) =>
-          activity.id === updatedPost.id
-            ? {
-              ...activity,
-              like_count: updatedPost.like_count,
-              comment_count: updatedPost.comment_count,
-              share_count: updatedPost.share_count,
-              is_liked: updatedPost.user_has_reacted || false,
-              is_bookmarked: updatedPost.user_has_bookmarked || false,
-              user_reaction_type: updatedPost.user_reaction_type as any,
-            }
-            : activity
-        )
-      )
-    }, [])
 
     // Performance optimization: Cleanup cache on unmount
     useEffect(() => {
@@ -680,7 +679,7 @@ const EnterpriseTimelineActivities = React.memo(
       return () => {
         try {
           supabase.removeChannel(channel)
-        } catch { }
+        } catch {}
       }
     }, [enableRealTime, supabase, memoizedEntityType, memoizedUserId, fetchActivities])
 
@@ -715,7 +714,7 @@ const EnterpriseTimelineActivities = React.memo(
         user_has_reacted: activity.is_liked,
         user_has_commented: false, // Default value
         user_has_shared: false, // Default value
-        user_reaction_type: (activity as any).user_reaction_type || undefined, // Pass through user reaction
+        user_reaction_type: activity.user_reaction_type ?? undefined,
         user_has_bookmarked: activity.is_bookmarked || false,
         user_has_viewed: false, // Default value
         view_count: activity.view_count,
@@ -742,8 +741,8 @@ const EnterpriseTimelineActivities = React.memo(
               showComments={true}
               showEngagement={true}
               className=""
-              onPostDeleted={handlePostDeleted}
               onPostUpdated={handlePostUpdated}
+              onPostDeleted={handlePostDeleted}
               profileOwnerId={entityType === 'user' ? entityId : undefined}
               profileOwnerUserStats={profileOwnerUserStats ?? undefined}
             />
@@ -782,14 +781,7 @@ const EnterpriseTimelineActivities = React.memo(
           </div>
         )
       },
-      [
-        transformActivityToPost,
-        entityType,
-        entityId,
-        profileOwnerUserStats,
-        handlePostDeleted,
-        handlePostUpdated,
-      ]
+      [transformActivityToPost, entityType, entityId, profileOwnerUserStats]
     )
 
     // Memoized loading skeleton
@@ -990,7 +982,7 @@ const EnterpriseTimelineActivities = React.memo(
         setIsPosting(true)
         try {
           const now = new Date().toISOString()
-
+          
           // Determine content type
           let contentType = 'text'
           if (data.image_url) {
@@ -1126,9 +1118,9 @@ const EnterpriseTimelineActivities = React.memo(
             link_url: postForm.linkUrl || null,
             hashtags: postForm.hashtags
               ? postForm.hashtags
-                .split(',')
-                .map((t) => t.trim())
-                .filter(Boolean)
+                  .split(',')
+                  .map((t) => t.trim())
+                  .filter(Boolean)
               : [],
             data: {
               content: trimmed,
@@ -1191,6 +1183,26 @@ const EnterpriseTimelineActivities = React.memo(
       ]
     )
 
+    const handlePostDeleted = useCallback((postId: string) => {
+      // Remove the deleted post from the activities list
+      setActivities((prev) => prev.filter((activity) => activity.id !== postId))
+    }, [])
+
+    const handlePostUpdated = useCallback((updatedPost: FeedPost) => {
+      setActivities((prev) =>
+        prev.map((a) =>
+          a.id === updatedPost.id
+            ? {
+                ...a,
+                like_count: updatedPost.like_count ?? a.like_count,
+                user_reaction_type: updatedPost.user_reaction_type ?? a.user_reaction_type,
+                is_liked: !!updatedPost.user_reaction_type,
+              }
+            : a
+        )
+      )
+    }, [])
+
     const handlePhotoUpload = useCallback(() => {
       const input = document.createElement('input')
       input.type = 'file'
@@ -1214,9 +1226,9 @@ const EnterpriseTimelineActivities = React.memo(
           }
           const current = postForm.imageUrl
             ? postForm.imageUrl
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean)
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
             : []
           setPostForm((prev) => ({ ...prev, imageUrl: [...current, ...uploaded].join(', ') }))
           toast({ title: 'Photos uploaded', description: `${uploaded.length} photo(s) ready` })

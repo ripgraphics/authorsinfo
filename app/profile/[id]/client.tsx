@@ -153,9 +153,9 @@ export function ClientProfilePage({
     'Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction.'
   const realJoinedDate = userStats.joinedDate
     ? new Date(userStats.joinedDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-      })
+      year: 'numeric',
+      month: 'long',
+    })
     : 'Unknown'
 
   // Set up stats for the EntityHeader using real data

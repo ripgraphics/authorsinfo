@@ -86,9 +86,24 @@ export function BookImageManager({
       }
     }
     if (showToast) {
+      const toastMessages: Record<ImageType, { title: string; description: string }> = {
+        book_cover_front: {
+          title: 'Front Cover Updated',
+          description: 'The front cover image has been successfully uploaded and set as the primary book cover.',
+        },
+        book_cover_back: {
+          title: 'Back Cover Updated',
+          description: 'The back cover image has been successfully uploaded and added to the book carousel.',
+        },
+        book_gallery: {
+          title: 'Gallery Image Added',
+          description: 'The image has been successfully added to the book\'s gallery collection.',
+        },
+      }
+      const message = toastMessages[imageType]
       toast({
-        title: 'Success',
-        description: 'Image uploaded successfully',
+        title: message.title,
+        description: message.description,
       })
     }
   }
@@ -144,19 +159,21 @@ export function BookImageManager({
       // Show summary toast
       if (successCount > 0 && errorCount === 0) {
         toast({
-          title: 'Success',
-          description: `Successfully uploaded ${successCount} image${successCount > 1 ? 's' : ''}`,
+          title: successCount === 1 ? 'Gallery Image Added' : 'Gallery Images Added',
+          description: successCount === 1 
+            ? 'The image has been successfully added to the book\'s gallery collection.'
+            : `${successCount} images have been successfully added to the book's gallery collection.`,
         })
       } else if (successCount > 0 && errorCount > 0) {
         toast({
-          title: 'Partial success',
-          description: `Uploaded ${successCount} image${successCount > 1 ? 's' : ''}, ${errorCount} failed`,
+          title: 'Partial Upload Complete',
+          description: `${successCount} ${successCount === 1 ? 'image was' : 'images were'} added to the gallery. ${errorCount} ${errorCount === 1 ? 'file' : 'files'} could not be uploaded.`,
           variant: 'destructive',
         })
       } else {
         toast({
-          title: 'Upload failed',
-          description: `Failed to upload ${errorCount} image${errorCount > 1 ? 's' : ''}`,
+          title: 'Upload Failed',
+          description: `Unable to upload ${errorCount} ${errorCount === 1 ? 'image' : 'images'}. Please check the file format and try again.`,
           variant: 'destructive',
         })
       }
@@ -193,8 +210,8 @@ export function BookImageManager({
         throw new Error(`Failed to update book cover: ${updateError.message}`)
       }
       toast({
-        title: 'Success',
-        description: 'Front cover uploaded and cropped successfully',
+        title: 'Front Cover Updated',
+        description: 'The front cover image has been successfully uploaded and set as the primary book cover.',
       })
       window.dispatchEvent(
         new CustomEvent('entityImageChanged', {
@@ -229,8 +246,8 @@ export function BookImageManager({
     try {
       // No album logic for back cover; just trigger UI updates
       toast({
-        title: 'Success',
-        description: 'Back cover uploaded and cropped successfully',
+        title: 'Back Cover Updated',
+        description: 'The back cover image has been successfully uploaded and added to the book carousel.',
       })
       window.dispatchEvent(new CustomEvent('entityImageChanged'))
       if (onImageAdded) {

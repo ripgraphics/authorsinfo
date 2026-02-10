@@ -404,7 +404,8 @@ export function EnterpriseReactionPopup({
           <TooltipContent
             side={popupPosition === 'top' ? 'top' : 'bottom'}
             sideOffset={variant === 'facebook' ? 20 : 5}
-            className="rounded-full bg-blue-600 text-white border-0 px-3 py-1 shadow-lg"
+            className="rounded-full text-white border-0 px-3 py-1 shadow-lg"
+            style={{ backgroundColor: '#40A3D8' }}
           >
             <div className="text-center">
               <div className="font-bold text-xs">{reaction.label}</div>

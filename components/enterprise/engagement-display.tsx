@@ -217,10 +217,9 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
             </span>
 
             {/* Enhanced Facebook-style hover dropdown for reactions */}
-            <div className="absolute bottom-full left-0 mb-2 px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-64 max-h-64 overflow-y-auto">
-              <div className="text-sm font-semibold text-gray-700 mb-3 border-b border-gray-100 pb-2 flex items-center gap-2">
-                {customReactionIcon || <Heart className="h-4 w-4 text-red-500" />}
-                People who liked this
+            <div className="absolute bottom-full left-0 mb-2 px-4 py-3 bg-blue-600 border-none rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-48 max-h-80 overflow-y-auto">
+              <div className="text-sm font-bold text-white mb-2 pb-1 flex items-center gap-2">
+                {userReactionType ? userReactionType.charAt(0).toUpperCase() + userReactionType.slice(1) : 'Likes'}
               </div>
 
               {!isLoadingReactions && reactions.length > 0 ? (
@@ -230,7 +229,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                     return (
                       <div
                         key={reaction.id}
-                        className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150"
+                        className="flex items-center gap-3 py-1.5 hover:bg-white/10 rounded-lg transition-colors duration-150"
                       >
                         <Avatar
                           src={reaction.user?.avatar_url || '/placeholder.svg?height=24&width=24'}
@@ -239,16 +238,16 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                           className="w-6 h-6 flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-700 truncate">
+                          <div className="text-sm font-medium text-white truncate">
                             {reaction.user?.name || 'Unknown User'}
                           </div>
-                          <div className="text-xs text-gray-500 truncate">
+                          <div className="text-xs text-blue-100 truncate opacity-90">
                             {reaction.user?.location || 'Location not set'}
                           </div>
                           {showReactionTypes && reaction.reaction_type && (
                             <div className="flex items-center gap-1 mt-1">
                               {getReactionIcon(reaction.reaction_type)}
-                              <span className="text-xs text-gray-400 capitalize">
+                              <span className="text-xs text-blue-100 capitalize">
                                 {reaction.reaction_type}
                               </span>
                             </div>
@@ -256,7 +255,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                         </div>
                         {user && showAddFriendButtons && reaction.user?.id && (
                           <button
-                            className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-all duration-150 flex items-center gap-1 opacity-0 group-hover:opacity-100"
+                            className="px-2 py-1 text-xs font-semibold text-white bg-white/20 hover:bg-white/30 rounded-md transition-all duration-150 flex items-center gap-1 opacity-0 group-hover:opacity-100"
                             onClick={() => handleAddFriend(reaction.user.id)}
                           >
                             <User className="h-3 w-3" />
@@ -267,19 +266,19 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                     )
                   })}
                   {reactions.length > maxPreviewItems && (
-                    <div className="text-xs text-blue-600 text-center pt-2 border-t border-gray-100">
+                    <div className="text-xs text-white/80 font-medium text-center pt-2 border-t border-white/20 mt-1">
                       +{reactions.length - maxPreviewItems} more people
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-xs text-gray-500 text-center py-4">
+                <div className="text-xs text-blue-100 text-center py-4">
                   {isLoadingReactions ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>
                   ) : (
-                    <Heart className="h-6 w-6 mx-auto mb-2 text-gray-300" />
+                    <Heart className="h-6 w-6 mx-auto mb-2 text-white/50" />
                   )}
-                  {isLoadingReactions ? 'Loading reactions...' : 'No reactions yet'}
+                  {isLoadingReactions ? 'Loading...' : 'No reactions yet'}
                 </div>
               )}
             </div>

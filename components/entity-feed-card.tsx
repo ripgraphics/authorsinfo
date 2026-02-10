@@ -1820,7 +1820,7 @@ export default function EntityFeedCard({
           // Add friend request logic here
         }}
         showReactionTypes={false}
-        maxPreviewItems={6}
+        maxPreviewItems={20}
         showAddFriendButtons={true}
       />
     )

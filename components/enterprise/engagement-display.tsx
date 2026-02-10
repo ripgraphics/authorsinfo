@@ -200,20 +200,30 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
       <div className="engagement-left flex items-center gap-2">
         {/* Reactions Display */}
         {internalReactionCount > 0 && (
-          <div className="engagement-reactions flex items-center gap-2 relative group">
-            <div
-              className={cn(
-                'engagement-reaction-icon rounded-full p-1.5 shadow-xs',
-                `bg-gradient-to-r ${getReactionColor(userReactionType || undefined)}`
-              )}
-            >
-              {getReactionIcon(userReactionType) || <Heart className="h-3.5 w-3.5 text-white" />}
+          <div className="engagement-reactions flex items-center relative group">
+            <div className="flex items-center -space-x-1.5 mr-2">
+              {Array.from(new Set(reactions.map(r => r.reaction_type || 'like')))
+                .slice(0, 3)
+                .map((type, idx) => (
+                  <div
+                    key={type}
+                    className={cn(
+                      'engagement-reaction-icon rounded-full p-1 border-2 border-white shadow-sm ring-1 ring-black/5 z-[3]',
+                      `bg-gradient-to-r ${getReactionColor(type)}`
+                    )}
+                    style={{ zIndex: 10 - idx }}
+                  >
+                    <div className="text-white scale-[0.8]">
+                      {getReactionIcon(type)}
+                    </div>
+                  </div>
+                ))}
             </div>
             <span
-              className="engagement-reaction-count text-sm text-gray-600 hover:text-red-600 cursor-pointer font-medium px-2 py-1 rounded-md hover:bg-red-50 transition-all duration-200"
+              className="engagement-reaction-count text-sm text-gray-500 hover:text-blue-600 cursor-pointer font-medium transition-colors duration-200"
               onClick={onReactionsClick}
             >
-              {internalReactionCount} like{internalReactionCount !== 1 ? 's' : ''}
+              {internalReactionCount}
             </span>
 
             {/* Enhanced Facebook-style hover dropdown for reactions */}
@@ -222,12 +232,14 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
               className="absolute bottom-full left-0 mb-2 px-4 py-3 border-none rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-40 max-h-80 overflow-y-auto"
             >
               <div className="text-sm font-bold text-white mb-2 pb-1 border-b border-white/20">
-                {userReactionType ? userReactionType.charAt(0).toUpperCase() + userReactionType.slice(1) : 'Likes'}
+                {reactions.length > 0 && new Set(reactions.map(r => r.reaction_type)).size > 1
+                  ? 'Reactions'
+                  : (userReactionType ? userReactionType.charAt(0).toUpperCase() + userReactionType.slice(1) : 'Reactions')}
               </div>
 
               {!isLoadingReactions && reactions.length > 0 ? (
-                <div className="space-y-2">
-                  {reactions.map((reaction) => {
+                <div className="space-y-0.5">
+                  {reactions.slice(0, 15).map((reaction) => {
                     if (!reaction || !reaction.user) return null
                     return (
                       <div
@@ -242,9 +254,9 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                       </div>
                     )
                   })}
-                  {reactions.length > maxPreviewItems && (
-                    <div className="text-xs text-white/80 font-medium text-center pt-2 border-t border-white/20 mt-1">
-                      +{reactions.length - maxPreviewItems} more people
+                  {internalReactionCount > 15 && (
+                    <div className="text-sm text-white font-medium pt-1 mt-1">
+                      and {internalReactionCount - 15} more...
                     </div>
                   )}
                 </div>

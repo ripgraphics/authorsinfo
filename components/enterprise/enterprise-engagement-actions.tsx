@@ -728,7 +728,7 @@ export function EnterpriseEngagementActions({
   }, [isCommentInputVisible, commentText, isSubmittingComment, user, handleCommentSubmit])
 
   const renderEngagementSummary = useCallback(() => {
-    if (variant === 'minimal') return null
+    if (variant === 'minimal' || !showReactionSummary) return null
 
     const hasEngagement = (stats?.reactionCount || 0) > 0 || (stats?.commentCount || 0) > 0
 

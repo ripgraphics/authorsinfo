@@ -2151,6 +2151,7 @@ export default function EntityFeedCard({
               isBookmarked={post.user_has_bookmarked}
               isViewed={post.user_has_viewed}
               currentReaction={(post.user_reaction_type as ReactionType | null) || null}
+              showReactionSummary={false}
               onEngagement={async (
                 action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view',
                 entityId: string,

@@ -493,7 +493,7 @@ export function EnterpriseEngagementActions({
             <span
               className={cn(
                 'flex items-center',
-                contextReaction || (currentReaction && 'fill-current')
+                (contextReaction || currentReaction) && 'fill-current'
               )}
             >
               {currentDisplay.icon}
@@ -517,8 +517,8 @@ export function EnterpriseEngagementActions({
             showQuickReactions={enableQuickReactions}
             maxQuickReactions={3}
             onReactionChange={(rt) => {
-              if (rt) {
-                handleReactionSelect(rt)
+              if (onEngagement) {
+                onEngagement('reaction', entityId, entityType, rt || undefined)
               }
             }}
             triggerRef={reactionButtonRef as unknown as React.RefObject<HTMLElement>}

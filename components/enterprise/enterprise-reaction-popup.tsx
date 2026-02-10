@@ -57,6 +57,7 @@ export interface ReactionPopupProps {
   theme?: 'light' | 'dark' | 'auto'
   size?: 'sm' | 'md' | 'lg'
   animation?: 'fade' | 'slide' | 'scale' | 'bounce'
+  variant?: 'default' | 'facebook'
 }
 
 // ============================================================================
@@ -111,6 +112,7 @@ export function EnterpriseReactionPopup({
   theme = 'auto',
   size = 'md',
   animation = 'fade',
+  variant = 'facebook',
 }: ReactionPopupProps) {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -215,6 +217,10 @@ export function EnterpriseReactionPopup({
   }, [popupPosition])
 
   const getSizeClasses = useCallback(() => {
+    if (variant === 'facebook') {
+      return 'p-1.5 gap-1.5'
+    }
+
     switch (size) {
       case 'sm':
         return 'p-2 gap-1'
@@ -223,20 +229,20 @@ export function EnterpriseReactionPopup({
       default:
         return 'p-3 gap-1.5'
     }
-  }, [size])
+  }, [size, variant])
 
   const getAnimationClasses = useCallback(() => {
-    const baseClasses = 'transition-all duration-200 ease-out'
+    const baseClasses = 'transition-all duration-200 ease-out animate-in'
 
     switch (animation) {
       case 'slide':
-        return `${baseClasses} transform`
+        return `${baseClasses} slide-in-from-bottom-2`
       case 'scale':
-        return `${baseClasses} transform scale-95 hover:scale-100`
+        return `${baseClasses} zoom-in-95`
       case 'bounce':
-        return `${baseClasses} transform hover:animate-bounce`
+        return `${baseClasses} zoom-in-95 animate-bounce`
       default:
-        return `${baseClasses} opacity-0 hover:opacity-100`
+        return `${baseClasses} fade-in`
     }
   }, [animation])
 
@@ -363,23 +369,24 @@ export function EnterpriseReactionPopup({
                 onClick={() => handleReactionClick(reaction.type)}
                 disabled={isSubmitting}
                 className={cn(
-                  'relative w-12 h-12 p-0 rounded-full transition-all duration-200 ease-out',
-                  'flex flex-col items-center justify-center gap-1',
-                  'transform hover:scale-110 active:scale-95',
+                  'relative rounded-full transition-all duration-300 ease-out',
+                  'flex flex-col items-center justify-center',
+                  'transform hover:scale-150 hover:-translate-y-2 active:scale-95',
+                  variant === 'facebook' ? 'w-10 h-10 text-2xl' : 'w-12 h-12 text-lg gap-1',
                   isCurrentReaction
-                    ? `${reaction.color} ${reaction.bgColor} shadow-md`
+                    ? `${reaction.color} ${reaction.bgColor} shadow-sm`
                     : 'text-gray-600 hover:text-gray-800',
                   isHovered &&
-                    !isCurrentReaction &&
-                    `${reaction.hoverColor} ${reaction.hoverBgColor}`,
+                  !isCurrentReaction &&
+                  `${reaction.hoverColor} ${reaction.hoverBgColor}`,
                   getAnimationClasses()
                 )}
               >
                 {/* Reaction Icon */}
-                <div className="text-lg">{reaction.emoji}</div>
+                <div>{reaction.emoji}</div>
 
-                {/* Reaction Count (if enabled) */}
-                {showReactionCounts && count > 0 && (
+                {/* Reaction Count (if enabled and not facebook variant) */}
+                {variant !== 'facebook' && showReactionCounts && count > 0 && (
                   <Badge
                     variant="secondary"
                     className={cn(
@@ -390,29 +397,17 @@ export function EnterpriseReactionPopup({
                     {count > 99 ? '99+' : count}
                   </Badge>
                 )}
-
-                {/* Selection Indicator */}
-                {isCurrentReaction && (
-                  <div
-                    className={cn(
-                      'absolute inset-0 rounded-full border-2',
-                      'border-current opacity-20'
-                    )}
-                  />
-                )}
               </Button>
             </div>
           </TooltipTrigger>
 
-          <TooltipContent side={popupPosition === 'top' ? 'bottom' : 'top'} className="max-w-xs">
+          <TooltipContent
+            side={popupPosition === 'top' ? 'top' : 'bottom'}
+            sideOffset={variant === 'facebook' ? 20 : 5}
+            className="rounded-full bg-black/80 text-white border-0 px-3 py-1"
+          >
             <div className="text-center">
-              <div className="font-semibold text-sm">{reaction.label}</div>
-              <div className="text-xs text-gray-500">{reaction.description}</div>
-              {showReactionCounts && count > 0 && (
-                <div className="text-xs text-gray-400 mt-1">
-                  {count} {count === 1 ? 'person' : 'people'} reacted
-                </div>
-              )}
+              <div className="font-bold text-xs">{reaction.label}</div>
             </div>
           </TooltipContent>
         </Tooltip>
@@ -425,6 +420,7 @@ export function EnterpriseReactionPopup({
       isSubmitting,
       showReactionCounts,
       popupPosition,
+      variant,
       handleReactionClick,
       handleMouseEnter,
       handleMouseLeave,
@@ -498,66 +494,67 @@ export function EnterpriseReactionPopup({
   return (
     <TooltipProvider>
       <div
-        className="fixed inset-0 z-50"
-        onClick={handleClose}
+        ref={popupRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reaction-popup-title"
+        className={cn(
+          'absolute z-50 bg-white shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-gray-100',
+          'backdrop-blur-md bg-white/98',
+          variant === 'facebook' ? 'rounded-full px-1 py-1' : 'rounded-2xl p-4',
+          getPositionClasses(),
+          getAnimationClasses(),
+          className
+        )}
+        data-reaction-popup
+        onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
-        role="presentation"
       >
-        <div
-          ref={popupRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="reaction-popup-title"
-          className={cn(
-            'bg-white rounded-2xl shadow-2xl border border-gray-200',
-            'backdrop-blur-xs bg-white/95',
-            getPositionClasses(),
-            getSizeClasses(),
-            getAnimationClasses(),
-            className
-          )}
-          data-reaction-popup
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={handleKeyDown}
-        >
-          {/* Live region for screen readers: reaction summary */}
-          <div aria-live="polite" aria-atomic="true" className="sr-only">
-            {reactionSummaryText}
-          </div>
-
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <h3 id="reaction-popup-title" className="text-sm font-semibold text-gray-700">
-              React to this {entityType}
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="w-6 h-6 p-0 text-gray-400 hover:text-gray-600"
-              aria-label="Close reaction menu"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Quick Reactions */}
-          {renderQuickReactions()}
-
-          {/* Full Reaction Grid */}
-          {showAdvanced && (
-            <div className="grid grid-cols-4 gap-2">
-              {REACTION_OPTIONS.map(renderReactionButton)}
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="mt-3 pt-2 border-t border-gray-100">
-            <div className="text-xs text-gray-500 text-center">
-              Click to {selectedReaction ? 'change or remove' : 'add'} your reaction
-            </div>
-          </div>
+        {/* Live region for screen readers: reaction summary */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {reactionSummaryText}
         </div>
+
+        {variant === 'facebook' ? (
+          <div className="flex items-center gap-0.5">
+            {REACTION_OPTIONS.map(renderReactionButton)}
+          </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <h3 id="reaction-popup-title" className="text-sm font-semibold text-gray-700">
+                React to this {entityType}
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className="w-6 h-6 p-0 text-gray-400 hover:text-gray-600"
+                aria-label="Close reaction menu"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Quick Reactions */}
+            {renderQuickReactions()}
+
+            {/* Full Reaction Grid */}
+            {showAdvanced && (
+              <div className="grid grid-cols-4 gap-2">
+                {REACTION_OPTIONS.map(renderReactionButton)}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="mt-3 pt-2 border-t border-gray-100">
+              <div className="text-xs text-gray-500 text-center">
+                Click to {selectedReaction ? 'change or remove' : 'add'} your reaction
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </TooltipProvider>
   )
@@ -675,7 +672,9 @@ export function ReactionSummary({
     fetchCounts()
   }, [entityId, entityType])
 
-  if (!engagement || engagement.reactionCount === 0) return null
+  // Check if we have any reactions at all from the fetched counts
+  const totalReactionCount = Object.values(reactionCounts || {}).reduce((a, b) => a + b, 0)
+  if (totalReactionCount === 0) return null
 
   const topReactions = Object.entries(reactionCounts || {})
     .filter(([_, count]) => count > 0)
@@ -698,7 +697,7 @@ export function ReactionSummary({
         )
       })}
 
-      {engagement.reactionCount > maxReactions && (
+      {engagement && engagement.reactionCount > maxReactions && (
         <span className="text-xs text-gray-500">
           +{engagement.reactionCount - maxReactions} more
         </span>

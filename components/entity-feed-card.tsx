@@ -1016,7 +1016,7 @@ export default function EntityFeedCard({
   // Handle delete post
   const handleDeletePost = async () => {
     if (isDeleting) return // Prevent double-clicks
-    
+
     // Validate post ID
     if (!post?.id) {
       console.error('❌ Cannot delete: Post ID is missing')
@@ -1027,10 +1027,10 @@ export default function EntityFeedCard({
       })
       return
     }
-    
+
     console.log('🗑️ Delete button clicked!')
     setIsDeleting(true)
-    
+
     try {
       // Enhanced logging to debug the post structure
       console.log('=== DELETE DEBUG ===')
@@ -1046,10 +1046,10 @@ export default function EntityFeedCard({
       // All posts now use the unified activities table system
       const endpoint = '/api/activities'
       console.log('Deleting post from unified activities table')
-      
+
       const response = await fetch(endpoint, {
         method: 'DELETE',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include', // Include cookies for authentication
@@ -1090,7 +1090,7 @@ export default function EntityFeedCard({
       // Check for success in response
       if (responseData.success === true || (responseData.success !== false && !responseData.error)) {
         console.log('✅ Post deleted successfully')
-        
+
         // Call the callback to remove post from UI
         if (onPostDeleted) {
           console.log('Calling onPostDeleted callback with post ID:', post.id)
@@ -1109,7 +1109,7 @@ export default function EntityFeedCard({
       }
     } catch (error) {
       console.error('❌ Error deleting post:', error)
-      
+
       // Handle network errors specifically
       if (error instanceof TypeError && error.message.includes('fetch')) {
         toast({
@@ -1299,9 +1299,8 @@ export default function EntityFeedCard({
                 {editImages.map((image, index) => (
                   <div
                     key={index}
-                    className={`relative group cursor-move ${
-                      dragIndex === index ? 'opacity-50' : ''
-                    } ${dragOverIndex === index ? 'ring-2 ring-blue-500' : ''}`}
+                    className={`relative group cursor-move ${dragIndex === index ? 'opacity-50' : ''
+                      } ${dragOverIndex === index ? 'ring-2 ring-blue-500' : ''}`}
                     draggable
                     onDragStart={(e) => handleDragStart(e, index)}
                     onDragOver={(e) => handleDragOver(e, index)}
@@ -1708,7 +1707,7 @@ export default function EntityFeedCard({
       case 'link':
         // Collect all links: from content.links, post.link_url, or detected from text
         const allLinks: Array<{ url: string; metadata?: any }> = []
-        
+
         // Add links from content.links array
         if (content.links && content.links.length > 0) {
           content.links.forEach((link) => {
@@ -1718,12 +1717,12 @@ export default function EntityFeedCard({
             })
           })
         }
-        
+
         // Add link_url if not already in links
         if (post.link_url && !allLinks.some((l) => l.url === post.link_url)) {
           allLinks.push({ url: post.link_url })
         }
-        
+
         // Add detected link if not already present
         if (detectedLink && !allLinks.some((l) => l.url === detectedLink)) {
           allLinks.push({ url: detectedLink })
@@ -1941,7 +1940,7 @@ export default function EntityFeedCard({
                   Cross-posted from{' '}
                   {post.metadata.cross_post.origin_entity_type
                     ? post.metadata.cross_post.origin_entity_type.charAt(0).toUpperCase() +
-                      post.metadata.cross_post.origin_entity_type.slice(1)
+                    post.metadata.cross_post.origin_entity_type.slice(1)
                     : 'another timeline'}
                 </Badge>
               )}
@@ -2473,35 +2472,35 @@ export default function EntityFeedCard({
           photos={
             post.image_url
               ? post.image_url.split(',').map((url: string, index: number) => ({
-                  id: `post-${post.id}-${index}`,
-                  url: url,
-                  thumbnail_url: url,
-                  alt_text: `Post image ${index + 1}`,
-                  description: post.text || post.data?.text || `Image ${index + 1} from post`,
-                  created_at: post.created_at || new Date().toISOString(),
-                  metadata: {
-                    source: 'timeline_post',
-                    post_id: post.id,
-                    user_id: post.user_id,
-                    user_name: post.user_name,
-                  },
-                  tags: [],
-                  likes: [],
-                  comments: [],
-                  shares: [],
-                  analytics: {
-                    views: 0,
-                    unique_views: 0,
-                    downloads: 0,
-                    shares: 0,
-                    engagement_rate: 0,
-                  },
-                  is_featured: false,
-                  user: {
-                    name: post.user_name || 'User',
-                    avatar_url: post.user_avatar_url,
-                  },
-                }))
+                id: `post-${post.id}-${index}`,
+                url: url,
+                thumbnail_url: url,
+                alt_text: `Post image ${index + 1}`,
+                description: post.text || post.data?.text || `Image ${index + 1} from post`,
+                created_at: post.created_at || new Date().toISOString(),
+                metadata: {
+                  source: 'timeline_post',
+                  post_id: post.id,
+                  user_id: post.user_id,
+                  user_name: post.user_name,
+                },
+                tags: [],
+                likes: [],
+                comments: [],
+                shares: [],
+                analytics: {
+                  views: 0,
+                  unique_views: 0,
+                  downloads: 0,
+                  shares: 0,
+                  engagement_rate: 0,
+                },
+                is_featured: false,
+                user: {
+                  name: post.user_name || 'User',
+                  avatar_url: post.user_avatar_url,
+                },
+              }))
               : []
           }
           currentIndex={currentImageIndex}

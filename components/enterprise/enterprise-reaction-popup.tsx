@@ -713,7 +713,7 @@ export function ReactionSummary({
           return (
             <div
               key={reactionType}
-              className="rounded-full border border-white bg-white shadow-sm flex items-center justify-center p-0.5"
+              className="rounded-full flex items-center justify-center p-0.5"
               style={{ zIndex: 5 - index }}
             >
               <span className="text-[10px]" title={reaction.label}>{reaction.emoji}</span>

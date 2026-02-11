@@ -253,12 +253,11 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                     onMouseEnter={() => setActiveFilter(type)}
                     onMouseLeave={() => setActiveFilter(null)}
                     className={cn(
-                      'engagement-reaction-icon rounded-full p-1 border-2 border-white shadow-sm ring-1 ring-black/5 z-[3] transition-transform hover:scale-110 cursor-pointer',
-                      getReactionColor(type)
+                      'engagement-reaction-icon rounded-full p-0.5 z-[3] transition-transform hover:scale-110 cursor-pointer'
                     )}
                     style={{ zIndex: 10 - idx }}
                   >
-                    <div className="text-white scale-[0.8]">
+                    <div>
                       {getReactionIcon(type)}
                     </div>
                   </div>

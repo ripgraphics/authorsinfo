@@ -5,6 +5,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Heart, MessageCircle, ThumbsUp, Smile, Star, AlertTriangle, Zap, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { useEntityEngagement, type EntityType } from '@/contexts/engagement-context'
 
 export interface EngagementUser {
   id: string
@@ -63,6 +64,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   userReactionType,
 }) => {
   const { user } = useAuth()
+  const { stats } = useEntityEngagement(entityId, entityType as EntityType)
   const [reactions, setReactions] = useState<EngagementUser[]>([])
   const [comments, setComments] = useState<EngagementUser[]>([])
   const [isLoadingReactions, setIsLoadingReactions] = useState(false)
@@ -70,6 +72,10 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   const [internalReactionCount, setInternalReactionCount] = useState(reactionCount)
   const [internalCommentCount, setInternalCommentCount] = useState(commentCount)
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
+
+  // Use live stats from context if available, fallback to internal/props
+  const displayReactionCount = stats?.reactionCount ?? internalReactionCount
+  const displayCommentCount = stats?.commentCount ?? internalCommentCount
 
   // Update internal counts if props change
   useEffect(() => {
@@ -227,7 +233,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
               onClick={onReactionsClick}
               onMouseEnter={() => setActiveFilter(null)}
             >
-              {internalReactionCount}
+              {displayReactionCount}
             </span>
 
             {/* Enhanced Facebook-style hover dropdown for reactions */}
@@ -285,7 +291,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
               onClick={onCommentsClick}
               className="cursor-pointer font-medium hover:underline px-2 py-1 rounded-md hover:bg-blue-50 transition-all duration-200"
             >
-              {internalCommentCount} comment{internalCommentCount !== 1 ? 's' : ''}
+              {displayCommentCount} comment{displayCommentCount !== 1 ? 's' : ''}
             </span>
 
             {/* Enhanced hover dropdown for comments */}

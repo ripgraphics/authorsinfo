@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Failed to check existing like: ${checkError.message}` }, { status: 500 })
     }
 
-    let action: 'added' | 'removed' = 'added'
+    let action: 'added' | 'removed' | 'changed' = 'added'
     let like_id: string | null = null
     let total_count: number | undefined
     let user_reaction: string | null = null
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: `Failed to update like type: ${updateError.message}` }, { status: 500 })
         }
 
-        action = 'added'
+        action = 'changed'
         like_id = updatedLike.id
         user_reaction = reaction_type
       }
@@ -169,7 +169,11 @@ export async function POST(request: Request) {
       like_id,
       total_count,
       user_reaction,
-      message: action === 'removed' ? 'Reaction removed successfully' : 'Reaction added successfully',
+      message: action === 'removed' 
+        ? 'Reaction removed successfully' 
+        : action === 'changed' 
+          ? 'Reaction changed successfully' 
+          : 'Reaction added successfully',
     })
 
   } catch (error) {

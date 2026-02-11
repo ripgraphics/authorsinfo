@@ -393,10 +393,17 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
             }
           }
 
-          if (currentReaction === reactionType) {
+          // Show specific toast based on exact action from server
+          if (result.action === 'removed') {
             toast({
               title: 'Reaction removed',
               description: 'Your reaction has been removed',
+              variant: 'default',
+            })
+          } else if (result.action === 'changed') {
+            toast({
+              title: 'Reaction changed!',
+              description: `You changed your reaction to ${reactionType}!`,
               variant: 'default',
             })
           } else {

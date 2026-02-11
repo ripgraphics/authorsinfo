@@ -276,16 +276,25 @@ export function EnterpriseReactionPopup({
             onReactionChange(newReaction)
           }
 
-          // Update local counts
-          if (newReaction) {
-            setReactionCounts((prev) => ({
-              ...prev,
-              [reactionType]: (prev[reactionType] || 0) + 1,
-            }))
-          } else {
+          // Update local counts optimistically
+          if (newReaction === null) {
+            // Removed
             setReactionCounts((prev) => ({
               ...prev,
               [reactionType]: Math.max(0, (prev[reactionType] || 0) - 1),
+            }))
+          } else if (selectedReaction && selectedReaction !== reactionType) {
+            // Changed
+            setReactionCounts((prev) => ({
+              ...prev,
+              [selectedReaction]: Math.max(0, (prev[selectedReaction] || 0) - 1),
+              [reactionType]: (prev[reactionType] || 0) + 1,
+            }))
+          } else if (!selectedReaction) {
+            // Added new
+            setReactionCounts((prev) => ({
+              ...prev,
+              [reactionType]: (prev[reactionType] || 0) + 1,
             }))
           }
 
@@ -671,7 +680,7 @@ export function ReactionSummary({
       }
     }
     fetchCounts()
-  }, [entityId, entityType])
+  }, [entityId, entityType, engagement?.reactionCount])
 
   // Check if we have any reactions at all from the fetched counts
   const totalReactionCount = Object.values(reactionCounts || {}).reduce((a, b) => a + b, 0)

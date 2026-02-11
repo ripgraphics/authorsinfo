@@ -54,6 +54,7 @@ import {
   Star,
   AlertTriangle,
   Loader2,
+  Angry,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -431,14 +432,17 @@ export function EnterpriseEngagementActions({
     if (!reaction)
       return { icon: <ThumbsUp className="h-5 w-5" />, color: 'text-gray-600', label: 'Like' }
 
-    const reactionOption = REACTION_OPTIONS.find((r) => r.type === reaction)
+    // Case-insensitive match to handle inconsistent server response casings
+    const reactionOption = REACTION_OPTIONS.find(
+      (r) => r.type.toLowerCase() === reaction.toLowerCase()
+    )
     if (!reactionOption)
       return { icon: <ThumbsUp className="h-5 w-5" />, color: 'text-gray-600', label: 'Like' }
 
     return {
       icon: customReactionIcons?.[reaction] || reactionOption.icon,
       color: customColors?.[reaction]?.color || reactionOption.color,
-      label: reaction.charAt(0).toUpperCase() + reaction.slice(1),
+      label: reactionOption.label,
     }
   }, [contextReaction, currentReaction, customReactionIcons, customColors])
 
@@ -843,12 +847,13 @@ const REACTION_TYPE_ICONS: Record<ReactionType, React.ReactNode> = {
   care: <Heart className="h-5 w-5" />,
   haha: <Smile className="h-5 w-5" />,
   wow: <Star className="h-5 w-5" />,
-  sad: <AlertTriangle className="h-5 w-5" />,
-  angry: <Zap className="h-5 w-5" />,
+  sad: <span className="text-xl leading-none">😢</span>,
+  angry: <Angry className="h-5 w-5" />,
 }
 
 const REACTION_OPTIONS = REACTION_OPTIONS_METADATA.map((meta) => ({
   type: meta.type,
+  label: meta.label,
   icon: REACTION_TYPE_ICONS[meta.type],
   color: meta.color,
   bgColor: meta.bgColor,

@@ -198,6 +198,7 @@ export async function GET(request: NextRequest) {
         engagement_score: row.engagement_score ?? 0,
         metadata: row.metadata ?? {},
         user_reaction_type: userReactionByActivity[row.id] || null,
+        user_has_reacted: !!userReactionByActivity[row.id],
         is_liked: !!userReactionByActivity[row.id],
       }
     })

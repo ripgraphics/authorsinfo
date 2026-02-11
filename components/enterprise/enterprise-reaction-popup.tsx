@@ -10,6 +10,7 @@ import {
   Star,
   AlertTriangle,
   Zap,
+  Angry,
   MessageSquare,
   X,
   ChevronDown,
@@ -70,8 +71,8 @@ const REACTION_TYPE_ICONS: Record<ReactionType, React.ReactNode> = {
   care: <Heart className="h-5 w-5" />,
   haha: <Smile className="h-5 w-5" />,
   wow: <Star className="h-5 w-5" />,
-  sad: <AlertTriangle className="h-5 w-5" />,
-  angry: <Zap className="h-5 w-5" />,
+  sad: <span className="text-xl">😢</span>,
+  angry: <Angry className="h-5 w-5" />,
 }
 
 function buildReactionOptions(): ReactionOption[] {

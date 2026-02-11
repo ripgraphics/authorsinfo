@@ -216,12 +216,27 @@ function engagementReducer(
       const key = `${entityType}:${entityId}`
       const existing = state.entities.get(key)
 
-      if (!existing) return state
+      const baseState: EngagementState = existing ?? {
+        entityId,
+        entityType,
+        reactionCount: 0,
+        commentCount: 0,
+        shareCount: 0,
+        bookmarkCount: 0,
+        viewCount: 0,
+        userReaction: null,
+        userHasCommented: false,
+        userHasShared: false,
+        userHasBookmarked: false,
+        userHasViewed: false,
+        isLoading: false,
+        error: null,
+      }
 
       const updatedEntities = new Map(state.entities)
       updatedEntities.set(key, {
-        ...existing,
-        [countType]: existing[countType] + 1,
+        ...baseState,
+        [countType]: baseState[countType] + 1,
       })
 
       return { ...state, entities: updatedEntities }
@@ -232,12 +247,27 @@ function engagementReducer(
       const key = `${entityType}:${entityId}`
       const existing = state.entities.get(key)
 
-      if (!existing) return state
+      const baseState: EngagementState = existing ?? {
+        entityId,
+        entityType,
+        reactionCount: 0,
+        commentCount: 0,
+        shareCount: 0,
+        bookmarkCount: 0,
+        viewCount: 0,
+        userReaction: null,
+        userHasCommented: false,
+        userHasShared: false,
+        userHasBookmarked: false,
+        userHasViewed: false,
+        isLoading: false,
+        error: null,
+      }
 
       const updatedEntities = new Map(state.entities)
       updatedEntities.set(key, {
-        ...existing,
-        [countType]: Math.max(0, existing[countType] - 1),
+        ...baseState,
+        [countType]: Math.max(0, baseState[countType] - 1),
       })
 
       return { ...state, entities: updatedEntities }

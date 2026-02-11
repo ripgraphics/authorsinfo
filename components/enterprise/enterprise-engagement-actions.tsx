@@ -61,7 +61,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { REACTION_OPTIONS_METADATA } from '@/lib/engagement/config'
-import { useEntityEngagement, EntityType, ReactionType } from '@/contexts/engagement-context'
+import { useEntityEngagement, EntityType, ReactionType, EngagementState } from '@/contexts/engagement-context'
 import {
   EnterpriseReactionPopup,
   QuickReactionButton,
@@ -234,20 +234,44 @@ export function EnterpriseEngagementActions({
     }
   }, [isCommentInputVisible])
 
-  // Sync initial prop reaction to global context for persistence across reloads
+  // Sync initial prop engagement data to global context to ensure baselines for optimistic updates
   useEffect(() => {
+    const updates: Partial<EngagementState> = {}
+
+    // Sync current reaction
     if (currentReaction && !contextReaction) {
+      updates.userReaction = currentReaction
+    }
+
+    // Sync comment count baseline if context is empty/zero
+    if (commentCount > 0 && (!stats || stats.commentCount === 0)) {
+      updates.commentCount = commentCount
+    }
+
+    // Sync reaction count baseline if context is empty/zero
+    if (initialEngagementCount > 0 && (!stats || stats.reactionCount === 0)) {
+      updates.reactionCount = initialEngagementCount
+    }
+
+    if (Object.keys(updates).length > 0) {
       batchUpdateEngagement([
         {
           entityId,
           entityType,
-          updates: {
-            userReaction: currentReaction,
-          },
+          updates,
         },
       ])
     }
-  }, [currentReaction, contextReaction, entityId, entityType, batchUpdateEngagement])
+  }, [
+    currentReaction,
+    contextReaction,
+    commentCount,
+    initialEngagementCount,
+    stats,
+    entityId,
+    entityType,
+    batchUpdateEngagement
+  ])
 
   // ============================================================================
   // EVENT HANDLERS

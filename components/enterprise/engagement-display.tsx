@@ -5,7 +5,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Heart, MessageCircle, ThumbsUp, Smile, Star, AlertTriangle, Zap, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
-import { useEntityEngagement, type EntityType, type ReactionType } from '@/contexts/engagement-context'
+import { useEntityEngagement, type EntityType, type ReactionType, type EngagementState } from '@/contexts/engagement-context'
 
 export interface EngagementUser {
   id: string
@@ -94,6 +94,33 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   useEffect(() => {
     setInternalCommentCount(commentCount)
   }, [commentCount])
+
+  // Sync baseline counts from props to global context
+  useEffect(() => {
+    if (entityId && entityType) {
+      const updates: Partial<EngagementState> = {}
+
+      // Update reaction count if context is empty/zero
+      if (reactionCount > 0 && (!stats || stats.reactionCount === 0)) {
+        updates.reactionCount = reactionCount
+      }
+
+      // Update comment count if context is empty/zero
+      if (commentCount > 0 && (!stats || stats.commentCount === 0)) {
+        updates.commentCount = commentCount
+      }
+
+      if (Object.keys(updates).length > 0) {
+        batchUpdateEngagement([
+          {
+            entityId,
+            entityType: entityType as EntityType,
+            updates,
+          },
+        ])
+      }
+    }
+  }, [entityId, entityType, reactionCount, commentCount, stats, batchUpdateEngagement])
 
   // Fetch engagement data
   const fetchEngagementData = useCallback(async () => {

@@ -202,7 +202,7 @@ export default function EntityFeedCard({
 
   const { toast } = useToast()
   const { user } = useAuth()
-  const { getEngagement } = useEngagement()
+  const { getEngagement, addComment, batchUpdateEngagement } = useEngagement()
   const [currentVisibility, setCurrentVisibility] = useState(post.visibility)
   const [isExpanded, setIsExpanded] = useState(false)
   const [showFullContent, setShowFullContent] = useState(false)
@@ -303,9 +303,8 @@ export default function EntityFeedCard({
       setIsLoadingComments(true)
       console.log('🔍 FeedCard: Fetching comments for post:', post.id)
 
-      const engagementType = post.entity_type === 'book' ? 'book' : 'post'
       const response = await fetch(
-        `/api/engagement?entity_id=${post.id}&entity_type=${engagementType}`,
+        `/api/engagement?entity_id=${post.id}&entity_type=${engagementEntityType}`,
         {
           signal: AbortSignal.timeout(30000), // 30 second timeout
         }
@@ -346,46 +345,36 @@ export default function EntityFeedCard({
     const text = bottomComment.trim()
     if (!text) return
     if (text.length > MAX_COMMENT_CHARS) return
+
     try {
-      const engagementType = post.entity_type === 'book' ? 'book' : 'post'
-      const resp = await fetch('/api/engagement', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entity_id: post.id,
-          entity_type: engagementType,
-          engagement_type: 'comment',
-          content: text,
-        }),
-        signal: AbortSignal.timeout(30000), // 30 second timeout
-      })
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-      setBottomComment('')
-      setIsBottomComposerActive(false)
-      if (onPostUpdated) {
-        const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
-        onPostUpdated(updatedPost)
+      setIsSaving(true)
+
+      // Use the global context's addComment which handles:
+      // 1. Authentication check
+      // 2. API call to /api/engagement/comment
+      // 3. Optimistic count update (INCREMENT_COUNT)
+      // 4. Toast notifications
+      const success = await addComment(post.id, engagementEntityType, text)
+
+      if (success) {
+        setBottomComment('')
+        setIsBottomComposerActive(false)
+
+        if (onPostUpdated) {
+          const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
+          onPostUpdated(updatedPost)
+        }
+
+        // Add a small delay to ensure the database transaction is committed
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        fetchComments()
       }
-      // Add a small delay to ensure the database transaction is committed
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      fetchComments()
     } catch (e) {
       console.error('Failed to submit comment', e)
-      if (e instanceof Error && e.name === 'TimeoutError') {
-        toast({
-          title: 'Timeout',
-          description: 'The request took too long. Please try again.',
-          variant: 'destructive',
-        })
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to post comment. Please try again.',
-          variant: 'destructive',
-        })
-      }
+    } finally {
+      setIsSaving(false)
     }
-  }, [bottomComment, post.id, post.entity_type, onPostUpdated, fetchComments, toast])
+  }, [bottomComment, post.id, engagementEntityType, onPostUpdated, fetchComments, addComment])
 
   useEffect(() => {
     if (isBottomComposerActive) {
@@ -404,9 +393,8 @@ export default function EntityFeedCard({
       setIsLoadingLikes(true)
       console.log('🔍 FeedCard: Fetching likes for post:', post.id)
 
-      const engagementType = post.entity_type === 'book' ? 'book' : 'post'
       const response = await fetch(
-        `/api/engagement?entity_id=${post.id}&entity_type=${engagementType}`
+        `/api/engagement?entity_id=${post.id}&entity_type=${engagementEntityType}`
       )
 
       if (response.ok) {

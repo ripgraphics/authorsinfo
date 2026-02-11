@@ -1815,12 +1815,6 @@ export default function EntityFeedCard({
           console.log('Navigate to user profile:', userId)
           // Add navigation logic here
         }}
-        onAddFriend={(userId) => {
-          console.log('Send friend request to:', userId)
-          // Add friend request logic here
-        }}
-        customReactionIcon={<Heart className="h-3.5 w-3.5 fill-current" />}
-        customReactionColor="from-red-500 to-pink-500"
         showReactionTypes={false}
         maxPreviewItems={20}
         showAddFriendButtons={true}

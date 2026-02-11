@@ -170,49 +170,43 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
 
   // Get reaction icon based on type
   const getReactionIcon = (reactionType?: string | null) => {
-    if (customReactionIcon) return customReactionIcon
-
     switch (reactionType?.toLowerCase()) {
       case 'love':
-        return <Heart className="h-3.5 w-3.5" />
+        return <span className="text-[12px] leading-none">❤️</span>
       case 'like':
-        return <ThumbsUp className="h-3.5 w-3.5" />
+        return <span className="text-[12px] leading-none">👍</span>
       case 'care':
-        return <Heart className="h-3.5 w-3.5" />
+        return <span className="text-[12px] leading-none">🤗</span>
       case 'haha':
-        return <Smile className="h-3.5 w-3.5" />
+        return <span className="text-[12px] leading-none">😂</span>
       case 'wow':
-        return <Star className="h-3.5 w-3.5" />
+        return <span className="text-[12px] leading-none">😮</span>
       case 'sad':
-        return <AlertTriangle className="h-3.5 w-3.5" />
+        return <span className="text-[12px] leading-none">😢</span>
       case 'angry':
-        return <Zap className="h-3.5 w-3.5" />
+        return <span className="text-[12px] leading-none">😠</span>
       default:
-        return <Heart className="h-3.5 w-3.5" />
+        return <span className="text-[12px] leading-none">👍</span>
     }
   }
 
   // Get reaction color based on type
   const getReactionColor = (reactionType?: string) => {
-    if (customReactionColor) return customReactionColor
-
     switch (reactionType?.toLowerCase()) {
       case 'love':
-        return 'from-red-500 to-pink-500'
+        return 'bg-red-50/50'
       case 'like':
-        return 'from-blue-500 to-blue-600'
+        return 'bg-blue-50/50'
       case 'care':
-        return 'from-yellow-500 to-orange-500'
       case 'haha':
-        return 'from-yellow-400 to-yellow-500'
       case 'wow':
-        return 'from-purple-500 to-pink-500'
+        return 'bg-yellow-50/50'
       case 'sad':
-        return 'from-blue-400 to-blue-500'
+        return 'bg-blue-50/50'
       case 'angry':
-        return 'from-red-600 to-red-700'
+        return 'bg-red-50/50'
       default:
-        return 'from-red-500 to-pink-500'
+        return 'bg-gray-50/50'
     }
   }
 
@@ -260,7 +254,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                     onMouseLeave={() => setActiveFilter(null)}
                     className={cn(
                       'engagement-reaction-icon rounded-full p-1 border-2 border-white shadow-sm ring-1 ring-black/5 z-[3] transition-transform hover:scale-110 cursor-pointer',
-                      `bg-gradient-to-r ${getReactionColor(type)}`
+                      getReactionColor(type)
                     )}
                     style={{ zIndex: 10 - idx }}
                   >

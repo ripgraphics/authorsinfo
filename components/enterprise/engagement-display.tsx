@@ -243,10 +243,15 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
     >
       <div className="engagement-left flex items-center gap-2">
         {/* Reactions Display */}
-        {internalReactionCount > 0 && (
+        {displayReactionCount > 0 && (
           <div className="engagement-reactions flex items-center relative group">
             <div className="flex items-center -space-x-1.5 mr-2">
-              {Array.from(new Set(reactions.map(r => r.reaction_type || 'like')))
+              {Array.from(
+                new Set([
+                  ...reactions.map((r) => r.reaction_type || 'like'),
+                  ...(currentReaction ? [currentReaction] : []),
+                ])
+              )
                 .slice(0, 3)
                 .map((type, idx) => (
                   <div
@@ -306,9 +311,9 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                       </div>
                     )
                   })}
-                  {(!activeFilter ? internalReactionCount : reactions.filter(r => r.reaction_type === activeFilter).length) > 15 && (
+                  {(!activeFilter ? displayReactionCount : reactions.filter(r => r.reaction_type === activeFilter).length) > 15 && (
                     <div className="text-sm text-white font-normal pt-1 mt-1">
-                      and {(!activeFilter ? internalReactionCount : reactions.filter(r => r.reaction_type === activeFilter).length) - 15} more...
+                      and {(!activeFilter ? displayReactionCount : reactions.filter(r => r.reaction_type === activeFilter).length) - 15} more...
                     </div>
                   )}
                 </div>
@@ -322,7 +327,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
         )}
 
         {/* Comments Display */}
-        {internalCommentCount > 0 && (
+        {displayCommentCount > 0 && (
           <div className="engagement-comments text-sm text-gray-600 hover:text-blue-600 cursor-pointer relative group transition-colors duration-200">
             <span
               onClick={onCommentsClick}

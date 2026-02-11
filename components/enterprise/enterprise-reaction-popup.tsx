@@ -684,34 +684,46 @@ export function ReactionSummary({
 
   // Check if we have any reactions at all from the fetched counts
   const totalReactionCount = Object.values(reactionCounts || {}).reduce((a, b) => a + b, 0)
-  if (totalReactionCount === 0) return null
 
-  const topReactions = Object.entries(reactionCounts || {})
+  // Use global count from context if available, otherwise fallback to fetched total
+  const displayTotalCount = engagement?.reactionCount ?? totalReactionCount
+
+  if (displayTotalCount === 0) return null
+
+  // Ensure user's reaction is represented in the list if we're in an optimistic state
+  const effectiveCounts = { ...(reactionCounts || {}) } as Record<string, number>
+  const userReaction = engagement?.userReaction
+  if (userReaction && (effectiveCounts[userReaction] || 0) === 0) {
+    effectiveCounts[userReaction] = 1
+  }
+
+  const topReactions = Object.entries(effectiveCounts)
     .filter(([_, count]) => count > 0)
     .sort(([_, a], [__, b]) => (b as number) - (a as number))
     .slice(0, maxReactions)
 
-  if (topReactions.length === 0) return null
-
   return (
     <div className={cn('flex items-center gap-1', className)}>
-      {topReactions.map(([reactionType, count]) => {
-        const reaction = REACTION_OPTIONS.find((r) => r.type === (reactionType as ReactionType))
-        if (!reaction) return null
+      <div className="flex items-center -space-x-1 mr-1">
+        {topReactions.map(([reactionType], index) => {
+          const reaction = REACTION_OPTIONS.find((r) => r.type === (reactionType as ReactionType))
+          if (!reaction) return null
 
-        return (
-          <div key={reactionType} className="flex items-center gap-1">
-            <span className="text-sm">{reaction.emoji}</span>
-            <span className="text-xs text-gray-600">{count}</span>
-          </div>
-        )
-      })}
+          return (
+            <div
+              key={reactionType}
+              className="rounded-full border border-white bg-white shadow-sm flex items-center justify-center p-0.5"
+              style={{ zIndex: 5 - index }}
+            >
+              <span className="text-[10px]" title={reaction.label}>{reaction.emoji}</span>
+            </div>
+          )
+        })}
+      </div>
 
-      {engagement && engagement.reactionCount > maxReactions && (
-        <span className="text-xs text-gray-500">
-          +{engagement.reactionCount - maxReactions} more
-        </span>
-      )}
+      <span className="text-xs font-semibold text-gray-700">
+        {displayTotalCount}
+      </span>
     </div>
   )
 }

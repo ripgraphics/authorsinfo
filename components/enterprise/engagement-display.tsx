@@ -5,7 +5,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Heart, MessageCircle, ThumbsUp, Smile, Star, AlertTriangle, Zap, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
-import { useEntityEngagement, type EntityType } from '@/contexts/engagement-context'
+import { useEntityEngagement, type EntityType, type ReactionType } from '@/contexts/engagement-context'
 
 export interface EngagementUser {
   id: string
@@ -64,7 +64,10 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   userReactionType,
 }) => {
   const { user } = useAuth()
-  const { stats } = useEntityEngagement(entityId, entityType as EntityType)
+  const { stats, currentReaction, batchUpdateEngagement } = useEntityEngagement(
+    entityId,
+    entityType as EntityType
+  )
   const [reactions, setReactions] = useState<EngagementUser[]>([])
   const [comments, setComments] = useState<EngagementUser[]>([])
   const [isLoadingReactions, setIsLoadingReactions] = useState(false)
@@ -73,9 +76,15 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   const [internalCommentCount, setInternalCommentCount] = useState(commentCount)
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
-  // Use live stats from context if available, fallback to internal/props
-  const displayReactionCount = stats?.reactionCount ?? internalReactionCount
-  const displayCommentCount = stats?.commentCount ?? internalCommentCount
+  // Use context stats if they exist and are non-zero, or if we have no internal count yet
+  const displayReactionCount =
+    stats && (stats.reactionCount > 0 || !internalReactionCount)
+      ? stats.reactionCount
+      : internalReactionCount
+  const displayCommentCount =
+    stats && (stats.commentCount > 0 || !internalCommentCount)
+      ? stats.commentCount
+      : internalCommentCount
 
   // Update internal counts if props change
   useEffect(() => {
@@ -102,16 +111,44 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
         const data = await response.json()
 
         if (data.ok || data.likes_count !== undefined) {
-          if (typeof data.likes_count === 'number') {
-            setInternalReactionCount(data.likes_count)
-          }
-          if (typeof data.comments_count === 'number') {
-            setInternalCommentCount(data.comments_count)
-          }
+          const newLikesCount = typeof data.likes_count === 'number' ? data.likes_count : 0
+          const newCommentsCount = typeof data.comments_count === 'number' ? data.comments_count : 0
+
+          setInternalReactionCount(newLikesCount)
+          setInternalCommentCount(newCommentsCount)
+
+          // Sync with global engagement context
+          batchUpdateEngagement([
+            {
+              entityId,
+              entityType: entityType as EntityType,
+              updates: {
+                reactionCount: newLikesCount,
+                commentCount: newCommentsCount,
+              },
+            },
+          ])
         }
 
         if (data.recent_likes && Array.isArray(data.recent_likes)) {
-          setReactions(data.recent_likes.slice(0, maxPreviewItems))
+          const slicedLikes = data.recent_likes.slice(0, maxPreviewItems)
+          setReactions(slicedLikes)
+
+          // Also sync user's reaction from the recent likes list if not already in context
+          if (user) {
+            const userLike = data.recent_likes.find((l: any) => l.user_id === user.id)
+            if (userLike) {
+              batchUpdateEngagement([
+                {
+                  entityId,
+                  entityType: entityType as EntityType,
+                  updates: {
+                    userReaction: userLike.reaction_type as ReactionType,
+                  },
+                },
+              ])
+            }
+          }
         }
 
         if (data.recent_comments && Array.isArray(data.recent_comments)) {
@@ -126,10 +163,10 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
     }
   }, [entityId, entityType, maxPreviewItems])
 
-  // Fetch data on mount
+  // Fetch data on mount and whenever user's reaction changes
   useEffect(() => {
     fetchEngagementData()
-  }, [fetchEngagementData])
+  }, [fetchEngagementData, currentReaction])
 
   // Get reaction icon based on type
   const getReactionIcon = (reactionType?: string | null) => {

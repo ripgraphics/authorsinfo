@@ -172,7 +172,7 @@ function engagementReducer(
       const existing = state.entities.get(key)
 
       const updatedEntities = new Map(state.entities)
-      const baseState = existing ?? {
+      const baseState: EngagementState = existing ?? {
         entityId,
         entityType,
         reactionCount: 0,
@@ -188,12 +188,24 @@ function engagementReducer(
         isLoading: false,
         error: null,
       }
+
+      const oldReaction = baseState.userReaction
+      let newCount = baseState.reactionCount
+
+      if (!oldReaction && reactionType) {
+        // Adding new reaction
+        newCount++
+      } else if (oldReaction && !reactionType) {
+        // Removing existing reaction
+        newCount = Math.max(0, newCount - 1)
+      }
+      // If both are present (swap), count remains the same.
+      // If both are null, count remains the same.
+
       updatedEntities.set(key, {
         ...baseState,
         userReaction: reactionType,
-        reactionCount: reactionType
-          ? baseState.reactionCount + 1
-          : Math.max(0, baseState.reactionCount - 1),
+        reactionCount: newCount,
       })
 
       return { ...state, entities: updatedEntities }
@@ -334,6 +346,17 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
       try {
         dispatch({ type: 'SET_LOADING', payload: { entityId, entityType, loading: true } })
 
+        // Optimistic update
+        const isRemoving = currentReaction === reactionType
+        dispatch({
+          type: 'SET_REACTION',
+          payload: {
+            entityId,
+            entityType,
+            reactionType: isRemoving ? null : reactionType,
+          },
+        })
+
         const response = await fetch('/api/engagement/reaction', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -381,16 +404,6 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
                 },
               },
             })
-          } else {
-            // Fallback: derive from action (legacy path)
-            if (currentReaction === reactionType) {
-              dispatch({
-                type: 'SET_REACTION',
-                payload: { entityId, entityType, reactionType: null },
-              })
-            } else {
-              dispatch({ type: 'SET_REACTION', payload: { entityId, entityType, reactionType } })
-            }
           }
 
           // Show specific toast based on exact action from server
@@ -440,7 +453,7 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
         dispatch({ type: 'SET_LOADING', payload: { entityId, entityType, loading: false } })
       }
     },
-    [user, toast]
+    [user, toast, state.entities]
   )
 
   const removeReaction = useCallback(

@@ -680,7 +680,7 @@ export function ReactionSummary({
       }
     }
     fetchCounts()
-  }, [entityId, entityType, engagement?.reactionCount])
+  }, [entityId, entityType, engagement?.reactionCount, engagement?.userReaction])
 
   // Check if we have any reactions at all from the fetched counts
   const totalReactionCount = Object.values(reactionCounts || {}).reduce((a, b) => a + b, 0)

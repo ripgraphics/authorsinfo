@@ -38,7 +38,7 @@ test.describe('Cross-post API', () => {
     console.log('API Response:', JSON.stringify(responseData, null, 2))
 
     // Check if response includes user_post_id (indicating cross-post was created)
-    if (response.ok) {
+    if (response.ok()) {
       expect(responseData).toHaveProperty('success', true)
       
       // If posting on a book (not user's own timeline), should have user_post_id

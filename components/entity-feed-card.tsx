@@ -1819,6 +1819,8 @@ export default function EntityFeedCard({
           console.log('Send friend request to:', userId)
           // Add friend request logic here
         }}
+        customReactionIcon={<Heart className="h-3.5 w-3.5 fill-current" />}
+        customReactionColor="from-red-500 to-pink-500"
         showReactionTypes={false}
         maxPreviewItems={20}
         showAddFriendButtons={true}
@@ -2150,6 +2152,14 @@ export default function EntityFeedCard({
               isBookmarked={post.user_has_bookmarked}
               isViewed={post.user_has_viewed}
               currentReaction={(post.user_reaction_type as ReactionType | null) || null}
+              customReactionIcons={{
+                like: <Heart className="h-4 w-4" />,
+                love: <Heart className="h-4 w-4" />,
+              }}
+              customColors={{
+                like: { color: 'text-red-500', bgColor: 'bg-red-50' },
+                love: { color: 'text-red-500', bgColor: 'bg-red-50' },
+              }}
               showReactionSummary={false}
               onEngagement={async (
                 action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view',

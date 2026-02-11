@@ -127,7 +127,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
 
   // Get reaction icon based on type
   const getReactionIcon = (reactionType?: string | null) => {
-    if (customReactionIcon && !reactionType) return customReactionIcon
+    if (customReactionIcon) return customReactionIcon
 
     switch (reactionType?.toLowerCase()) {
       case 'love':

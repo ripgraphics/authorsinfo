@@ -23,11 +23,11 @@ describe('handleError', () => {
   const originalEnv = process.env.NODE_ENV
 
   afterEach(() => {
-    process.env.NODE_ENV = originalEnv
+    ;(process.env as any).NODE_ENV = originalEnv
   })
 
   it('returns default message for Error in production', () => {
-    process.env.NODE_ENV = 'production'
+    ;(process.env as any).NODE_ENV = 'production'
     const err = new Error('Sensitive internal error')
     const result = handleError(err, 'Operation failed', false)
     expect(result.error).toBe('An error occurred processing your request')

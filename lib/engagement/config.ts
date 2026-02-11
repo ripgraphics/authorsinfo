@@ -102,11 +102,8 @@ export interface LikeCountSource {
 
 /**
  * Returns where to store/update denormalized like count for an entity type.
- * For 'activity' (timeline posts) we use posts.like_count; others can be extended later.
+ * Note: Enterprise system uses dynamic counts via RPC, so we return null by default.
  */
 export function getLikeCountSource(entityType: string): LikeCountSource | null {
-  if (entityType === 'activity') {
-    return { table: 'posts', column: 'like_count' }
-  }
   return null
 }

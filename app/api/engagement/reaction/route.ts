@@ -42,20 +42,18 @@ export async function POST(request: Request) {
       reaction_type,
     })
 
-    // Use likes table for all entity types (activity_likes doesn't exist)
+    // Use likes table for all entity types
     const { data: existingLike, error: checkError } = await supabaseAdmin
       .from('likes')
-      .select('id')
+      .select('id, like_type')
       .eq('user_id', user.id)
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
-      .eq('like_type', reaction_type) // Check for specific reaction type
-      .maybeSingle() // Use maybeSingle as we expect 0 or 1 result
+      .maybeSingle()
 
-    if (checkError && checkError.code !== 'PGRST116' && checkError.code !== 'PGRST117') {
-      // PGRST116 = no rows returned, PGRST117 = multiple rows returned (shouldn't happen with unique constraint)
+    if (checkError) {
       console.error('❌ Error checking existing like:', checkError)
-      return NextResponse.json({ error: 'Failed to check existing like' }, { status: 500 })
+      return NextResponse.json({ error: `Failed to check existing like: ${checkError.message}` }, { status: 500 })
     }
 
     let action: 'added' | 'removed' = 'added'
@@ -64,39 +62,60 @@ export async function POST(request: Request) {
     let user_reaction: string | null = null
 
     if (existingLike) {
-      // User already has this specific reaction - remove it (toggle off)
-      const { error: deleteError } = await supabaseAdmin
-        .from('likes')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('entity_type', entity_type)
-        .eq('entity_id', entity_id)
-        .eq('like_type', reaction_type)
+      // If user has a reaction, toggle it
+      // Case 1: Same reaction type - remove it
+      if (existingLike.like_type === reaction_type) {
+        const { error: deleteError } = await supabaseAdmin
+          .from('likes')
+          .delete()
+          .eq('id', existingLike.id)
 
-      if (deleteError) {
-        console.error('❌ Error removing like:', deleteError)
-        return NextResponse.json({ error: 'Failed to remove like' }, { status: 500 })
+        if (deleteError) {
+          console.error('❌ Error removing like:', deleteError)
+          return NextResponse.json({ error: `Failed to remove like: ${deleteError.message}` }, { status: 500 })
+        }
+
+        action = 'removed'
+        like_id = null
+        user_reaction = null
+      } 
+      // Case 2: Different reaction type - update it
+      else {
+        const { data: updatedLike, error: updateError } = await supabaseAdmin
+          .from('likes')
+          .update({
+            like_type: reaction_type,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingLike.id)
+          .select('id')
+          .single()
+
+        if (updateError) {
+          console.error('❌ Error updating like type:', updateError)
+          return NextResponse.json({ error: `Failed to update like type: ${updateError.message}` }, { status: 500 })
+        }
+
+        action = 'added'
+        like_id = updatedLike.id
+        user_reaction = reaction_type
       }
-
-      action = 'removed'
-      like_id = null
-      user_reaction = null
     } else {
-      // User doesn't have this specific reaction - add new one
+      // User doesn't have any reaction yet - add new one
       const { data: newLike, error: insertError } = await supabaseAdmin
         .from('likes')
         .insert({
           user_id: user.id,
           entity_type: entity_type,
           entity_id: entity_id,
-          like_type: reaction_type, // Store the specific reaction type
+          like_type: reaction_type,
         })
         .select('id')
         .single()
 
       if (insertError) {
         console.error('❌ Error adding like:', insertError)
-        return NextResponse.json({ error: 'Failed to add like' }, { status: 500 })
+        return NextResponse.json({ error: `Failed to add like: ${insertError.message}` }, { status: 500 })
       }
 
       action = 'added'
@@ -104,34 +123,21 @@ export async function POST(request: Request) {
       user_reaction = reaction_type
     }
 
-    // Update denormalized like count when config defines a count source for this entity type
-    const countSource = getLikeCountSource(entity_type)
-    if (countSource) {
-      try {
-        const { count, error: countError } = await supabaseAdmin
-          .from('likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('entity_type', entity_type)
-          .eq('entity_id', entity_id)
+    // Fetch the updated total count
+    try {
+      const { count, error: countError } = await supabaseAdmin
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('entity_type', entity_type)
+        .eq('entity_id', entity_id)
 
-        if (!countError && count !== null) {
-          total_count = count
-          if (countSource.table === 'posts' && countSource.column === 'like_count') {
-            const { error: updateError } = await supabaseAdmin
-              .from('posts')
-              .update({
-                like_count: count,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', entity_id)
-            if (updateError) {
-              console.warn('⚠️ Warning: Failed to update denormalized count:', updateError)
-            }
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Warning: Failed to update denormalized count:', error)
+      if (!countError && count !== null) {
+        total_count = count
+      } else if (countError) {
+        console.warn('⚠️ Warning: Failed to fetch updated total count:', countError)
       }
+    } catch (countErr) {
+      console.warn('⚠️ Warning: Unexpected error fetching total count:', countErr)
     }
 
     // For non-activity entities, return total count so client can update without refetch
@@ -168,7 +174,9 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('❌ Unexpected error in reaction API:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: `Internal server error: ${error instanceof Error ? error.message : String(error)}` 
+    }, { status: 500 })
   }
 }
 

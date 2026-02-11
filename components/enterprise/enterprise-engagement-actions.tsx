@@ -122,8 +122,8 @@ export interface EnterpriseEngagementActionsProps {
   autoTrackViews?: boolean
   enableQuickReactions?: boolean
   showReactionSummary?: boolean
-  customReactionIcons?: Record<ReactionType, React.ReactNode>
-  customColors?: Record<ReactionType, { color: string; bgColor: string }>
+  customReactionIcons?: Partial<Record<ReactionType, React.ReactNode>>
+  customColors?: Partial<Record<ReactionType, { color: string; bgColor: string }>>
   onCommentClick?: () => void
 }
 

@@ -82,40 +82,40 @@ export interface EngagementContextValue extends EngagementContextState {
 
 type EngagementActionType =
   | {
-      type: 'SET_ENTITY_ENGAGEMENT'
-      payload: { entityId: string; entityType: EntityType; state: Partial<EngagementState> }
-    }
+    type: 'SET_ENTITY_ENGAGEMENT'
+    payload: { entityId: string; entityType: EntityType; state: Partial<EngagementState> }
+  }
   | {
-      type: 'SET_REACTION'
-      payload: { entityId: string; entityType: EntityType; reactionType: ReactionType | null }
-    }
+    type: 'SET_REACTION'
+    payload: { entityId: string; entityType: EntityType; reactionType: ReactionType | null }
+  }
   | {
-      type: 'INCREMENT_COUNT'
-      payload: {
-        entityId: string
-        entityType: EntityType
-        countType: keyof Pick<
-          EngagementState,
-          'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
-        >
-      }
+    type: 'INCREMENT_COUNT'
+    payload: {
+      entityId: string
+      entityType: EntityType
+      countType: keyof Pick<
+        EngagementState,
+        'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
+      >
     }
+  }
   | {
-      type: 'DECREMENT_COUNT'
-      payload: {
-        entityId: string
-        entityType: EntityType
-        countType: keyof Pick<
-          EngagementState,
-          'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
-        >
-      }
+    type: 'DECREMENT_COUNT'
+    payload: {
+      entityId: string
+      entityType: EntityType
+      countType: keyof Pick<
+        EngagementState,
+        'reactionCount' | 'commentCount' | 'shareCount' | 'bookmarkCount' | 'viewCount'
+      >
     }
+  }
   | { type: 'SET_LOADING'; payload: { entityId: string; entityType: EntityType; loading: boolean } }
   | {
-      type: 'SET_ERROR'
-      payload: { entityId: string; entityType: EntityType; error: string | null }
-    }
+    type: 'SET_ERROR'
+    payload: { entityId: string; entityType: EntityType; error: string | null }
+  }
   | { type: 'SET_GLOBAL_LOADING'; payload: boolean }
   | { type: 'SET_GLOBAL_ERROR'; payload: string | null }
   | { type: 'RESET_ENTITY'; payload: { entityId: string; entityType: EntityType } }
@@ -345,7 +345,16 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
         })
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          let errorMessage = `HTTP error! status: ${response.status}`
+          try {
+            const errorResult = await response.json()
+            if (errorResult.error) {
+              errorMessage = errorResult.error
+            }
+          } catch (e) {
+            // ignore parse error
+          }
+          throw new Error(errorMessage)
         }
 
         const result = await response.json()

@@ -182,6 +182,7 @@ export function EnterpriseEngagementActions({
     viewEntity,
     currentReaction: contextReaction,
     stats,
+    batchUpdateEngagement,
   } = useEntityEngagement(entityId, entityType)
 
   // Local state
@@ -232,6 +233,21 @@ export function EnterpriseEngagementActions({
       commentInputRef.current.focus()
     }
   }, [isCommentInputVisible])
+
+  // Sync initial prop reaction to global context for persistence across reloads
+  useEffect(() => {
+    if (currentReaction && !contextReaction) {
+      batchUpdateEngagement([
+        {
+          entityId,
+          entityType,
+          updates: {
+            userReaction: currentReaction,
+          },
+        },
+      ])
+    }
+  }, [currentReaction, contextReaction, entityId, entityType, batchUpdateEngagement])
 
   // ============================================================================
   // EVENT HANDLERS
@@ -842,13 +858,13 @@ export function EnterpriseEngagementActions({
 // ============================================================================
 
 const REACTION_TYPE_ICONS: Record<ReactionType, React.ReactNode> = {
-  like: <ThumbsUp className="h-5 w-5" />,
-  love: <Heart className="h-5 w-5" />,
-  care: <Heart className="h-5 w-5" />,
-  haha: <Smile className="h-5 w-5" />,
-  wow: <Star className="h-5 w-5" />,
-  sad: <span className="text-xl leading-none">😢</span>,
-  angry: <Angry className="h-5 w-5" />,
+  like: <span className="text-lg leading-none">👍</span>,
+  love: <span className="text-lg leading-none">❤️</span>,
+  care: <span className="text-lg leading-none">🤗</span>,
+  haha: <span className="text-lg leading-none">😂</span>,
+  wow: <span className="text-lg leading-none">😮</span>,
+  sad: <span className="text-lg leading-none">😢</span>,
+  angry: <span className="text-lg leading-none">😠</span>,
 }
 
 const REACTION_OPTIONS = REACTION_OPTIONS_METADATA.map((meta) => ({

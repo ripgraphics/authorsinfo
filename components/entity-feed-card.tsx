@@ -1885,22 +1885,6 @@ export default function EntityFeedCard({
                 }
               />
 
-              {/* Content Type Badge */}
-              {currentContentConfig && (
-                <Badge variant="secondary" className="enterprise-feed-card-content-type">
-                  <currentContentConfig.icon className="h-3 w-3 mr-1" />
-                  {currentContentConfig.label}
-                </Badge>
-              )}
-
-              {/* Entity Type Badge */}
-              {currentEntityConfig && (
-                <Badge variant="outline" className="enterprise-feed-card-entity-type">
-                  <currentEntityConfig.icon className="h-3 w-3 mr-1" />
-                  {currentEntityConfig.label}
-                </Badge>
-              )}
-
               {/* Content Safety Badge */}
               {post.content_safety_score && (
                 <Badge
@@ -1939,8 +1923,7 @@ export default function EntityFeedCard({
                         className="h-6 px-2 text-xs enterprise-feed-card-visibility"
                         disabled={isUpdatingVisibility}
                       >
-                        <currentVisibilityConfig.icon className="h-3 w-3 mr-1" />
-                        {currentVisibilityConfig.label}
+                        <currentVisibilityConfig.icon className="h-3 w-3" />
                         <ChevronDown className="h-3 w-3 ml-1" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -1964,9 +1947,8 @@ export default function EntityFeedCard({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Badge variant="secondary" className="enterprise-feed-card-visibility">
-                    <currentVisibilityConfig.icon className="h-3 w-3 mr-1" />
-                    {currentVisibilityConfig.label}
+                  <Badge variant="secondary" className="h-6 w-6 p-0 flex items-center justify-center enterprise-feed-card-visibility rounded-full">
+                    <currentVisibilityConfig.icon className="h-3 w-3" />
                   </Badge>
                 ))}
 
@@ -2034,13 +2016,6 @@ export default function EntityFeedCard({
                 </span>
               )}
 
-              {/* Engagement Score */}
-              {post.engagement_score && (
-                <span className="enterprise-feed-card-engagement flex items-center gap-1 text-purple-600">
-                  <TrendingUp className="h-3 w-3" />
-                  {(post.engagement_score * 100).toFixed(1)}%
-                </span>
-              )}
             </div>
           </div>
 

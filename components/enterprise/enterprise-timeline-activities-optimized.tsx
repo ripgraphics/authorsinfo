@@ -625,7 +625,7 @@ const EnterpriseTimelineActivities = React.memo(
         if (!enableReadingProgress) return
         // Placeholder hook to keep parity; real endpoint optional
         setReadingProgress(null)
-      } catch {}
+      } catch { }
     }, [enableReadingProgress])
 
     const fetchPrivacySettings = useCallback(async () => {
@@ -679,7 +679,7 @@ const EnterpriseTimelineActivities = React.memo(
       return () => {
         try {
           supabase.removeChannel(channel)
-        } catch {}
+        } catch { }
       }
     }, [enableRealTime, supabase, memoizedEntityType, memoizedUserId, fetchActivities])
 
@@ -746,38 +746,6 @@ const EnterpriseTimelineActivities = React.memo(
               profileOwnerId={entityType === 'user' ? entityId : undefined}
               profileOwnerUserStats={profileOwnerUserStats ?? undefined}
             />
-            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    {post.view_count || 0}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-3 w-3" />
-                    {post.like_count || 0}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="h-3 w-3" />
-                    {post.comment_count || 0}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {post.is_verified && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      <Check className="h-3 w-3 mr-1" />
-                      Verified
-                    </Badge>
-                  )}
-                  {post.user_has_bookmarked && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      <Bookmark className="h-3 w-3 mr-1" />
-                      Bookmarked
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         )
       },
@@ -982,7 +950,7 @@ const EnterpriseTimelineActivities = React.memo(
         setIsPosting(true)
         try {
           const now = new Date().toISOString()
-          
+
           // Determine content type
           let contentType = 'text'
           if (data.image_url) {
@@ -1118,9 +1086,9 @@ const EnterpriseTimelineActivities = React.memo(
             link_url: postForm.linkUrl || null,
             hashtags: postForm.hashtags
               ? postForm.hashtags
-                  .split(',')
-                  .map((t) => t.trim())
-                  .filter(Boolean)
+                .split(',')
+                .map((t) => t.trim())
+                .filter(Boolean)
               : [],
             data: {
               content: trimmed,
@@ -1193,11 +1161,11 @@ const EnterpriseTimelineActivities = React.memo(
         prev.map((a) =>
           a.id === updatedPost.id
             ? {
-                ...a,
-                like_count: updatedPost.like_count ?? a.like_count,
-                user_reaction_type: updatedPost.user_reaction_type ?? a.user_reaction_type,
-                is_liked: !!updatedPost.user_reaction_type,
-              }
+              ...a,
+              like_count: updatedPost.like_count ?? a.like_count,
+              user_reaction_type: updatedPost.user_reaction_type ?? a.user_reaction_type,
+              is_liked: !!updatedPost.user_reaction_type,
+            }
             : a
         )
       )
@@ -1226,9 +1194,9 @@ const EnterpriseTimelineActivities = React.memo(
           }
           const current = postForm.imageUrl
             ? postForm.imageUrl
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean)
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
             : []
           setPostForm((prev) => ({ ...prev, imageUrl: [...current, ...uploaded].join(', ') }))
           toast({ title: 'Photos uploaded', description: `${uploaded.length} photo(s) ready` })

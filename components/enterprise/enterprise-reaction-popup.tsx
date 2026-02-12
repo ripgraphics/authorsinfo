@@ -205,7 +205,7 @@ export function EnterpriseReactionPopup({
   }, [position, triggerRef])
 
   const getPositionClasses = useCallback(() => {
-    const baseClasses = 'absolute z-50'
+    const baseClasses = 'absolute z-[100]'
 
     switch (popupPosition) {
       case 'top':
@@ -514,7 +514,7 @@ export function EnterpriseReactionPopup({
         aria-modal="true"
         aria-labelledby="reaction-popup-title"
         className={cn(
-          'absolute z-50 bg-white shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-gray-100',
+          'absolute z-[100] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-gray-100',
           'backdrop-blur-md bg-white/98',
           variant === 'facebook' ? 'rounded-full px-1 py-1' : 'rounded-2xl p-4',
           getPositionClasses(),

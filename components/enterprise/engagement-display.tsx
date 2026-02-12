@@ -56,7 +56,7 @@ const EngagementHoverPopup: React.FC<{
     <div
       style={{ backgroundColor: '#40A3D8' }}
       className={cn(
-        'absolute bottom-full left-0 mb-2 px-4 py-3 border-none rounded-2xl shadow-2xl transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-40 max-h-80 overflow-y-auto',
+        'absolute bottom-full left-0 mb-2 px-4 py-3 border-none rounded-2xl shadow-2xl transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-[100] min-w-40 max-h-80 overflow-y-auto',
         className
       )}
     >

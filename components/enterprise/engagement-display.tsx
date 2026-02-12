@@ -312,7 +312,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
               </div>
 
               {!isLoadingReactions && (activeFilter ? reactions.filter(r => r.reaction_type === activeFilter) : reactions).length > 0 ? (
-                <div className="space-y-0.5">
+                <div className="space-y-0">
                   {(activeFilter
                     ? reactions.filter(r => r.reaction_type === activeFilter)
                     : reactions
@@ -321,10 +321,10 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                     return (
                       <div
                         key={reaction.id}
-                        className="flex items-center gap-2 py-0.5"
+                        className="flex items-center gap-2 py-0"
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-normal text-white truncate">
+                          <div className="text-sm font-normal text-white truncate leading-tight">
                             {reaction.user?.name || 'Unknown User'}
                           </div>
                         </div>

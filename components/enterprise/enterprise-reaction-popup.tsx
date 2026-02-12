@@ -104,7 +104,7 @@ export function EnterpriseReactionPopup({
   isVisible,
   onClose,
   className,
-  position = 'bottom',
+  position = 'top',
   currentReaction = null,
   showReactionCounts = true,
   showQuickReactions = true,
@@ -188,17 +188,19 @@ export function EnterpriseReactionPopup({
     const spaceRight = viewportWidth - triggerRect.right
     const spaceLeft = triggerRect.left
 
-    // Determine optimal position
-    let optimalPosition = position
+    // Determine optimal position - Favor 'top' by default
+    let optimalPosition: any = position
 
-    if (spaceBelow < 120 && spaceAbove > 120) {
+    if (spaceAbove > 120) {
       optimalPosition = 'top'
-    } else if (spaceRight < 400 && spaceLeft > 400) {
-      optimalPosition = 'left'
-    } else if (spaceLeft < 400 && spaceRight > 400) {
-      optimalPosition = 'right'
-    } else {
+    } else if (spaceBelow > 120) {
       optimalPosition = 'bottom'
+    } else if (spaceRight > 400) {
+      optimalPosition = 'right'
+    } else if (spaceLeft > 400) {
+      optimalPosition = 'left'
+    } else {
+      optimalPosition = 'top' // Safe default
     }
 
     setPopupPosition(optimalPosition)

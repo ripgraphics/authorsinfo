@@ -161,7 +161,7 @@ export function EnterpriseEngagementActions({
   showViewTracking = true,
   showAnalytics = false,
   maxVisibleReactions = 5,
-  reactionPopupPosition = 'bottom',
+  reactionPopupPosition = 'top',
   autoTrackViews = true,
   enableQuickReactions = true,
   showReactionSummary = true,
@@ -298,14 +298,14 @@ export function EnterpriseEngagementActions({
     const rect = button.getBoundingClientRect()
     const viewportHeight = window.innerHeight
 
-    // Determine optimal popup position
     const spaceBelow = viewportHeight - rect.bottom
     const spaceAbove = rect.top
 
-    if (spaceBelow < 120 && spaceAbove > 120) {
-      setReactionPopupPositionState('top')
-    } else {
+    // Favor 'top' by default, only use 'bottom' if space above is restricted
+    if (spaceAbove < 120 && spaceBelow > 120) {
       setReactionPopupPositionState('bottom')
+    } else {
+      setReactionPopupPositionState('top')
     }
 
     setShowReactionPopup(true)

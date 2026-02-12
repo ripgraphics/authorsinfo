@@ -111,6 +111,11 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -1885,6 +1890,14 @@ export default function EntityFeedCard({
                 }
               />
 
+              {/* Entity Type Badge */}
+              {currentEntityConfig && (
+                <Badge variant="outline" className="enterprise-feed-card-entity-type">
+                  <currentEntityConfig.icon className="h-3 w-3 mr-1" />
+                  {currentEntityConfig.label}
+                </Badge>
+              )}
+
               {/* Content Safety Badge */}
               {post.content_safety_score && (
                 <Badge
@@ -1915,41 +1928,54 @@ export default function EntityFeedCard({
               {/* Visibility Badge / Control */}
               {currentVisibilityConfig &&
                 (canEdit ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-xs enterprise-feed-card-visibility"
-                        disabled={isUpdatingVisibility}
-                      >
-                        <currentVisibilityConfig.icon className="h-3 w-3" />
-                        <ChevronDown className="h-3 w-3 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuItem onClick={() => handleVisibilityChange('public')}>
-                        <Globe className="h-3.5 w-3.5 mr-2" />
-                        Public
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleVisibilityChange('friends')}>
-                        <Users className="h-3.5 w-3.5 mr-2" />
-                        Friends
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleVisibilityChange('followers')}>
-                        <Users2 className="h-3.5 w-3.5 mr-2" />
-                        Followers
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleVisibilityChange('private')}>
-                        <Lock className="h-3.5 w-3.5 mr-2" />
-                        Only me
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 enterprise-feed-card-visibility rounded-full hover:bg-gray-100 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            disabled={isUpdatingVisibility}
+                          >
+                            <currentVisibilityConfig.icon className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem onClick={() => handleVisibilityChange('public')}>
+                            <Globe className="h-3.5 w-3.5 mr-2" />
+                            Public
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleVisibilityChange('friends')}>
+                            <Users className="h-3.5 w-3.5 mr-2" />
+                            Friends
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleVisibilityChange('followers')}>
+                            <Users2 className="h-3.5 w-3.5 mr-2" />
+                            Followers
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleVisibilityChange('private')}>
+                            <Lock className="h-3.5 w-3.5 mr-2" />
+                            Only me
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-[10px] px-2 py-1">
+                      {currentVisibilityConfig.label}
+                    </TooltipContent>
+                  </Tooltip>
                 ) : (
-                  <Badge variant="secondary" className="h-6 w-6 p-0 flex items-center justify-center enterprise-feed-card-visibility rounded-full">
-                    <currentVisibilityConfig.icon className="h-3 w-3" />
-                  </Badge>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="h-8 w-8 flex items-center justify-center enterprise-feed-card-visibility text-muted-foreground">
+                        <currentVisibilityConfig.icon className="h-3.5 w-3.5" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-[10px] px-2 py-1">
+                      {currentVisibilityConfig.label}
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
 
               {/* Age Restriction */}

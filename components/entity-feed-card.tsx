@@ -1796,22 +1796,23 @@ export default function EntityFeedCard({
     if (!showEngagement) return null
 
     return (
-      <EngagementDisplay
-        entityId={post.id}
-        entityType={engagementEntityType}
-        reactionCount={post.like_count || 0}
-        commentCount={post.comment_count || 0}
-        userReactionType={post.user_reaction_type}
-        onReactionsClick={() => setShowLikesModal(true)}
-        onCommentsClick={() => setShowCommentsModal(true)}
-        onUserClick={(userId) => {
-          console.log('Navigate to user profile:', userId)
-          // Add navigation logic here
-        }}
-        showReactionTypes={false}
-        maxPreviewItems={20}
-        showAddFriendButtons={true}
-      />
+      <div className="px-4 py-2 border-t border-gray-50 bg-gray-50/30">
+        <EngagementDisplay
+          entityId={post.id}
+          entityType={engagementEntityType}
+          reactionCount={post.like_count || 0}
+          commentCount={post.comment_count || 0}
+          userReactionType={post.user_reaction_type}
+          onReactionsClick={() => setShowLikesModal(true)}
+          onCommentsClick={() => setShowCommentsModal(true)}
+          onUserClick={(userId) => {
+            console.log('Navigate to user profile:', userId)
+          }}
+          showReactionTypes={false}
+          maxPreviewItems={20}
+          showAddFriendButtons={true}
+        />
+      </div>
     )
   }
 
@@ -1820,9 +1821,9 @@ export default function EntityFeedCard({
     if (!post.tags || post.tags.length === 0) return null
 
     return (
-      <div className="enterprise-feed-card-tags flex flex-wrap gap-1 mt-3">
+      <div className="enterprise-feed-card-tags flex flex-wrap gap-1.5 px-4 mb-3">
         {post.tags.map((tag: string) => (
-          <Badge key={tag} variant="secondary" className="enterprise-feed-card-tag">
+          <Badge key={tag} variant="secondary" className="enterprise-feed-card-tag bg-blue-50/50 hover:bg-blue-100 text-blue-600 border-none text-[10px] font-medium px-2 py-0.5 transition-colors cursor-pointer rounded-full">
             #{tag}
           </Badge>
         ))}
@@ -1843,8 +1844,8 @@ export default function EntityFeedCard({
   const currentSafetyConfig = safetyConfigs[contentSafetyLevel]
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-xs enterprise-feed-card enterprise-timeline-feed-card">
-      <div className="flex flex-col space-y-1.5 p-4 enterprise-feed-card-header pb-3">
+    <div className="rounded-xl border border-gray-100 bg-white text-card-foreground shadow-sm hover:shadow-md transition-all duration-300 enterprise-feed-card enterprise-timeline-feed-card mb-4 overflow-hidden">
+      <div className="flex flex-col space-y-1.5 p-4 enterprise-feed-card-header">
         <div className="enterprise-feed-card-header-content flex items-start gap-3">
           {/* User Avatar */}
           <EntityHoverCard
@@ -1858,20 +1859,15 @@ export default function EntityFeedCard({
               profileOwnerId && post.user_id === profileOwnerId ? profileOwnerUserStats : undefined
             }
           >
-            <span
-              className="hover:underline cursor-pointer text-muted-foreground"
-              data-state="closed"
-            >
-              <div className="avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md enterprise-feed-card-user-avatar cursor-pointer">
-                <Avatar
-                  src={postOwnerAvatar}
-                  alt={postOwnerName || 'User'}
-                  name={postOwnerName}
-                  size="sm"
-                  className="object-cover rounded-full"
-                />
-              </div>
-            </span>
+            <div className="avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md enterprise-feed-card-user-avatar cursor-pointer transition-transform hover:scale-105">
+              <Avatar
+                src={postOwnerAvatar}
+                alt={postOwnerName || 'User'}
+                name={postOwnerName}
+                size="sm"
+                className="object-cover rounded-full"
+              />
+            </div>
           </EntityHoverCard>
 
           {/* Post Header Info */}
@@ -1908,7 +1904,7 @@ export default function EntityFeedCard({
                     currentSafetyConfig.color
                   )}
                 >
-                  <currentSafetyConfig.icon className="h-3 w-3 mr-1" />
+                  <currentSafetyConfig.icon className="h-3.5 w-3.5 mr-1.5" />
                   {currentSafetyConfig.label}
                 </Badge>
               )}
@@ -1916,7 +1912,7 @@ export default function EntityFeedCard({
               {/* Cross-post Badge */}
               {post.metadata?.cross_post && (
                 <Badge variant="secondary" className="enterprise-feed-card-cross-post">
-                  <Share2 className="h-3 w-3 mr-1" />
+                  <Share2 className="h-3.5 w-3.5 mr-1.5" />
                   Cross-posted from{' '}
                   {post.metadata.cross_post.origin_entity_type
                     ? post.metadata.cross_post.origin_entity_type.charAt(0).toUpperCase() +
@@ -1935,7 +1931,7 @@ export default function EntityFeedCard({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 enterprise-feed-card-visibility rounded-full hover:bg-gray-100 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            className="h-8 w-8 p-0 enterprise-feed-card-visibility rounded-full hover:bg-gray-100 transition-colors"
                             disabled={isUpdatingVisibility}
                           >
                             <currentVisibilityConfig.icon className="h-3.5 w-3.5" />
@@ -2006,8 +2002,8 @@ export default function EntityFeedCard({
 
               {/* Scheduled Post */}
               {post.scheduled_at && (
-                <span className="enterprise-feed-card-scheduled flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
+                <span className="enterprise-feed-card-scheduled flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5" />
                   Scheduled for{' '}
                   {new Date(post.scheduled_at).toLocaleDateString('en-US', {
                     month: 'short',
@@ -2020,24 +2016,24 @@ export default function EntityFeedCard({
 
               {/* Featured Post */}
               {post.is_featured && (
-                <span className="enterprise-feed-card-featured flex items-center gap-1 text-yellow-600">
-                  <StarIcon className="h-3 w-3" />
+                <span className="enterprise-feed-card-featured flex items-center gap-1.5 text-amber-600 font-medium">
+                  <StarIcon className="h-3.5 w-3.5 fill-amber-600" />
                   Featured
                 </span>
               )}
 
               {/* Pinned Post */}
               {post.is_pinned && (
-                <span className="enterprise-feed-card-pinned flex items-center gap-1 text-blue-600">
-                  <Bookmark className="h-3 w-3" />
+                <span className="enterprise-feed-card-pinned flex items-center gap-1.5 text-blue-600 font-medium">
+                  <Bookmark className="h-3.5 w-3.5 fill-blue-600" />
                   Pinned
                 </span>
               )}
 
               {/* Verified Post */}
               {post.is_verified && (
-                <span className="enterprise-feed-card-verified flex items-center gap-1 text-green-600">
-                  <CheckCircle className="h-3 w-3" />
+                <span className="enterprise-feed-card-verified flex items-center gap-1.5 text-emerald-600 font-medium">
+                  <CheckCircle className="h-3.5 w-3.5 fill-emerald-600" />
                   Verified
                 </span>
               )}
@@ -2046,59 +2042,46 @@ export default function EntityFeedCard({
           </div>
 
           {/* Post Actions Menu */}
-          <div className="enterprise-feed-card-actions relative">
-            <Button
-              variant={showActionsMenu ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => {
-                console.log('Actions menu button clicked!')
-                setShowActionsMenu(!showActionsMenu)
-              }}
-              className={showActionsMenu ? 'bg-gray-100' : ''}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-
-            {/* Actions Dropdown */}
-            {showActionsMenu && (
-              <div className="absolute right-0 top-full mt-1 w-48 bg-white border rounded-lg shadow-lg z-50">
+          <div className="enterprise-feed-card-actions">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 transition-all duration-200"
+                >
+                  <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                  <span className="sr-only">Open actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 p-1.5">
                 {canEdit && (
-                  <button
+                  <DropdownMenuItem
                     onClick={handleEditToggle}
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors focus:bg-gray-100 rounded-md"
                   >
-                    <Edit className="h-4 w-4" />
-                    Edit Post
-                  </button>
+                    <Edit className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium">Edit Post</span>
+                  </DropdownMenuItem>
                 )}
                 {canDelete && (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setShowActionsMenu(false)
-                      // Use requestAnimationFrame to ensure dropdown closes before dialog opens
-                      requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                          setShowDeleteDialog(true)
-                        })
-                      })
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-red-600 flex items-center gap-2 cursor-pointer transition-colors"
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors focus:bg-red-50 text-red-600 rounded-md mt-0.5"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Delete Post
-                  </button>
+                    <span className="font-medium">Delete Post</span>
+                  </DropdownMenuItem>
                 )}
-                <button
-                  onClick={() => setShowActionsMenu(false)}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                <DropdownMenuSeparator className="my-1.5" />
+                <DropdownMenuItem
+                  className="flex items-center gap-2 px-3 py-2 cursor-default text-gray-500 rounded-md"
                 >
                   <X className="h-4 w-4" />
-                  Close
-                </button>
-              </div>
-            )}
+                  <span>Cancel</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -2108,7 +2091,7 @@ export default function EntityFeedCard({
         {renderContentWarnings()}
 
         {/* Main Content */}
-        <div className="enterprise-feed-card-main-content">{renderContent()}</div>
+        <div className="enterprise-feed-card-main-content px-4 py-2">{renderContent()}</div>
 
         {/* Tags */}
         {renderTags()}
@@ -2118,7 +2101,7 @@ export default function EntityFeedCard({
 
         {/* Engagement Actions - Keep only the action buttons, remove duplicate stats */}
         {showActions && (
-          <div className="enterprise-feed-card-engagement-actions mt-4">
+          <div className="enterprise-feed-card-engagement-actions px-2 pb-2">
             <EnterpriseEngagementActions
               entityId={post.id}
               entityType={engagementEntityType}

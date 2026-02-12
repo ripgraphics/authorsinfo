@@ -757,18 +757,22 @@ const EnterpriseTimelineActivities = React.memo(
       () => (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <Card key={index} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="flex items-start space-x-4">
-                  <div className="h-12 w-12 bg-gray-200 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded-sm w-3/4" />
-                    <div className="h-4 bg-gray-200 rounded-sm w-1/2" />
-                    <div className="h-32 bg-gray-200 rounded-sm w-full" />
+            <div key={index} className="rounded-xl border border-gray-100 bg-white p-4 animate-pulse shadow-sm">
+              <div className="flex items-start space-x-4">
+                <div className="h-12 w-12 bg-gray-100 rounded-full" />
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 bg-gray-100 rounded-sm w-1/4" />
+                    <div className="h-3 bg-gray-50 rounded-sm w-16" />
                   </div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-100 rounded-sm w-3/4" />
+                    <div className="h-4 bg-gray-100 rounded-sm w-1/2" />
+                  </div>
+                  <div className="h-40 bg-gray-50 rounded-lg w-full mt-4" />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       ),
@@ -821,20 +825,20 @@ const EnterpriseTimelineActivities = React.memo(
     const renderAnalyticsDashboard = useCallback(() => {
       if (!showAnalytics) return null
       return (
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
+        <Card className="mb-4 rounded-xl border-gray-100 shadow-sm overflow-hidden">
+          <CardContent className="p-5">
+            <div className="grid grid-cols-3 gap-6 text-center">
               <div>
-                <div className="text-2xl font-semibold">{analytics.total_activities}</div>
-                <div className="text-xs text-muted-foreground">Posts</div>
+                <div className="text-2xl font-bold text-gray-900">{analytics.total_activities}</div>
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">Posts</div>
+              </div>
+              <div className="border-x border-gray-100">
+                <div className="text-2xl font-bold text-gray-900">{analytics.total_engagement}</div>
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">Engagement</div>
               </div>
               <div>
-                <div className="text-2xl font-semibold">{analytics.total_engagement}</div>
-                <div className="text-xs text-muted-foreground">Engagement</div>
-              </div>
-              <div>
-                <div className="text-2xl font-semibold">{filteredActivities.length}</div>
-                <div className="text-xs text-muted-foreground">Visible</div>
+                <div className="text-2xl font-bold text-gray-900">{filteredActivities.length}</div>
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">Visible</div>
               </div>
             </div>
           </CardContent>
@@ -844,7 +848,7 @@ const EnterpriseTimelineActivities = React.memo(
 
     const renderAdvancedFilters = useCallback(
       () => (
-        <Card className="mb-4">
+        <Card className="mb-4 rounded-xl border-gray-100 shadow-sm overflow-hidden">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="flex-1 relative">
@@ -1243,32 +1247,31 @@ const EnterpriseTimelineActivities = React.memo(
         {renderAdvancedFilters()}
         {/* Composer: two-state pill/expanded, matching comment composer */}
         {enablePrivacyControls && (
-          <Card>
+          <Card className="mb-6 rounded-xl border-gray-100 shadow-sm overflow-hidden">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <EntityAvatar
                   type="user"
                   id={user?.id || 'current-user'}
                   name={currentUserName}
                   size="sm"
-                  className="w-10 h-10 flex-shrink-0"
+                  className="w-10 h-10 flex-shrink-0 border-2 border-white shadow-sm"
                 />
                 {!isTopComposerActive ? (
                   <button
                     onClick={() => setIsCreatePostModalOpen(true)}
-                    className="flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 cursor-text"
-                    style={{ transition: 'none' }}
+                    className="flex-1 flex items-center justify-between rounded-full border border-gray-100 bg-gray-50/50 hover:bg-gray-100 px-5 py-2.5 text-left text-sm text-gray-500 cursor-text transition-all duration-200"
                     data-no-secondary-hover
                   >
-                    <span className="truncate opacity-80">
+                    <span className="truncate opacity-70">
                       {memoizedEntityType === 'user'
                         ? "What's on your mind?"
                         : 'Share your thoughts...'}
                     </span>
-                    <div className="flex items-center gap-2 ml-3 text-gray-400">
-                      <ImageIcon className="h-4 w-4" />
-                      <Smile className="h-4 w-4" />
-                      <span className="text-[10px] font-semibold">GIF</span>
+                    <div className="flex items-center gap-3 ml-3 text-gray-400">
+                      <ImageIcon className="h-4.5 w-4.5" />
+                      <Smile className="h-4.5 w-4.5" />
+                      <div className="h-5 w-8 flex items-center justify-center rounded bg-gray-100 text-[9px] font-bold text-gray-500 uppercase tracking-tighter">GIF</div>
                     </div>
                   </button>
                 ) : (
@@ -1299,24 +1302,22 @@ const EnterpriseTimelineActivities = React.memo(
           {filteredActivities.map((activity, index) => renderActivity(activity, index))}
         </div>
         {/* Compact cross-post/collaboration/AI summary */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-3 bg-blue-50 rounded-sm">
-                <div className="text-xs text-blue-700">Cross-post Reach</div>
-                <div className="text-lg font-semibold text-blue-800">—</div>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-sm">
-                <div className="text-xs text-purple-700">Collaboration Activity</div>
-                <div className="text-lg font-semibold text-purple-800">—</div>
-              </div>
-              <div className="p-3 bg-amber-50 rounded-sm">
-                <div className="text-xs text-amber-700">AI Enhancements</div>
-                <div className="text-lg font-semibold text-amber-800">—</div>
-              </div>
+        <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden mb-8">
+          <div className="grid grid-cols-3 divide-x divide-gray-50">
+            <div className="p-4 bg-blue-50/20 hover:bg-blue-50/40 transition-colors">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-blue-600/70 mb-1">Cross-post Reach</div>
+              <div className="text-xl font-bold text-blue-900">—</div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-4 bg-purple-50/20 hover:bg-purple-50/40 transition-colors">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-600/70 mb-1">Collaboration</div>
+              <div className="text-xl font-bold text-purple-900">—</div>
+            </div>
+            <div className="p-4 bg-amber-50/20 hover:bg-amber-50/40 transition-colors">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-amber-600/70 mb-1">AI Insights</div>
+              <div className="text-xl font-bold text-amber-900">—</div>
+            </div>
+          </div>
+        </div>
 
         {/* Performance optimized: Loading indicator for infinite scroll */}
         {hasMore && (
@@ -1351,21 +1352,19 @@ const EnterpriseTimelineActivities = React.memo(
 
         {/* Performance optimized: Empty state */}
         {!loading && activities.length === 0 && (
-          <Card className="border-dashed">
-            <CardContent className="p-12 text-center">
-              <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Activities Yet</h3>
-              <p className="text-muted-foreground mb-4">
-                This timeline is empty. Start sharing to see activities here.
-              </p>
-              {isOwnEntity && (
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Post
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-12 text-center">
+            <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">No Activities Yet</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
+              This timeline is empty. Start sharing your thoughts or follow others to see activities here.
+            </p>
+            {isOwnEntity && (
+              <Button className="rounded-full px-6 shadow-md hover:shadow-lg transition-all duration-300">
+                <Plus className="h-4 w-4 mr-2" />
+                Create First Post
+              </Button>
+            )}
+          </div>
         )}
 
         {/* Create Post Modal */}

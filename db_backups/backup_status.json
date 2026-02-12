@@ -1,6 +1,0 @@
-{
-  "last_backup": "20250811_012053",
-  "status": "failed",
-  "message": "Backup failed: Command 'npx supabase db dump' returned non-zero exit status 1.",
-  "timestamp": "2025-08-11T01:21:01.530397"
-}

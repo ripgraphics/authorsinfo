@@ -200,6 +200,7 @@ export function EnterpriseEngagementActions({
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hasTrackedViewRef = useRef<boolean>(false)
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // ============================================================================
   // EFFECTS AND INITIALIZATION
@@ -273,11 +274,26 @@ export function EnterpriseEngagementActions({
     batchUpdateEngagement
   ])
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current)
+      }
+    }
+  }, [])
+
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
 
   const handleReactionButtonHover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    // Clear any pending close timeout
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+
     const button = event.currentTarget
     const rect = button.getBoundingClientRect()
     const viewportHeight = window.innerHeight
@@ -296,17 +312,35 @@ export function EnterpriseEngagementActions({
   }, [])
 
   const handleReactionButtonLeave = useCallback(() => {
-    // Small delay to allow moving mouse to popup
-    setTimeout(() => {
-      if (!showReactionPopup) return
-
-      // Check if mouse is over the popup
+    // Start a 1-second timeout to close the popup
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    closeTimeoutRef.current = setTimeout(() => {
+      // Small verification check: if still hovering the popup, don't close
       const popup = document.querySelector('[data-reaction-popup]')
       if (popup && popup.matches(':hover')) return
 
       setShowReactionPopup(false)
-    }, 100)
-  }, [showReactionPopup])
+    }, 1000)
+  }, [])
+
+  const handlePopupMouseEnter = useCallback(() => {
+    // Clear close timeout when entering popup
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+  }, [])
+
+  const handlePopupMouseLeave = useCallback(() => {
+    // Start 1-second close timeout when leaving popup
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    closeTimeoutRef.current = setTimeout(() => {
+      // Check if mouse moved back to the button
+      if (reactionButtonRef.current?.matches(':hover')) return
+
+      setShowReactionPopup(false)
+    }, 1000)
+  }, [])
 
   const handleReactionSelect = useCallback(
     async (reactionType: ReactionType) => {
@@ -569,6 +603,8 @@ export function EnterpriseEngagementActions({
             autoPosition={true}
             size="md"
             animation="scale"
+            onMouseEnter={handlePopupMouseEnter}
+            onMouseLeave={handlePopupMouseLeave}
           />
         )}
       </div>
@@ -586,6 +622,8 @@ export function EnterpriseEngagementActions({
     getCurrentReactionDisplay,
     handleReactionButtonHover,
     handleReactionButtonLeave,
+    handlePopupMouseEnter,
+    handlePopupMouseLeave,
     handleQuickLike,
     engagement?.isLoading,
   ])

@@ -59,6 +59,8 @@ export interface ReactionPopupProps {
   size?: 'sm' | 'md' | 'lg'
   animation?: 'fade' | 'slide' | 'scale' | 'bounce'
   variant?: 'default' | 'facebook'
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
 }
 
 // ============================================================================
@@ -114,6 +116,8 @@ export function EnterpriseReactionPopup({
   size = 'md',
   animation = 'fade',
   variant = 'facebook',
+  onMouseEnter,
+  onMouseLeave,
 }: ReactionPopupProps) {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -520,6 +524,8 @@ export function EnterpriseReactionPopup({
         data-reaction-popup
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         {/* Live region for screen readers: reaction summary */}
         <div aria-live="polite" aria-atomic="true" className="sr-only">

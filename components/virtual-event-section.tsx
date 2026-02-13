@@ -172,11 +172,11 @@ export function VirtualEventSection({
   return (
     <div className="space-y-6">
       {/* Virtual Event Banner */}
-      <Card className="border-blue-500 bg-blue-50 dark:bg-blue-950">
+      <Card className="border-app-theme-blue bg-app-theme-blue/10 dark:bg-blue-950">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-500 rounded-full">
+              <div className="p-3 bg-app-theme-blue rounded-full">
                 <Video className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -192,8 +192,8 @@ export function VirtualEventSection({
                   {isLive
                     ? 'Event is happening now!'
                     : hasEnded
-                    ? 'Event has ended'
-                    : `Starts ${formatDistanceToNow(start, { addSuffix: true })}`}
+                      ? 'Event has ended'
+                      : `Starts ${formatDistanceToNow(start, { addSuffix: true })}`}
                 </CardDescription>
               </div>
             </div>
@@ -301,7 +301,7 @@ export function VirtualEventSection({
           {maxParticipants && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Capacity:</span>
-              <span className={`font-medium ${capacityReached ? 'text-red-500' : ''}`}>
+              <span className={`font-medium ${capacityReached ? 'text-destructive' : ''}`}>
                 {attendingCount} / {maxParticipants} participants
               </span>
             </div>
@@ -368,10 +368,10 @@ export function VirtualEventSection({
 
                 {participants.filter((p) => status === 'all' || p.rsvp_status === status)
                   .length === 0 && (
-                  <p className="text-center text-muted-foreground py-8">
-                    No participants with this status yet
-                  </p>
-                )}
+                    <p className="text-center text-muted-foreground py-8">
+                      No participants with this status yet
+                    </p>
+                  )}
               </TabsContent>
             ))}
           </Tabs>

@@ -421,7 +421,7 @@ export function EnterpriseReactionPopup({
             side={popupPosition === 'top' ? 'top' : 'bottom'}
             sideOffset={variant === 'facebook' ? 20 : 5}
             className="rounded-full text-white border-0 px-3 py-1 shadow-lg"
-            style={{ backgroundColor: '#40A3D8' }}
+            style={{ backgroundColor: 'var(--color-app-theme-blue)' }}
           >
             <div className="text-center">
               <div className="font-bold text-xs">{reaction.label}</div>

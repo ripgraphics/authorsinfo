@@ -493,7 +493,7 @@ export default function EntityFeedCard({
     text: {
       icon: MessageSquare,
       label: 'Text Post',
-      color: 'bg-blue-100 text-blue-800',
+      color: 'bg-app-theme-blue/10 text-blue-800',
     },
     photo: {
       icon: ImageIcon,
@@ -529,7 +529,7 @@ export default function EntityFeedCard({
 
   // Entity type configurations
   const entityTypeConfigs = {
-    user: { icon: User, label: 'User Post', color: 'bg-blue-100 text-blue-800' },
+    user: { icon: User, label: 'User Post', color: 'bg-app-theme-blue/10 text-blue-800' },
     book: { icon: BookOpen, label: 'Book Post', color: 'bg-green-100 text-green-800' },
     author: { icon: Building, label: 'Author Post', color: 'bg-purple-100 text-purple-800' },
     publisher: { icon: Building, label: 'Publisher Post', color: 'bg-orange-100 text-orange-800' },
@@ -540,7 +540,7 @@ export default function EntityFeedCard({
   const visibilityConfigs = {
     public: { icon: Globe, label: 'Public', color: 'text-green-600' },
     private: { icon: Lock, label: 'Private', color: 'text-red-600' },
-    friends: { icon: Users, label: 'Friends', color: 'text-blue-600' },
+    friends: { icon: Users, label: 'Friends', color: 'text-app-theme-blue' },
     followers: { icon: Users2, label: 'Followers', color: 'text-purple-600' },
     custom: { icon: Eye, label: 'Custom', color: 'text-orange-600' },
   }
@@ -1562,7 +1562,7 @@ export default function EntityFeedCard({
                   <div className="flex items-center gap-1 mb-2">
                     <span className="text-xs text-muted-foreground">Recent likers:</span>
                     {post.metadata.recent_likers.slice(0, 3).map((liker: string, index: number) => (
-                      <span key={index} className="text-xs font-medium text-blue-600">
+                      <span key={index} className="text-xs font-medium text-app-theme-blue">
                         {liker}
                         {index < Math.min(2, post.metadata.recent_likers.length - 1) ? ', ' : ''}
                       </span>
@@ -1823,7 +1823,7 @@ export default function EntityFeedCard({
     return (
       <div className="enterprise-feed-card-tags flex flex-wrap gap-1.5 px-4 mb-3">
         {post.tags.map((tag: string) => (
-          <Badge key={tag} variant="secondary" className="enterprise-feed-card-tag bg-blue-50/50 hover:bg-blue-100 text-blue-600 border-none text-[10px] font-medium px-2 py-0.5 transition-colors cursor-pointer rounded-full">
+          <Badge key={tag} variant="secondary" className="enterprise-feed-card-tag bg-blue-50/50 hover:bg-app-theme-blue/10 text-app-theme-blue border-none text-[10px] font-medium px-2 py-0.5 transition-colors cursor-pointer rounded-full">
             #{tag}
           </Badge>
         ))}
@@ -2024,7 +2024,7 @@ export default function EntityFeedCard({
 
               {/* Pinned Post */}
               {post.is_pinned && (
-                <span className="enterprise-feed-card-pinned flex items-center gap-1.5 text-blue-600 font-medium">
+                <span className="enterprise-feed-card-pinned flex items-center gap-1.5 text-app-theme-blue font-medium">
                   <Bookmark className="h-3.5 w-3.5 fill-blue-600" />
                   Pinned
                 </span>
@@ -2060,7 +2060,7 @@ export default function EntityFeedCard({
                     onClick={handleEditToggle}
                     className="flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors focus:bg-gray-100 rounded-md"
                   >
-                    <Edit className="h-4 w-4 text-blue-600" />
+                    <Edit className="h-4 w-4 text-app-theme-blue" />
                     <span className="font-medium">Edit Post</span>
                   </DropdownMenuItem>
                 )}
@@ -2510,7 +2510,7 @@ export default function EntityFeedCard({
         description="Join the conversation about this content"
         contentClassName="max-w-2xl max-h-[90vh]"
         footer={
-          canCommentModal && (
+          canCommentModal && user ? (
             <div className="w-full">
               <EntityCommentComposer
                 entityId={post.id}
@@ -2539,6 +2539,10 @@ export default function EntityFeedCard({
                   fetchComments()
                 }}
               />
+            </div>
+          ) : (
+            <div className="w-full text-center py-2 text-sm text-muted-foreground bg-gray-50 rounded-lg">
+              Please <Button variant="link" className="p-0 h-auto font-semibold" onClick={() => window.location.href = '/login'}>sign in</Button> to join the conversation.
             </div>
           )
         }
@@ -2610,9 +2614,10 @@ export default function EntityFeedCard({
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors rounded-full px-3 py-1">
+                <Button size="sm" className="rounded-full h-7 text-xs gap-1">
                   {commentFilter === 'relevant' ? 'Most relevant' : 'All comments'}
-                </button>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80">
                 <DropdownMenuItem onClick={() => setCommentFilter('relevant')}>
@@ -2676,25 +2681,14 @@ export default function EntityFeedCard({
                         </div>
 
                         {/* Comment Actions */}
-                        <div className="flex items-center justify-between mt-2 ml-2">
-                          <div className="flex items-center gap-4">
-                            <button className="text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">
-                              Like
-                            </button>
-                            <button
-                              className="text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors"
-                              onClick={() =>
-                                setExpandedReplies((prev) => ({
-                                  ...prev,
-                                  [comment.id]: !prev[comment.id],
-                                }))
-                              }
-                            >
-                              Reply
-                            </button>
-                            {comment.reply_count > 0 && (
+                        {user && (
+                          <div className="flex items-center justify-between mt-2 ml-2">
+                            <div className="flex items-center gap-4">
+                              <button className="text-xs font-medium text-gray-500 hover:text-app-theme-blue transition-colors">
+                                Like
+                              </button>
                               <button
-                                className="text-xs font-medium text-blue-600 hover:underline"
+                                className="text-xs font-medium text-gray-500 hover:text-app-theme-blue transition-colors"
                                 onClick={() =>
                                   setExpandedReplies((prev) => ({
                                     ...prev,
@@ -2702,13 +2696,26 @@ export default function EntityFeedCard({
                                   }))
                                 }
                               >
-                                {expandedReplies[comment.id]
-                                  ? 'Hide'
-                                  : `Show ${comment.reply_count} replies`}
+                                Reply
                               </button>
-                            )}
+                              {comment.reply_count > 0 && (
+                                <button
+                                  className="text-xs font-medium text-app-theme-blue hover:underline"
+                                  onClick={() =>
+                                    setExpandedReplies((prev) => ({
+                                      ...prev,
+                                      [comment.id]: !prev[comment.id],
+                                    }))
+                                  }
+                                >
+                                  {expandedReplies[comment.id]
+                                    ? 'Hide'
+                                    : `Show ${comment.reply_count} replies`}
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Nested Replies Section */}
                         {expandedReplies[comment.id] && (
@@ -2747,20 +2754,22 @@ export default function EntityFeedCard({
                               </div>
                             ))}
                             {/* Inline Reply Composer */}
-                            <div className="pt-2">
-                              <EntityCommentComposer
-                                entityId={post.id}
-                                entityType={engagementEntityType}
-                                currentUserId={user?.id}
-                                currentUserName={currentUserDisplayName}
-                                parentCommentId={comment.id}
-                                placeholder={`Reply to ${comment.user?.name || 'comment'}...`}
-                                onSubmitted={() => fetchComments()}
-                                cancelButtonClassName="h-7 px-2 text-[10px]"
-                                submitButtonClassName="h-7 px-3 text-[10px]"
-                                textareaClassName="min-h-[32px] text-xs"
-                              />
-                            </div>
+                            {user && (
+                              <div className="pt-2">
+                                <EntityCommentComposer
+                                  entityId={post.id}
+                                  entityType={engagementEntityType}
+                                  currentUserId={user?.id}
+                                  currentUserName={currentUserDisplayName}
+                                  parentCommentId={comment.id}
+                                  placeholder={`Reply to ${comment.user?.name || 'comment'}...`}
+                                  onSubmitted={() => fetchComments()}
+                                  cancelButtonClassName="h-7 px-2 text-[10px]"
+                                  submitButtonClassName="h-7 px-3 text-[10px]"
+                                  textareaClassName="min-h-[32px] text-xs"
+                                />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

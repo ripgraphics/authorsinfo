@@ -54,7 +54,7 @@ const EngagementHoverPopup: React.FC<{
 }> = ({ title, items, totalCount, isLoading, emptyMessage, className }) => {
   return (
     <div
-      style={{ backgroundColor: '#40A3D8' }}
+      style={{ backgroundColor: 'var(--color-app-theme-blue)' }}
       className={cn(
         'absolute bottom-full left-0 mb-2 px-4 py-3 border-none rounded-2xl shadow-2xl transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-[100] min-w-40 max-h-80 overflow-y-auto',
         className
@@ -228,7 +228,14 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
         }
 
         if (data.recent_comments && Array.isArray(data.recent_comments)) {
-          setComments(data.recent_comments.slice(0, maxPreviewItems))
+          // Deduplicate comments by user ID to show unique commenters
+          const uniqueCommenters = new Map();
+          data.recent_comments.forEach((comment: any) => {
+            if (comment.user?.id && !uniqueCommenters.has(comment.user.id)) {
+              uniqueCommenters.set(comment.user.id, comment);
+            }
+          });
+          setComments(Array.from(uniqueCommenters.values()).slice(0, maxPreviewItems))
         }
       }
     } catch (error) {
@@ -270,17 +277,17 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   const getReactionColor = (reactionType?: string) => {
     switch (reactionType?.toLowerCase()) {
       case 'love':
-        return 'bg-red-50/50'
+        return 'bg-destructive/10'
       case 'like':
-        return 'bg-blue-50/50'
+        return 'bg-app-theme-blue/10'
       case 'care':
       case 'haha':
       case 'wow':
         return 'bg-yellow-50/50'
       case 'sad':
-        return 'bg-blue-50/50'
+        return 'bg-app-theme-blue/10'
       case 'angry':
-        return 'bg-red-50/50'
+        return 'bg-destructive/10'
       default:
         return 'bg-gray-50/50'
     }
@@ -340,7 +347,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                 ))}
             </div>
             <span
-              className="engagement-reaction-count text-sm text-gray-500 hover:text-blue-600 cursor-pointer font-medium transition-colors duration-200"
+              className="engagement-reaction-count text-sm text-gray-500 hover:text-app-theme-blue cursor-pointer font-medium transition-colors duration-200"
               onClick={onReactionsClick}
               onMouseEnter={() => setActiveFilter(null)}
             >
@@ -367,17 +374,17 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
 
         {/* Comments Display */}
         {displayCommentCount > 0 && (
-          <div className="engagement-comments text-sm text-gray-600 hover:text-blue-600 cursor-pointer relative group transition-colors duration-200">
+          <div className="engagement-comments text-sm text-gray-600 hover:text-app-theme-blue cursor-pointer relative group transition-colors duration-200">
             <span
               onClick={onCommentsClick}
-              className="cursor-pointer font-medium hover:underline px-2 py-1 rounded-md hover:bg-blue-50 transition-all duration-200"
+              className="inline-flex items-center justify-center cursor-pointer font-medium px-2 py-1 rounded-md hover:bg-app-theme-blue hover:text-white transition-colors duration-200"
             >
               {displayCommentCount} comment{displayCommentCount !== 1 ? 's' : ''}
             </span>
 
             {/* Reusable hover popup for comments */}
             <EngagementHoverPopup
-              title="Recent Comments"
+              title="Recent Commenters"
               items={comments}
               totalCount={displayCommentCount}
               isLoading={isLoadingComments}
@@ -390,7 +397,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
 
       <div className="engagement-right flex items-center gap-2">
         {showAnalytics && (
-          <button className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200 border border-gray-200">
+          <button className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-gray-500 hover:text-app-theme-blue hover:bg-app-theme-blue/10 rounded-full transition-all duration-200 border border-gray-200">
             <svg
               className="w-3.5 h-3.5"
               fill="none"

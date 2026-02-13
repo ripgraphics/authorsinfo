@@ -63,7 +63,7 @@ export function AboutAuthor({
                   name={author.name}
                   src={getAuthorImageUrl(author)}
                   size="md"
-                  className="mx-auto hover:border-blue-500 transition-colors"
+                  className="mx-auto hover:border-app-theme-blue transition-colors"
                 />
               </div>
 

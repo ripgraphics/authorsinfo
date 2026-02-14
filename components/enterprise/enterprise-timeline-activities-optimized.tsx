@@ -846,64 +846,73 @@ const EnterpriseTimelineActivities = React.memo(
       )
     }, [analytics, filteredActivities.length, showAnalytics])
 
-    const renderAdvancedFilters = useCallback(
-      () => (
-        <Card className="mb-4 rounded-xl border-gray-100 shadow-sm overflow-hidden">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search posts..."
-                  value={filters.search_query}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, search_query: e.target.value }))
-                  }
-                  className="pl-10"
-                />
-              </div>
-              <Select
-                value={filters.date_range}
-                onValueChange={(v) => setFilters((prev) => ({ ...prev, date_range: v as any }))}
-              >
-                <SelectTrigger className="w-[9rem]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="1d">Today</SelectItem>
-                  <SelectItem value="7d">This Week</SelectItem>
-                  <SelectItem value="30d">This Month</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={filters.content_type}
-                onValueChange={(v) => setFilters((prev) => ({ ...prev, content_type: v as any }))}
-              >
-                <SelectTrigger className="w-[9rem]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="text">Text</SelectItem>
-                  <SelectItem value="image">Image</SelectItem>
-                  <SelectItem value="link">Link</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setFilters({ search_query: '', date_range: 'all', content_type: 'all' })
-                }
-              >
-                Clear
-              </Button>
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+      setFilters((prev) => ({ ...prev, search_query: e.target.value }))
+    }, [])
+
+    const handleDateRangeChange = useCallback((v: string) => {
+      setFilters((prev) => ({ ...prev, date_range: v as any }))
+    }, [])
+
+    const handleContentTypeChange = useCallback((v: string) => {
+      setFilters((prev) => ({ ...prev, content_type: v as any }))
+    }, [])
+
+    const handleClearFilters = useCallback(() => {
+      setFilters({ search_query: '', date_range: 'all', content_type: 'all' })
+    }, [])
+
+    const advancedFiltersJSX = (
+      <Card className="mb-4 rounded-xl border-gray-100 shadow-sm overflow-hidden">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search posts..."
+                value={filters.search_query}
+                onChange={handleSearchChange}
+                className="pl-10"
+              />
             </div>
-          </CardContent>
-        </Card>
-      ),
-      [filters]
+            <Select
+              value={filters.date_range}
+              onValueChange={handleDateRangeChange}
+            >
+              <SelectTrigger className="w-[9rem]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="1d">Today</SelectItem>
+                <SelectItem value="7d">This Week</SelectItem>
+                <SelectItem value="30d">This Month</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={filters.content_type}
+              onValueChange={handleContentTypeChange}
+            >
+              <SelectTrigger className="w-[9rem]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="text">Text</SelectItem>
+                <SelectItem value="image">Image</SelectItem>
+                <SelectItem value="link">Link</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearFilters}
+            >
+              Clear
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     )
 
     // Moderation helpers
@@ -1244,7 +1253,7 @@ const EnterpriseTimelineActivities = React.memo(
     return (
       <div className="space-y-6">
         {renderAnalyticsDashboard()}
-        {renderAdvancedFilters()}
+        {advancedFiltersJSX}
         {/* Composer: two-state pill/expanded, matching comment composer */}
         {enablePrivacyControls && (
           <Card className="mb-6 rounded-xl border-gray-100 shadow-sm overflow-hidden">

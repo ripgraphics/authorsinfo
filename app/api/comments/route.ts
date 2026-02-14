@@ -278,10 +278,59 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Format the comments
+    // Fetch replies for all parent comments
+    let repliesData: any[] = []
+    if (comments && comments.length > 0) {
+      const parentCommentIds = comments.map((c: any) => c.id)
+      
+      const { data: replies, error: repliesError } = await supabase
+        .from('comments')
+        .select(
+          `
+          *,
+          user:users!comments_user_id_fkey(
+            id,
+            email,
+            name
+          )
+        `
+        )
+        .in('parent_comment_id', parentCommentIds)
+        .eq('is_hidden', false)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: true })
+
+      if (!repliesError && replies) {
+        repliesData = replies
+      }
+    }
+
+    // Format the comments and nest replies
     const formattedComments =
       comments?.map((comment: Record<string, unknown>) => {
         const userData = (comment.user as Record<string, unknown>) || {}
+        
+        // Find all replies for this comment
+        const commentReplies = repliesData
+          .filter((reply: any) => reply.parent_comment_id === comment.id)
+          .map((reply: any) => {
+            const replyUserData = (reply.user as Record<string, unknown>) || {}
+            return {
+              id: reply.id,
+              content: reply.content,
+              created_at: reply.created_at,
+              updated_at: reply.updated_at,
+              user: {
+                id: replyUserData.id,
+                name: (replyUserData.name as string) || (replyUserData.email as string) || 'User',
+                avatar_url: null,
+              },
+              entity_type: reply.entity_type,
+              entity_id: reply.entity_id,
+              parent_comment_id: reply.parent_comment_id,
+            }
+          })
+
         return {
           id: comment.id,
           content: comment.content,
@@ -295,6 +344,8 @@ export async function GET(request: NextRequest) {
           entity_type: comment.entity_type,
           entity_id: comment.entity_id,
           parent_comment_id: comment.parent_comment_id,
+          replies: commentReplies,
+          reply_count: commentReplies.length,
         }
       }) || []
 

@@ -1808,7 +1808,7 @@ export default function EntityFeedCard({
     if (!showEngagement) return null
 
     return (
-      <div className="px-4 py-2 border-t border-gray-50 bg-gray-50/30">
+      <div className="px-2 py-2 border-t border-gray-50 bg-gray-50/30">
         <EngagementDisplay
           entityId={post.id}
           entityType={engagementEntityType}

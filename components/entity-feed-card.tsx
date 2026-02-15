@@ -59,7 +59,7 @@ import { EntityHoverCard } from '@/components/entity-hover-cards'
 import type { UserStats } from '@/hooks/useUserStats'
 import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
-import { EnterpriseEngagementActions } from '@/components/enterprise/enterprise-engagement-actions'
+import { EngagementActionButtons } from '@/components/ui/engagement-action-buttons'
 import type { EntityType } from '@/lib/engagement/config'
 import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
 import { ReactionType, useEngagement } from '@/contexts/engagement-context'
@@ -2104,59 +2104,32 @@ export default function EntityFeedCard({
         {/* Engagement Actions - Keep only the action buttons, remove duplicate stats */}
         {showActions && (
           <div className="enterprise-feed-card-engagement-actions px-2 pb-2">
-            <EnterpriseEngagementActions
+            <EngagementActionButtons
               entityId={post.id}
-              entityType={engagementEntityType}
-              initialEngagementCount={
-                post.like_count + post.comment_count + (post.share_count || 0)
-              }
               commentCount={post.comment_count || 0}
               shareCount={post.share_count || 0}
               bookmarkCount={post.bookmark_count || 0}
-              viewCount={post.view_count || 0}
               isLiked={post.is_liked}
               isCommented={post.user_has_commented}
               isShared={post.user_has_shared}
               isBookmarked={post.user_has_bookmarked}
-              isViewed={post.user_has_viewed}
-              currentReaction={(post.user_reaction_type as ReactionType | null) || null}
-              showReactionSummary={false}
-              onEngagement={async (
-                action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view',
-                entityId: string,
-                entityType: string,
-                reactionType?: any
-              ) => {
-                // Handle engagement
-                console.log('Engagement action:', action, entityId, entityType, reactionType)
-                // Update local state if needed
+              onLikeClick={async () => {
+                console.log('Like action:', post.id)
+                // Handle like logic
                 if (onPostUpdated) {
                   const updatedPost = { ...post }
                   onPostUpdated(updatedPost)
                 }
               }}
-              onCommentAdded={async (newComment: any) => {
-                // Add the new comment to the local state
-                setEngagementData((prev: any) => ({
-                  ...prev,
-                  comments: [newComment, ...prev.comments],
-                }))
-
-                // Update the post's comment count
-                if (onPostUpdated) {
-                  const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
-                  onPostUpdated(updatedPost)
-                }
-              }}
-              onShare={async (entityId: string, entityType: string) => {
-                console.log('Share action:', entityId, entityType)
+              onCommentClick={focusBottomComposer}
+              onShareClick={async () => {
+                console.log('Share action:', post.id)
                 // Handle share logic
               }}
-              onBookmark={async (entityId: string, entityType: string) => {
-                console.log('Bookmark action:', entityId, entityType)
+              onBookmarkClick={async () => {
+                console.log('Bookmark action:', post.id)
                 // Handle bookmark logic
               }}
-              onCommentClick={focusBottomComposer}
             />
           </div>
         )}

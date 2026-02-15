@@ -142,8 +142,8 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
               role="tab"
               className={`flex-shrink-0 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium h-12 min-w-[90px] whitespace-nowrap rounded transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-app-theme-blue/10 text-app-theme-blue border-l-4 border-app-theme-blue'
-                  : 'text-primary hover:bg-accent hover:text-accent-foreground border-l-4 border-transparent'
+                  ? 'bg-app-theme-blue text-primary-foreground border-l-4 border-app-theme-blue'
+                  : 'text-primary hover:bg-app-theme-blue hover:text-primary-foreground border-l-4 border-transparent'
               } ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {tab.icon && <span className="flex-shrink-0">{tab.icon}</span>}
@@ -192,7 +192,7 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
       {tabs.map((tab) => (
         <button
           key={tab.id}
-          className={`entity-tab flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 transition-colors ${activeTab === tab.id ? 'border-b-2 border-app-theme-blue text-app-theme-blue' : 'text-primary hover:bg-accent hover:text-accent-foreground'} ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`entity-tab flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 transition-colors ${activeTab === tab.id ? 'bg-app-theme-blue text-primary-foreground border-b-2 border-app-theme-blue' : 'text-primary hover:bg-app-theme-blue hover:text-primary-foreground'} ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => !tab.disabled && handleTabClick(tab.id)}
           disabled={tab.disabled}
           aria-selected={activeTab === tab.id}

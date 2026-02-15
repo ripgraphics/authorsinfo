@@ -1,6 +1,6 @@
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export interface EntityTab {
   id: string
@@ -19,9 +19,10 @@ interface EntityTabsProps {
 export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: EntityTabsProps) {
   const router = useRouter()
   const [isMobile, setIsMobile] = useState(false)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const validTabIds = tabs.map((t) => t.id)
-  const activeTabLabel = tabs.find((t) => t.id === activeTab)?.label || 'Select Tab'
 
   // Check if mobile on mount and on resize
   useEffect(() => {
@@ -32,6 +33,40 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Check scroll position for chevron visibility
+  const checkScroll = () => {
+    if (!containerRef.current) return
+
+    const { scrollLeft, scrollWidth, clientWidth } = containerRef.current
+    setCanScrollLeft(scrollLeft > 0)
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5) // 5px buffer for rounding
+  }
+
+  // Monitor scroll state on mount, resize, and content changes
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    // Initial check
+    setTimeout(checkScroll, 0)
+
+    // Check on scroll events
+    container.addEventListener('scroll', checkScroll)
+
+    // Check on resize
+    window.addEventListener('resize', checkScroll)
+
+    // Use ResizeObserver to detect content changes
+    const resizeObserver = new ResizeObserver(checkScroll)
+    resizeObserver.observe(container)
+
+    return () => {
+      container.removeEventListener('scroll', checkScroll)
+      window.removeEventListener('resize', checkScroll)
+      resizeObserver.disconnect()
+    }
+  }, [isMobile])
 
   // If the activeTab is invalid, update the URL to the first valid tab
   useEffect(() => {
@@ -51,45 +86,98 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
       url.searchParams.set('tab', tabId)
       router.replace(url.pathname + url.search, { scroll: false })
       onTabChange(tabId)
-      setIsDropdownOpen(false)
     }
   }
 
-  // Mobile dropdown version
+  // Scroll handlers for chevron buttons
+  const handleScrollLeft = () => {
+    if (containerRef.current) {
+      const container = containerRef.current
+      const scrollAmount = container.clientWidth * 0.8 // Scroll 80% of visible width
+      container.scrollTo({
+        left: container.scrollLeft - scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
+
+  const handleScrollRight = () => {
+    if (containerRef.current) {
+      const container = containerRef.current
+      const scrollAmount = container.clientWidth * 0.8 // Scroll 80% of visible width
+      container.scrollTo({
+        left: container.scrollLeft + scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
+
+  // Mobile horizontal scrolling version
   if (isMobile) {
     return (
       <div className={`entity-tabs-mobile relative w-full ${className}`}>
+        {/* Left Chevron */}
         <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+          onClick={handleScrollLeft}
+          aria-label="Scroll tabs left"
+          className={`absolute left-0 top-0 bottom-0 z-20 flex items-center justify-center w-10 bg-gradient-to-r from-white via-white to-transparent transition-opacity duration-300 ${
+            canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
         >
-          <span className="truncate">{activeTabLabel}</span>
-          <ChevronDown
-            className={`h-4 w-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-          />
+          <ChevronLeft className="h-5 w-5 text-app-theme-blue flex-shrink-0" />
         </button>
 
-        {isDropdownOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => !tab.disabled && handleTabClick(tab.id)}
-                disabled={tab.disabled}
-                className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors flex items-center gap-2 ${
-                  activeTab === tab.id
-                    ? 'bg-app-theme-blue/10 text-app-theme-blue border-l-4 border-app-theme-blue'
-                    : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'
-                } ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''} ${
-                  tabs.indexOf(tab) !== tabs.length - 1 ? 'border-b border-gray-100' : ''
-                }`}
-              >
-                {tab.icon && <span className="flex-shrink-0">{tab.icon}</span>}
-                <span className="flex-1 truncate">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Scrollable Tabs Container */}
+        <div
+          ref={containerRef}
+          className="flex overflow-x-auto scroll-smooth gap-1 px-10 py-1.5 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          role="tablist"
+        >
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => !tab.disabled && handleTabClick(tab.id)}
+              disabled={tab.disabled}
+              aria-selected={activeTab === tab.id}
+              role="tab"
+              className={`flex-shrink-0 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium h-12 min-w-[90px] whitespace-nowrap rounded transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-app-theme-blue/10 text-app-theme-blue border-l-4 border-app-theme-blue'
+                  : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'
+              } ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {tab.icon && <span className="flex-shrink-0">{tab.icon}</span>}
+              <span className="truncate">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Right Chevron */}
+        <button
+          onClick={handleScrollRight}
+          aria-label="Scroll tabs right"
+          className={`absolute right-0 top-0 bottom-0 z-20 flex items-center justify-center w-10 bg-gradient-to-l from-white via-white to-transparent transition-opacity duration-300 ${
+            canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <ChevronRight className="h-5 w-5 text-app-theme-blue flex-shrink-0" />
+        </button>
+
+        {/* Left Gradient Fade */}
+        <div
+          className={`absolute left-10 top-0 bottom-0 w-[30px] bg-gradient-to-r from-white to-transparent pointer-events-none transition-opacity duration-300 ${
+            canScrollLeft ? 'opacity-80' : 'opacity-0'
+          }`}
+          aria-hidden="true"
+        />
+
+        {/* Right Gradient Fade */}
+        <div
+          className={`absolute right-10 top-0 bottom-0 w-[30px] bg-gradient-to-l from-white to-transparent pointer-events-none transition-opacity duration-300 ${
+            canScrollRight ? 'opacity-80' : 'opacity-0'
+          }`}
+          aria-hidden="true"
+        />
       </div>
     )
   }

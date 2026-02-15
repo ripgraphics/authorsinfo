@@ -97,15 +97,16 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
       setIsLoading(true)
       setError(null)
 
+      // Use /api/comments which returns nested replies and comment_text field
       const response = await fetch(
-        `/api/engagement?entity_id=${entityId}&entity_type=${entityType}`
+        `/api/comments?entity_id=${entityId}&entity_type=${entityType}`
       )
 
       if (response.ok) {
         const data = await response.json()
 
-        if (data.recent_comments && Array.isArray(data.recent_comments)) {
-          setComments(data.recent_comments.slice(0, maxComments))
+        if (data.data && Array.isArray(data.data)) {
+          setComments(data.data.slice(0, maxComments))
         } else {
           setComments([])
         }
@@ -151,11 +152,30 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
   // Handle comment submission
   const handleCommentSubmit = async () => {
-    if (!newComment.trim() || !onCommentSubmit) return
+    if (!newComment.trim()) return
 
     try {
       setIsSubmitting(true)
-      await onCommentSubmit(newComment.trim())
+
+      if (onCommentSubmit) {
+        await onCommentSubmit(newComment.trim())
+      } else {
+        // Self-contained comment: call engagement API
+        const response = await fetch('/api/engagement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            entity_id: entityId,
+            entity_type: entityType,
+            engagement_type: 'comment',
+            content: newComment.trim(),
+          }),
+        })
+        if (!response.ok) {
+          throw new Error('Failed to submit comment')
+        }
+      }
+
       setNewComment('')
       // Refresh comments
       fetchComments()
@@ -181,11 +201,31 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
   // Handle reply submission
   const handleReplySubmit = async (commentId: string) => {
-    if (!replyText.trim() || !onCommentReply) return
+    if (!replyText.trim()) return
 
     try {
       setIsSubmitting(true)
-      await onCommentReply(commentId, replyText.trim())
+
+      if (onCommentReply) {
+        await onCommentReply(commentId, replyText.trim())
+      } else {
+        // Self-contained reply: call engagement API with parent_id
+        const response = await fetch('/api/engagement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            entity_id: entityId,
+            entity_type: entityType,
+            engagement_type: 'comment',
+            content: replyText.trim(),
+            parent_id: commentId,
+          }),
+        })
+        if (!response.ok) {
+          throw new Error('Failed to submit reply')
+        }
+      }
+
       setReplyText('')
       setReplyingTo(null)
       // Refresh comments

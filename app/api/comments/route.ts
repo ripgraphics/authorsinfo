@@ -3,6 +3,7 @@ import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { createCommentSchema } from '@/lib/validations/comment'
 import { logger } from '@/lib/logger'
 import type { Database, Json } from '@/types/database'
+import { getEntityTypeId } from '@/lib/entity-types'
 
 export async function POST(request: NextRequest) {
   try {
@@ -228,16 +229,32 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    if (!post_id) {
+    // Accept either entity_id or post_id
+    const effectiveEntityId = entity_id || post_id
+    if (!effectiveEntityId) {
       return NextResponse.json(
-        {
-          error: 'post_id is required',
-        },
+        { error: 'entity_id or post_id is required' },
         { status: 400 }
       )
     }
 
-    // Use the unified comments table for all entity types
+    // Resolve entity_type to match both UUID and string values in the DB.
+    // Comments created via add_entity_comment RPC store entity_type as a UUID,
+    // while comments created via direct insert may store it as a string.
+    const entityTypeMatchValues: string[] = []
+    if (entity_type) {
+      entityTypeMatchValues.push(entity_type)
+      // Add common aliases
+      if (entity_type === 'activity') entityTypeMatchValues.push('post')
+      if (entity_type === 'post') entityTypeMatchValues.push('activity')
+      // Resolve to UUID from entity_types table
+      const entityTypeId = await getEntityTypeId(entity_type)
+      if (entityTypeId && !entityTypeMatchValues.includes(entityTypeId)) {
+        entityTypeMatchValues.push(entityTypeId)
+      }
+    }
+
+    // Build base query for top-level comments
     let query = supabase
       .from('comments')
       .select(
@@ -257,12 +274,13 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    // Filter by entity type and id if provided
-    if (entity_type && entity_id) {
-      query = query.eq('entity_type', entity_type).eq('entity_id', entity_id)
+    // Filter by entity type (matching UUID and string variants) and entity id
+    if (entityTypeMatchValues.length > 0) {
+      query = query
+        .in('entity_type', entityTypeMatchValues)
+        .eq('entity_id', effectiveEntityId)
     } else {
-      // Fallback to post_id for legacy compatibility
-      query = query.eq('entity_id', post_id)
+      query = query.eq('entity_id', effectiveEntityId)
     }
 
     const { data: comments, error, count } = await query
@@ -278,11 +296,95 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch replies for all parent comments
-    let repliesData: any[] = []
-    if (comments && comments.length > 0) {
-      const parentCommentIds = comments.map((c: any) => c.id)
-      
+    // Formatted comment shape returned by the API
+    interface FormattedComment {
+      id: unknown
+      content: unknown
+      comment_text: unknown
+      created_at: unknown
+      updated_at: unknown
+      user: { id: unknown; name: string; avatar_url: null }
+      entity_type: unknown
+      entity_id: unknown
+      parent_comment_id: unknown
+      reply_count: number
+      replies: FormattedComment[]
+    }
+
+    // Format a single comment row into the API response shape
+    const formatComment = (comment: Record<string, unknown>): FormattedComment => {
+      const userData = (comment.user as Record<string, unknown>) || {}
+      return {
+        id: comment.id,
+        content: comment.content,
+        comment_text: comment.content, // alias used by the UI
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        user: {
+          id: userData.id,
+          name: (userData.name as string) || (userData.email as string) || 'User',
+          avatar_url: null,
+        },
+        entity_type: comment.entity_type,
+        entity_id: comment.entity_id,
+        parent_comment_id: comment.parent_comment_id,
+        reply_count: 0,
+        replies: [],
+      }
+    }
+
+    const formattedComments: FormattedComment[] = (comments || []).map(formatComment)
+
+    // Fetch user profiles for comments that are missing names (fallback)
+    const userIdsNeedingProfiles = Array.from(
+      new Set(
+        formattedComments
+          .flatMap((c) => {
+            const ids: string[] = []
+            if (c.user.name === 'User' && c.user.id) ids.push(c.user.id as unknown as string)
+            c.replies?.forEach((r) => {
+              if (r.user.name === 'User' && r.user.id) ids.push(r.user.id as unknown as string)
+            })
+            return ids
+          })
+      )
+    )
+
+    if (userIdsNeedingProfiles.length > 0) {
+      const { data: userProfiles } = await supabase
+        .from('users')
+        .select('id, name, email, username')
+        .in('id', userIdsNeedingProfiles)
+
+      if (userProfiles && userProfiles.length > 0) {
+        const profileMap = new Map(
+          (userProfiles as Array<{ id: string; name?: string; email?: string; username?: string }>).map(
+            (up) => [up.id, up]
+          )
+        )
+
+        // Update comment names with fetched profiles
+        const updateCommentName = (c: FormattedComment) => {
+          if (c.user.name === 'User' && c.user.id) {
+            const profile = profileMap.get(c.user.id as unknown as string)
+            if (profile?.name) {
+              c.user.name = profile.name
+            } else if (profile?.username) {
+              c.user.name = profile.username
+            } else if (profile?.email) {
+              c.user.name = profile.email
+            }
+          }
+          c.replies?.forEach(updateCommentName)
+        }
+
+        formattedComments.forEach(updateCommentName)
+      }
+    }
+
+    // Fetch replies for all top-level comments in one query
+    const topLevelIds = formattedComments.map((c: FormattedComment) => c.id)
+    if (topLevelIds.length > 0) {
       const { data: replies, error: repliesError } = await supabase
         .from('comments')
         .select(
@@ -295,59 +397,30 @@ export async function GET(request: NextRequest) {
           )
         `
         )
-        .in('parent_comment_id', parentCommentIds)
+        .in('parent_comment_id', topLevelIds)
         .eq('is_hidden', false)
         .eq('is_deleted', false)
         .order('created_at', { ascending: true })
 
       if (!repliesError && replies) {
-        repliesData = replies
+        // Group replies by parent_comment_id
+        const repliesByParent = new Map<string, FormattedComment[]>()
+        for (const reply of replies as Record<string, unknown>[]) {
+          const parentId = reply.parent_comment_id as string
+          if (!repliesByParent.has(parentId)) {
+            repliesByParent.set(parentId, [])
+          }
+          repliesByParent.get(parentId)!.push(formatComment(reply))
+        }
+
+        // Attach replies to their parent comments
+        for (const comment of formattedComments) {
+          const childReplies = repliesByParent.get(comment.id as string) || []
+          comment.replies = childReplies
+          comment.reply_count = childReplies.length
+        }
       }
     }
-
-    // Format the comments and nest replies
-    const formattedComments =
-      comments?.map((comment: Record<string, unknown>) => {
-        const userData = (comment.user as Record<string, unknown>) || {}
-        
-        // Find all replies for this comment
-        const commentReplies = repliesData
-          .filter((reply: any) => reply.parent_comment_id === comment.id)
-          .map((reply: any) => {
-            const replyUserData = (reply.user as Record<string, unknown>) || {}
-            return {
-              id: reply.id,
-              content: reply.content,
-              created_at: reply.created_at,
-              updated_at: reply.updated_at,
-              user: {
-                id: replyUserData.id,
-                name: (replyUserData.name as string) || (replyUserData.email as string) || 'User',
-                avatar_url: null,
-              },
-              entity_type: reply.entity_type,
-              entity_id: reply.entity_id,
-              parent_comment_id: reply.parent_comment_id,
-            }
-          })
-
-        return {
-          id: comment.id,
-          content: comment.content,
-          created_at: comment.created_at,
-          updated_at: comment.updated_at,
-          user: {
-            id: userData.id,
-            name: (userData.name as string) || (userData.email as string) || 'User',
-            avatar_url: null,
-          },
-          entity_type: comment.entity_type,
-          entity_id: comment.entity_id,
-          parent_comment_id: comment.parent_comment_id,
-          replies: commentReplies,
-          reply_count: commentReplies.length,
-        }
-      }) || []
 
     return NextResponse.json({
       success: true,

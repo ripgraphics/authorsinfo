@@ -6,6 +6,7 @@
 
 import { redis } from '@/lib/redis'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { randomUUID } from 'crypto'
 import type { LinkPreviewMetadata, LinkPreviewCacheEntry } from '@/types/link-preview'
 
 const CACHE_PREFIX = 'link_preview:'
@@ -130,26 +131,32 @@ async function getFromDatabase(
  */
 async function setInDatabase(metadata: LinkPreviewMetadata): Promise<void> {
   try {
+    // Ensure metadata has an id (required for upsert)
+    const metadataWithId = {
+      ...metadata,
+      id: metadata.id || randomUUID(),
+    }
+
     const { error } = await (supabaseAdmin.from('link_previews') as any).upsert(
       {
-        id: metadata.id,
-        url: metadata.url,
-        normalized_url: metadata.normalized_url,
-        title: metadata.title || null,
-        description: metadata.description || null,
-        image_url: metadata.image_url || null,
-        thumbnail_url: metadata.thumbnail_url || null,
-        favicon_url: metadata.favicon_url || null,
-        site_name: metadata.site_name || null,
-        domain: metadata.domain,
-        link_type: metadata.link_type || null,
-        author: metadata.author || null,
-        published_at: metadata.published_at || null,
-        metadata: metadata.metadata || {},
-        security_score: metadata.security_score || null,
-        extracted_at: metadata.extracted_at || null,
-        expires_at: metadata.expires_at || null,
-        is_valid: metadata.is_valid ?? true,
+        id: metadataWithId.id,
+        url: metadataWithId.url,
+        normalized_url: metadataWithId.normalized_url,
+        title: metadataWithId.title || null,
+        description: metadataWithId.description || null,
+        image_url: metadataWithId.image_url || null,
+        thumbnail_url: metadataWithId.thumbnail_url || null,
+        favicon_url: metadataWithId.favicon_url || null,
+        site_name: metadataWithId.site_name || null,
+        domain: metadataWithId.domain,
+        link_type: metadataWithId.link_type || null,
+        author: metadataWithId.author || null,
+        published_at: metadataWithId.published_at || null,
+        metadata: metadataWithId.metadata || {},
+        security_score: metadataWithId.security_score || null,
+        extracted_at: metadataWithId.extracted_at || null,
+        expires_at: metadataWithId.expires_at || null,
+        is_valid: metadataWithId.is_valid ?? true,
         updated_at: new Date().toISOString(),
       },
       {
@@ -198,11 +205,17 @@ export async function getCachedPreview(
 export async function setCachedPreview(
   metadata: LinkPreviewMetadata
 ): Promise<void> {
+  // Ensure metadata has an id
+  const metadataWithId = {
+    ...metadata,
+    id: metadata.id || randomUUID(),
+  }
+
   // Store in database (persistent)
-  await setInDatabase(metadata)
+  await setInDatabase(metadataWithId)
 
   // Store in Redis (fast access)
-  await setInRedis(metadata.url, metadata)
+  await setInRedis(metadataWithId.url, metadataWithId)
 }
 
 /**

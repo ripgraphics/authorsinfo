@@ -255,8 +255,13 @@ export default function EntityFeedCard({
   const [isBottomComposerActive, setIsBottomComposerActive] = useState(false)
   const [composerFocusTick, setComposerFocusTick] = useState(0)
   const bottomComposerRef = useRef<HTMLTextAreaElement>(null)
+  const toastRef = useRef(toast)
   const MAX_COMMENT_CHARS = 25000
   const MAX_COMPOSER_LINES = 9
+
+  useEffect(() => {
+    toastRef.current = toast
+  }, [toast])
 
   // Display helpers for names/avatars
   const postOwnerName = userDetails?.name || post.user_name || 'User'
@@ -309,7 +314,7 @@ export default function EntityFeedCard({
       console.log('🔍 FeedCard: Fetching comments for post:', post.id)
 
       const response = await fetch(
-        `/api/engagement?entity_id=${post.id}&entity_type=${engagementEntityType}`,
+        `/api/comments?entity_id=${post.id}&entity_type=${engagementEntityType}`,
         {
           signal: AbortSignal.timeout(30000), // 30 second timeout
         }
@@ -319,9 +324,9 @@ export default function EntityFeedCard({
         const data = await response.json()
         console.log('🔍 FeedCard: Comments API response:', data)
 
-        if (data.recent_comments && Array.isArray(data.recent_comments)) {
-          console.log('🔍 FeedCard: Setting comments:', data.recent_comments)
-          setComments(data.recent_comments)
+        if (data.data && Array.isArray(data.data)) {
+          console.log('🔍 FeedCard: Setting comments:', data.data)
+          setComments(data.data)
         } else {
           console.log('🔍 FeedCard: No comments found, setting empty array')
           setComments([])
@@ -334,7 +339,7 @@ export default function EntityFeedCard({
       console.error('🔍 FeedCard: Error fetching comments:', error)
       if (error instanceof Error && error.name === 'TimeoutError') {
         console.error('🔍 FeedCard: Request timed out')
-        toast({
+        toastRef.current({
           title: 'Timeout',
           description: 'Loading comments took too long. Please try again.',
           variant: 'destructive',
@@ -344,7 +349,7 @@ export default function EntityFeedCard({
     } finally {
       setIsLoadingComments(false)
     }
-  }, [post.id, post.entity_type, toast])
+  }, [post.id, engagementEntityType])
 
   const submitBottomComment = useCallback(async () => {
     const text = bottomComment.trim()
@@ -449,11 +454,18 @@ export default function EntityFeedCard({
   console.log('Debug - Can edit:', canEdit)
   console.log('Debug - Can delete:', canDelete)
 
-  // Initialize edit content when component mounts
+  // Initialize edit content from post data, but avoid state updates when values are unchanged
   useEffect(() => {
-    setEditContent(getPostText(post))
-    setEditImages(getPostImages(post))
-  }, [post])
+    const nextContent = getPostText(post)
+    const nextImages = getPostImages(post)
+
+    setEditContent((prev) => (prev === nextContent ? prev : nextContent))
+    setEditImages((prev) => {
+      const sameLength = prev.length === nextImages.length
+      const sameValues = sameLength && prev.every((value, index) => value === nextImages[index])
+      return sameValues ? prev : nextImages
+    })
+  }, [post.id, post.text, post.data, post.image_url, post.content_type])
 
   // When engagement context updates (e.g. after reaction), notify parent so list/cache stays in sync
   const engagement = showActions ? getEngagement(post.id, engagementEntityType) : null
@@ -1924,54 +1936,44 @@ export default function EntityFeedCard({
               {/* Visibility Badge / Control */}
               {currentVisibilityConfig &&
                 (canEdit ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 enterprise-feed-card-visibility rounded-full hover:bg-gray-100 transition-colors"
-                            disabled={isUpdatingVisibility}
-                          >
-                            <currentVisibilityConfig.icon className="h-3.5 w-3.5" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                          <DropdownMenuItem onClick={() => handleVisibilityChange('public')}>
-                            <Globe className="h-3.5 w-3.5 mr-2" />
-                            Public
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleVisibilityChange('friends')}>
-                            <Users className="h-3.5 w-3.5 mr-2" />
-                            Friends
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleVisibilityChange('followers')}>
-                            <Users2 className="h-3.5 w-3.5 mr-2" />
-                            Followers
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleVisibilityChange('private')}>
-                            <Lock className="h-3.5 w-3.5 mr-2" />
-                            Only me
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="text-[10px] px-2 py-1">
-                      {currentVisibilityConfig.label}
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="h-8 w-8 flex items-center justify-center enterprise-feed-card-visibility text-muted-foreground">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title={currentVisibilityConfig.label}
+                        className="h-8 w-8 p-0 enterprise-feed-card-visibility rounded-full hover:bg-gray-100 transition-colors"
+                        disabled={isUpdatingVisibility}
+                      >
                         <currentVisibilityConfig.icon className="h-3.5 w-3.5" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="text-[10px] px-2 py-1">
-                      {currentVisibilityConfig.label}
-                    </TooltipContent>
-                  </Tooltip>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => handleVisibilityChange('public')}>
+                        <Globe className="h-3.5 w-3.5 mr-2" />
+                        Public
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleVisibilityChange('friends')}>
+                        <Users className="h-3.5 w-3.5 mr-2" />
+                        Friends
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleVisibilityChange('followers')}>
+                        <Users2 className="h-3.5 w-3.5 mr-2" />
+                        Followers
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleVisibilityChange('private')}>
+                        <Lock className="h-3.5 w-3.5 mr-2" />
+                        Only me
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <div
+                    title={currentVisibilityConfig.label}
+                    className="h-8 w-8 flex items-center justify-center enterprise-feed-card-visibility text-muted-foreground"
+                  >
+                    <currentVisibilityConfig.icon className="h-3.5 w-3.5" />
+                  </div>
                 ))}
 
               {/* Age Restriction */}
@@ -2380,7 +2382,7 @@ export default function EntityFeedCard({
                           <div className="mt-2">
                             <EntityCommentComposer
                               entityId={post.id}
-                              entityType={'post'}
+                              entityType={engagementEntityType}
                               currentUserId={user?.id}
                               currentUserName={currentUserDisplayName}
                               parentCommentId={firstReply.id}
@@ -2400,11 +2402,12 @@ export default function EntityFeedCard({
           </div>
         )}
 
-        {/* Bottom comment composer (always at bottom) */}
-        <div className="enterprise-feed-card-comment-composer mt-3">
+        {/* Bottom comment composer (only for authenticated users) */}
+        {user && (
+          <div className="enterprise-feed-card-comment-composer mt-3">
           <EntityCommentComposer
             entityId={post.id}
-            entityType={'post'}
+            entityType={engagementEntityType}
             currentUserId={user?.id}
             currentUserName={currentUserDisplayName}
             focusControl={composerFocusTick}
@@ -2430,6 +2433,7 @@ export default function EntityFeedCard({
             }}
           />
         </div>
+        )}
       </div>
 
       {/* Image Modal */}

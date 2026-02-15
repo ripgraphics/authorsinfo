@@ -189,6 +189,7 @@ export async function GET(request: NextRequest) {
       },
       comment_text: comment.comment_text || comment.content || '',
       created_at: comment.created_at || new Date().toISOString(),
+      parent_comment_id: comment.parent_comment_id || null,
     }))
 
     console.log('✅ GET /api/engagement - Response:', {

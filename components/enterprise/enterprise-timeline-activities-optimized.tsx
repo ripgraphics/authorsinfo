@@ -290,6 +290,32 @@ const EnterpriseTimelineActivities = React.memo(
       content_type: 'all' as 'all' | 'text' | 'image' | 'link',
     })
 
+    // Memoized filter handlers to prevent Select re-renders
+    const handleSearchChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFilters((prev) => ({ ...prev, search_query: e.target.value }))
+      },
+      []
+    )
+
+    const handleDateRangeChange = useCallback(
+      (v: string) => {
+        setFilters((prev) => ({ ...prev, date_range: v as any }))
+      },
+      []
+    )
+
+    const handleContentTypeChange = useCallback(
+      (v: string) => {
+        setFilters((prev) => ({ ...prev, content_type: v as any }))
+      },
+      []
+    )
+
+    const handleClearFilters = useCallback(() => {
+      setFilters({ search_query: '', date_range: 'all', content_type: 'all' })
+    }, [])
+
     // Performance optimization: Memoized refs
     const observerRef = useRef<IntersectionObserver | null>(null)
     const loadingRef = useRef<HTMLDivElement>(null)
@@ -846,75 +872,6 @@ const EnterpriseTimelineActivities = React.memo(
       )
     }, [analytics, filteredActivities.length, showAnalytics])
 
-    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-      setFilters((prev) => ({ ...prev, search_query: e.target.value }))
-    }, [])
-
-    const handleDateRangeChange = useCallback((v: string) => {
-      setFilters((prev) => ({ ...prev, date_range: v as any }))
-    }, [])
-
-    const handleContentTypeChange = useCallback((v: string) => {
-      setFilters((prev) => ({ ...prev, content_type: v as any }))
-    }, [])
-
-    const handleClearFilters = useCallback(() => {
-      setFilters({ search_query: '', date_range: 'all', content_type: 'all' })
-    }, [])
-
-    const advancedFiltersJSX = (
-      <Card className="mb-4 rounded-xl border-gray-100 shadow-sm overflow-hidden">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search posts..."
-                value={filters.search_query}
-                onChange={handleSearchChange}
-                className="pl-10"
-              />
-            </div>
-            <Select
-              value={filters.date_range}
-              onValueChange={handleDateRangeChange}
-            >
-              <SelectTrigger className="w-[9rem]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Time</SelectItem>
-                <SelectItem value="1d">Today</SelectItem>
-                <SelectItem value="7d">This Week</SelectItem>
-                <SelectItem value="30d">This Month</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.content_type}
-              onValueChange={handleContentTypeChange}
-            >
-              <SelectTrigger className="w-[9rem]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="text">Text</SelectItem>
-                <SelectItem value="image">Image</SelectItem>
-                <SelectItem value="link">Link</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearFilters}
-            >
-              Clear
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
-
     // Moderation helpers
     const calculateContentSafetyScore = useCallback(
       (content: string) => {
@@ -1253,9 +1210,58 @@ const EnterpriseTimelineActivities = React.memo(
     return (
       <div className="space-y-6">
         {renderAnalyticsDashboard()}
-        {advancedFiltersJSX}
-        {/* Composer: two-state pill/expanded, matching comment composer */}
-        {enablePrivacyControls && (
+        <Card className="mb-4 rounded-xl border-gray-100 shadow-sm overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Search posts..."
+                  value={filters.search_query}
+                  onChange={handleSearchChange}
+                  className="pl-10"
+                />
+              </div>
+              <Select
+                value={filters.date_range}
+                onValueChange={handleDateRangeChange}
+              >
+                <SelectTrigger className="w-[9rem]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="1d">Today</SelectItem>
+                  <SelectItem value="7d">This Week</SelectItem>
+                  <SelectItem value="30d">This Month</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={filters.content_type}
+                onValueChange={handleContentTypeChange}
+              >
+                <SelectTrigger className="w-[9rem]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="image">Image</SelectItem>
+                  <SelectItem value="link">Link</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearFilters}
+              >
+                Clear
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Composer: two-state pill/expanded, matching comment composer - only for authenticated users */}
+        {enablePrivacyControls && user && (
           <Card className="mb-6 rounded-xl border-gray-100 shadow-sm overflow-hidden">
             <CardContent className="p-4">
               <div className="flex items-center gap-4">

@@ -123,9 +123,12 @@ export async function POST(request: NextRequest) {
     // Cache the result
     try {
       await setCachedPreview(metadata)
-    } catch (error) {
-      console.warn('Failed to cache preview, continuing:', error)
-      // Continue even if caching fails
+    } catch (error: any) {
+      console.warn(
+        '[link-cache] Failed to cache preview, continuing:',
+        error instanceof Error ? error.message : JSON.stringify(error)
+      )
+      // Continue even if caching fails - it's not critical to the API response
     }
 
     const response = NextResponse.json({

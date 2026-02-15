@@ -34,6 +34,21 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // Scroll active tab into view on mount and when activeTab changes
+  useEffect(() => {
+    if (!isMobile || !containerRef.current) return
+
+    const container = containerRef.current
+    const activeTabElement = container.querySelector(`[aria-selected="true"]`) as HTMLElement
+
+    if (activeTabElement) {
+      // Use scrollIntoView for smooth scrolling to active tab
+      setTimeout(() => {
+        activeTabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+      }, 0)
+    }
+  }, [activeTab, isMobile])
+
   // Check scroll position for chevron visibility
   const checkScroll = () => {
     if (!containerRef.current) return

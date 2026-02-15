@@ -143,7 +143,7 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
               className={`flex-shrink-0 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium h-12 min-w-[90px] whitespace-nowrap rounded transition-colors ${
                 activeTab === tab.id
                   ? 'bg-app-theme-blue/10 text-app-theme-blue border-l-4 border-app-theme-blue'
-                  : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'
+                  : 'text-gray-700 hover:bg-gray-100 hover:shadow-sm border-l-4 border-transparent'
               } ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {tab.icon && <span className="flex-shrink-0">{tab.icon}</span>}
@@ -192,7 +192,7 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
       {tabs.map((tab) => (
         <button
           key={tab.id}
-          className={`entity-tab flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 transition-colors ${activeTab === tab.id ? 'border-b-2 border-app-theme-blue text-app-theme-blue' : 'text-gray-700 hover:text-app-theme-blue'} ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`entity-tab flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 transition-all ${activeTab === tab.id ? 'border-b-2 border-app-theme-blue text-app-theme-blue' : 'text-gray-700 hover:text-gray-900 hover:border-b-2 hover:border-gray-300'} ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => !tab.disabled && handleTabClick(tab.id)}
           disabled={tab.disabled}
           aria-selected={activeTab === tab.id}

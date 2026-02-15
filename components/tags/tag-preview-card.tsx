@@ -235,7 +235,7 @@ export function TagPreviewCard({
                 disabled={isSubscribing}
                 className={cn(
                   'shrink-0',
-                  isSubscribed && 'bg-primary hover:bg-[#40A3D8]/90'
+                  isSubscribed && 'bg-primary hover:bg-app-theme-blue/90'
                 )}
                 title={isSubscribed ? 'Unsubscribe from this tag' : 'Subscribe to this tag'}
               >

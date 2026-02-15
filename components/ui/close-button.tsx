@@ -23,7 +23,7 @@ export function CloseButton({
 
   const variantClasses = {
     default: 'bg-gray-100 hover:bg-gray-200 text-gray-600',
-    primary: 'bg-primary hover:bg-[#40A3D8] text-primary-foreground',
+    primary: 'bg-primary hover:bg-app-theme-blue text-primary-foreground',
     ghost: 'bg-transparent hover:bg-gray-100 text-gray-500',
   }
 

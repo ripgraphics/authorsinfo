@@ -566,7 +566,7 @@ export function EntityImageUpload({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-full bg-primary hover:bg-[#40A3D8] text-primary-foreground hover:text-primary-foreground flex-shrink-0"
+          className="h-8 w-8 rounded-full bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground flex-shrink-0"
           onClick={handleClose}
         >
           <X className="h-4 w-4" />

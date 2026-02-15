@@ -159,7 +159,7 @@ export function LinkPreviewImageWithControls({
             {onSwap && (
               <button
                 type="button"
-                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-[#40A3D8] text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[140px] hover:justify-start hover:pl-2 hover:pr-3"
+                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-app-theme-blue text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[140px] hover:justify-start hover:pl-2 hover:pr-3"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -179,7 +179,7 @@ export function LinkPreviewImageWithControls({
             {onRemove && (
               <button
                 type="button"
-                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-[#40A3D8] text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[120px] hover:justify-start hover:pl-2 hover:pr-3"
+                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-app-theme-blue text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[120px] hover:justify-start hover:pl-2 hover:pr-3"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -233,7 +233,7 @@ export function LinkPreviewImageWithControls({
             {onSwap && (
               <button
                 type="button"
-                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-[#40A3D8] text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[140px] hover:justify-start hover:pl-2 hover:pr-3"
+                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-app-theme-blue text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[140px] hover:justify-start hover:pl-2 hover:pr-3"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -253,7 +253,7 @@ export function LinkPreviewImageWithControls({
             {onRemove && (
               <button
                 type="button"
-                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-[#40A3D8] text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[120px] hover:justify-start hover:pl-2 hover:pr-3"
+                className="group/btn flex items-center justify-center h-8 w-8 rounded-full overflow-hidden shadow-lg backdrop-blur-sm bg-primary hover:bg-app-theme-blue text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[width,max-width,opacity,padding,margin] duration-200 ease-out hover:w-[120px] hover:justify-start hover:pl-2 hover:pr-3"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()

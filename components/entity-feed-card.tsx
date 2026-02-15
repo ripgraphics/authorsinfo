@@ -2088,7 +2088,7 @@ export default function EntityFeedCard({
         </div>
       </div>
 
-      <div className="p-4 pt-0 enterprise-feed-card-content">
+      <div className="p-2 pt-0 enterprise-feed-card-content">
         {/* Content Warnings */}
         {renderContentWarnings()}
 

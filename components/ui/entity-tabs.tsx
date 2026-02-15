@@ -130,7 +130,7 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
         {/* Scrollable Tabs Container */}
         <div
           ref={containerRef}
-          className="flex overflow-x-auto scroll-smooth gap-1 px-10 py-1.5 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          className="flex overflow-x-auto scroll-smooth gap-0 px-10 py-0 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           role="tablist"
         >
           {tabs.map((tab) => (
@@ -140,10 +140,10 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
               disabled={tab.disabled}
               aria-selected={activeTab === tab.id}
               role="tab"
-              className={`flex-shrink-0 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium h-12 min-w-[90px] whitespace-nowrap rounded transition-colors ${
+              className={`flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium h-12 min-w-max whitespace-nowrap transition-colors border-b-2 ${
                 activeTab === tab.id
-                  ? 'bg-app-theme-blue text-primary-foreground border-l-4 border-app-theme-blue'
-                  : 'text-primary hover:bg-app-theme-blue hover:text-primary-foreground border-l-4 border-transparent'
+                  ? 'bg-transparent text-app-theme-blue border-b-2 border-app-theme-blue'
+                  : 'text-primary hover:text-app-theme-blue border-b-2 border-transparent'
               } ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {tab.icon && <span className="flex-shrink-0">{tab.icon}</span>}

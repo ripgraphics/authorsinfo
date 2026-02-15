@@ -2316,7 +2316,7 @@ export default function EntityFeedCard({
 
                   {/* First reply (if any) */}
                   {firstReply && (
-                    <div className="ml-10 flex items-start gap-2">
+                    <div className="ml-4 flex items-start gap-2">
                       <EntityAvatar
                         type="user"
                         id={firstReply.user?.id}

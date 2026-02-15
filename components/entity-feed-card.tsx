@@ -1857,7 +1857,7 @@ export default function EntityFeedCard({
 
   return (
     <div className="rounded-xl border border-gray-100 bg-white text-card-foreground shadow-sm hover:shadow-md transition-all duration-300 enterprise-feed-card enterprise-timeline-feed-card mb-4">
-      <div className="flex flex-col space-y-1.5 p-4 enterprise-feed-card-header">
+      <div className="flex flex-col space-y-1.5 p-2 enterprise-feed-card-header">
         <div className="enterprise-feed-card-header-content flex items-start gap-3">
           {/* User Avatar */}
           <EntityHoverCard

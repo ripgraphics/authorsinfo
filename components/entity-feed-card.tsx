@@ -2093,7 +2093,7 @@ export default function EntityFeedCard({
         {renderContentWarnings()}
 
         {/* Main Content */}
-        <div className="enterprise-feed-card-main-content px-4 py-2">{renderContent()}</div>
+        <div className="enterprise-feed-card-main-content px-2 py-2">{renderContent()}</div>
 
         {/* Tags */}
         {renderTags()}

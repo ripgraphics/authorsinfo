@@ -314,7 +314,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   return (
     <div
       className={cn(
-        'engagement-display flex items-center justify-between px-4 py-2 border-b border-gray-100',
+        'engagement-display flex items-center justify-between px-2 py-2 border-b border-gray-100',
         className
       )}
     >

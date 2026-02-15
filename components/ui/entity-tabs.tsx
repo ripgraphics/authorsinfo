@@ -130,7 +130,7 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
         {/* Scrollable Tabs Container */}
         <div
           ref={containerRef}
-          className="flex overflow-x-auto scroll-smooth gap-1 px-10 py-1.5 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          className="flex overflow-x-auto scroll-smooth gap-1 px-0 py-0 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           role="tablist"
         >
           {tabs.map((tab) => (

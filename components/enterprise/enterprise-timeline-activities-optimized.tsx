@@ -760,7 +760,7 @@ const EnterpriseTimelineActivities = React.memo(
       (activity: EnterpriseActivity, index: number) => {
         const post = transformActivityToPost(activity)
         return (
-          <div key={`${activity.id}_${index}`} className="enterprise-feed-card">
+          <div key={activity.id} className="enterprise-feed-card">
             <EntityFeedCard
               post={post}
               showActions={true}

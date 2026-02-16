@@ -3,6 +3,7 @@ import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { createCommentSchema } from '@/lib/validations/comment'
 import { logger } from '@/lib/logger'
 import type { Database, Json } from '@/types/database'
+import { getEntityTypeId } from '@/lib/entity-types'
 
 export async function POST(request: NextRequest) {
   try {
@@ -246,24 +247,10 @@ export async function GET(request: NextRequest) {
       // Add common aliases
       if (entity_type === 'activity') entityTypeMatchValues.push('post')
       if (entity_type === 'post') entityTypeMatchValues.push('activity')
-      // Resolve to UUID from entity_types table using the same client
-      try {
-        let normalizedName = entity_type.toLowerCase()
-        if (normalizedName === 'book') normalizedName = 'Book Post'
-        else if (normalizedName === 'activity') normalizedName = 'Post'
-
-        const { data: entityTypeRow } = await supabase
-          .from('entity_types')
-          .select('id')
-          .ilike('name', normalizedName)
-          .maybeSingle()
-
-        if (entityTypeRow?.id && !entityTypeMatchValues.includes(entityTypeRow.id)) {
-          entityTypeMatchValues.push(entityTypeRow.id)
-        }
-      } catch (e) {
-        // Non-fatal: proceed without UUID match
-        console.error('Failed to resolve entity type UUID:', e)
+      // Resolve to UUID from entity_types table
+      const entityTypeId = await getEntityTypeId(entity_type)
+      if (entityTypeId && !entityTypeMatchValues.includes(entityTypeId)) {
+        entityTypeMatchValues.push(entityTypeId)
       }
     }
 
@@ -296,38 +283,7 @@ export async function GET(request: NextRequest) {
       query = query.eq('entity_id', effectiveEntityId)
     }
 
-    let { data: comments, error, count } = await query
-
-    // Fallback: if entity_type filtered query returned nothing, try by entity_id only.
-    // This handles cases where the stored entity_type doesn't match any resolved values.
-    if (!error && (!comments || comments.length === 0) && entityTypeMatchValues.length > 0) {
-      const fallbackQuery = supabase
-        .from('comments')
-        .select(
-          `
-          *,
-          user:users!comments_user_id_fkey(
-            id,
-            email,
-            name
-          )
-        `,
-          { count: 'exact' }
-        )
-        .eq('entity_id', effectiveEntityId)
-        .eq('is_hidden', false)
-        .eq('is_deleted', false)
-        .is('parent_comment_id', null)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
-
-      const fallbackResult = await fallbackQuery
-      if (!fallbackResult.error && fallbackResult.data && fallbackResult.data.length > 0) {
-        comments = fallbackResult.data
-        error = fallbackResult.error
-        count = fallbackResult.count
-      }
-    }
+    const { data: comments, error, count } = await query
 
     if (error) {
       console.error('Error fetching comments:', error)

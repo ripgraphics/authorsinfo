@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { createCommentSchema } from '@/lib/validations/comment'
 import { logger } from '@/lib/logger'
 import type { Database, Json } from '@/types/database'
@@ -198,6 +199,12 @@ export async function GET(request: NextRequest) {
     const supabase = (await createRouteHandlerClientAsync()) as any
     const { searchParams } = new URL(request.url)
 
+    // Check authentication and fall back to admin client for unauthenticated reads
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const readClient = user ? supabase : supabaseAdmin
+
     // Add a test endpoint for debugging
     if (searchParams.get('test') === 'true') {
       console.log('=== Testing Comment API ===')
@@ -255,7 +262,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build base query for top-level comments
-    let query = supabase
+    let query = readClient
       .from('comments')
       .select(
         `
@@ -351,7 +358,7 @@ export async function GET(request: NextRequest) {
     )
 
     if (userIdsNeedingProfiles.length > 0) {
-      const { data: userProfiles } = await supabase
+      const { data: userProfiles } = await readClient
         .from('users')
         .select('id, name, email, username')
         .in('id', userIdsNeedingProfiles)
@@ -385,7 +392,7 @@ export async function GET(request: NextRequest) {
     // Fetch replies for all top-level comments in one query
     const topLevelIds = formattedComments.map((c: FormattedComment) => c.id)
     if (topLevelIds.length > 0) {
-      const { data: replies, error: repliesError } = await supabase
+      const { data: replies, error: repliesError } = await readClient
         .from('comments')
         .select(
           `

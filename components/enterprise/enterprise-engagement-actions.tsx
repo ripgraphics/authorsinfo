@@ -524,17 +524,6 @@ export function EnterpriseEngagementActions({
   // RENDER FUNCTIONS
   // ============================================================================
 
-  // Handle quick-like on click (like Facebook's original behavior)
-  const handleQuickLike = useCallback(async () => {
-    const currentUserReaction = contextReaction || currentReaction
-    if (currentUserReaction) {
-      // User already has a reaction - toggle it off
-      await handleReactionSelect(currentUserReaction)
-    } else {
-      // No reaction yet - add a "like"
-      await handleReactionSelect('like')
-    }
-  }, [contextReaction, currentReaction, handleReactionSelect])
 
   const renderReactionButton = useCallback(() => {
     const currentDisplay = getCurrentReactionDisplay()
@@ -547,15 +536,15 @@ export function EnterpriseEngagementActions({
           size="sm"
           onMouseEnter={handleReactionButtonHover}
           onMouseLeave={handleReactionButtonLeave}
-          onClick={handleQuickLike}
+          onClick={handleReactionButtonHover}
           disabled={!!engagement?.isLoading}
           aria-busy={!!engagement?.isLoading}
           aria-label={
             engagement?.isLoading
               ? 'Reaction in progress'
               : contextReaction || currentReaction
-                ? `You reacted with ${currentDisplay.label}. Click to remove or hover for more reactions.`
-                : 'Like. Click to like or hover for more reactions.'
+                ? `You reacted with ${currentDisplay.label}. Click or hover to see more reactions.`
+                : 'Like. Click or hover to see more reactions.'
           }
           className={cn(
             'engagement-action-button w-full h-10 rounded-lg transition-colors',
@@ -624,7 +613,6 @@ export function EnterpriseEngagementActions({
     handleReactionButtonLeave,
     handlePopupMouseEnter,
     handlePopupMouseLeave,
-    handleQuickLike,
     engagement?.isLoading,
   ])
 

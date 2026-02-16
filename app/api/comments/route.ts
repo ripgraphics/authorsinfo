@@ -4,6 +4,7 @@ import { createCommentSchema } from '@/lib/validations/comment'
 import { logger } from '@/lib/logger'
 import type { Database, Json } from '@/types/database'
 import { getEntityTypeId } from '@/lib/entity-types'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -351,7 +352,7 @@ export async function GET(request: NextRequest) {
     )
 
     if (userIdsNeedingProfiles.length > 0) {
-      const { data: userProfiles } = await supabase
+      const { data: userProfiles } = await supabaseAdmin
         .from('users')
         .select('id, name, email, username')
         .in('id', userIdsNeedingProfiles)

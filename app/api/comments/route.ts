@@ -4,6 +4,7 @@ import { createCommentSchema } from '@/lib/validations/comment'
 import { logger } from '@/lib/logger'
 import type { Database, Json } from '@/types/database'
 import { getEntityTypeId } from '@/lib/entity-types'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -255,7 +256,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build base query for top-level comments
-    let query = supabase
+    let query = supabaseAdmin
       .from('comments')
       .select(
         `
@@ -351,7 +352,7 @@ export async function GET(request: NextRequest) {
     )
 
     if (userIdsNeedingProfiles.length > 0) {
-      const { data: userProfiles } = await supabase
+      const { data: userProfiles } = await supabaseAdmin
         .from('users')
         .select('id, name, email, username')
         .in('id', userIdsNeedingProfiles)
@@ -385,7 +386,7 @@ export async function GET(request: NextRequest) {
     // Fetch replies for all top-level comments in one query
     const topLevelIds = formattedComments.map((c: FormattedComment) => c.id)
     if (topLevelIds.length > 0) {
-      const { data: replies, error: repliesError } = await supabase
+      const { data: replies, error: repliesError } = await supabaseAdmin
         .from('comments')
         .select(
           `

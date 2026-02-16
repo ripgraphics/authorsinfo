@@ -196,33 +196,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = (await createRouteHandlerClientAsync()) as any
     const { searchParams } = new URL(request.url)
-
-    // Add a test endpoint for debugging
-    if (searchParams.get('test') === 'true') {
-      console.log('=== Testing Comment API ===')
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser()
-      if (authError || !user) {
-        return NextResponse.json(
-          {
-            error: 'Authentication failed',
-            details: authError?.message || 'User not found',
-          },
-          { status: 401 }
-        )
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'Comment API is working',
-        user: { id: user.id, email: user.email },
-        timestamp: new Date().toISOString(),
-      })
-    }
 
     const post_id = searchParams.get('post_id')
     const entity_type = searchParams.get('entity_type')
@@ -255,8 +229,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build base query for top-level comments
-    let query = supabase
+    // Comments and commenter names are public data — use supabaseAdmin
+    // to bypass RLS so all users (authenticated or not) see the same results.
+    let query = supabaseAdmin
       .from('comments')
       .select(
         `
@@ -271,11 +246,10 @@ export async function GET(request: NextRequest) {
       )
       .eq('is_hidden', false)
       .eq('is_deleted', false)
-      .is('parent_comment_id', null) // Only top-level comments
+      .is('parent_comment_id', null)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    // Filter by entity type (matching UUID and string variants) and entity id
     if (entityTypeMatchValues.length > 0) {
       query = query
         .in('entity_type', entityTypeMatchValues)
@@ -312,17 +286,16 @@ export async function GET(request: NextRequest) {
       replies: FormattedComment[]
     }
 
-    // Format a single comment row into the API response shape
     const formatComment = (comment: Record<string, unknown>): FormattedComment => {
       const userData = (comment.user as Record<string, unknown>) || {}
       return {
         id: comment.id,
         content: comment.content,
-        comment_text: comment.content, // alias used by the UI
+        comment_text: comment.content,
         created_at: comment.created_at,
         updated_at: comment.updated_at,
         user: {
-          id: userData.id,
+          id: userData.id || comment.user_id,
           name: (userData.name as string) || (userData.email as string) || 'User',
           avatar_url: null,
         },
@@ -336,57 +309,37 @@ export async function GET(request: NextRequest) {
 
     const formattedComments: FormattedComment[] = (comments || []).map(formatComment)
 
-    // Fetch user profiles for comments that are missing names (fallback)
-    const userIdsNeedingProfiles = Array.from(
-      new Set(
-        formattedComments
-          .flatMap((c) => {
-            const ids: string[] = []
-            if (c.user.name === 'User' && c.user.id) ids.push(c.user.id as unknown as string)
-            c.replies?.forEach((r) => {
-              if (r.user.name === 'User' && r.user.id) ids.push(r.user.id as unknown as string)
-            })
-            return ids
-          })
-      )
-    )
+    // For any comments where the join didn't resolve user names,
+    // fetch them directly from the users table via supabaseAdmin.
+    const userIdsNeedingNames = formattedComments
+      .filter((c) => c.user.name === 'User' && c.user.id)
+      .map((c) => c.user.id as string)
 
-    if (userIdsNeedingProfiles.length > 0) {
-      const { data: userProfiles } = await supabaseAdmin
+    if (userIdsNeedingNames.length > 0) {
+      const { data: profiles } = await supabaseAdmin
         .from('users')
         .select('id, name, email, username')
-        .in('id', userIdsNeedingProfiles)
+        .in('id', userIdsNeedingNames)
 
-      if (userProfiles && userProfiles.length > 0) {
+      if (profiles && profiles.length > 0) {
         const profileMap = new Map(
-          (userProfiles as Array<{ id: string; name?: string; email?: string; username?: string }>).map(
-            (up) => [up.id, up]
+          (profiles as Array<{ id: string; name?: string; email?: string; username?: string }>).map(
+            (p) => [p.id, p]
           )
         )
-
-        // Update comment names with fetched profiles
-        const updateCommentName = (c: FormattedComment) => {
+        for (const c of formattedComments) {
           if (c.user.name === 'User' && c.user.id) {
-            const profile = profileMap.get(c.user.id as unknown as string)
-            if (profile?.name) {
-              c.user.name = profile.name
-            } else if (profile?.username) {
-              c.user.name = profile.username
-            } else if (profile?.email) {
-              c.user.name = profile.email
-            }
+            const p = profileMap.get(c.user.id as string)
+            if (p) c.user.name = p.name || p.username || p.email || 'User'
           }
-          c.replies?.forEach(updateCommentName)
         }
-
-        formattedComments.forEach(updateCommentName)
       }
     }
 
-    // Fetch replies for all top-level comments in one query
+    // Fetch replies for all top-level comments
     const topLevelIds = formattedComments.map((c: FormattedComment) => c.id)
     if (topLevelIds.length > 0) {
-      const { data: replies, error: repliesError } = await supabase
+      const { data: replies, error: repliesError } = await supabaseAdmin
         .from('comments')
         .select(
           `
@@ -404,7 +357,6 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: true })
 
       if (!repliesError && replies) {
-        // Group replies by parent_comment_id
         const repliesByParent = new Map<string, FormattedComment[]>()
         for (const reply of replies as Record<string, unknown>[]) {
           const parentId = reply.parent_comment_id as string
@@ -414,11 +366,39 @@ export async function GET(request: NextRequest) {
           repliesByParent.get(parentId)!.push(formatComment(reply))
         }
 
-        // Attach replies to their parent comments
         for (const comment of formattedComments) {
           const childReplies = repliesByParent.get(comment.id as string) || []
           comment.replies = childReplies
           comment.reply_count = childReplies.length
+        }
+
+        // Resolve reply user names if needed
+        const replyUserIds = formattedComments
+          .flatMap((c) => c.replies)
+          .filter((r) => r.user.name === 'User' && r.user.id)
+          .map((r) => r.user.id as string)
+
+        if (replyUserIds.length > 0) {
+          const { data: replyProfiles } = await supabaseAdmin
+            .from('users')
+            .select('id, name, email, username')
+            .in('id', replyUserIds)
+
+          if (replyProfiles && replyProfiles.length > 0) {
+            const replyProfileMap = new Map(
+              (replyProfiles as Array<{ id: string; name?: string; email?: string; username?: string }>).map(
+                (p) => [p.id, p]
+              )
+            )
+            for (const c of formattedComments) {
+              for (const r of c.replies) {
+                if (r.user.name === 'User' && r.user.id) {
+                  const p = replyProfileMap.get(r.user.id as string)
+                  if (p) r.user.name = p.name || p.username || p.email || 'User'
+                }
+              }
+            }
+          }
         }
       }
     }

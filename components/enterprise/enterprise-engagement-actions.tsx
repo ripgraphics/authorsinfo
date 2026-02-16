@@ -645,8 +645,8 @@ export function EnterpriseEngagementActions({
         disabled={!!engagement?.isLoading}
         className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
       >
-        <MessageSquare className="h-5 w-5 mr-2" />
-        <span className="engagement-action-label">Comment</span>
+        <MessageSquare className="h-5 w-5 mr-0 md:mr-2" />
+        <span className="engagement-action-label hidden md:inline">Comment</span>
       </Button>
     )
   }, [showCommentInput, isCommentInputVisible, onCommentClick, engagement?.isLoading])
@@ -662,8 +662,8 @@ export function EnterpriseEngagementActions({
             size="sm"
             className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <Share2 className="h-5 w-5 mr-2" />
-            <span className="engagement-action-label">Share</span>
+            <Share2 className="h-5 w-5 mr-0 md:mr-2" />
+            <span className="engagement-action-label hidden md:inline">Share</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80" align="center">
@@ -708,11 +708,11 @@ export function EnterpriseEngagementActions({
       >
         <Bookmark
           className={cn(
-            'h-5 w-5 mr-2',
+            'h-5 w-5 mr-0 md:mr-2',
             (engagement?.userHasBookmarked || isBookmarked) && 'fill-current'
           )}
         />
-        <span className="engagement-action-label">
+        <span className="engagement-action-label hidden md:inline">
           {engagement?.userHasBookmarked || isBookmarked ? 'Saved' : 'Save'}
         </span>
       </Button>

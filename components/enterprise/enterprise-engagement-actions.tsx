@@ -76,6 +76,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { Avatar } from '@/components/ui/avatar'
+import { HorizontalScroller } from '@/components/ui/horizontal-scroller'
 
 // ============================================================================
 // ENTERPRISE-GRADE TYPE DEFINITIONS
@@ -887,12 +888,16 @@ export function EnterpriseEngagementActions({
       {renderEngagementSummary()}
 
       {/* Action Buttons Row */}
-      <div className="engagement-action-buttons flex items-center justify-between px-4 py-2 border-b border-gray-100">
+      <HorizontalScroller
+        className="engagement-action-buttons border-b border-gray-100"
+        containerClassName="gap-0"
+        showChevrons={true}
+      >
         {renderReactionButton()}
         {renderCommentButton()}
         {renderShareButton()}
         {renderBookmarkButton()}
-      </div>
+      </HorizontalScroller>
 
       {/* Comment Input Section */}
       {renderCommentInput()}

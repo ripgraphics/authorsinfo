@@ -14,7 +14,7 @@ export interface ScrollerItem {
 }
 
 interface HorizontalScrollerProps {
-  items: ScrollerItem[]
+  items?: ScrollerItem[]
   activeId?: string
   onItemClick?: (id: string) => void
   className?: string
@@ -22,10 +22,11 @@ interface HorizontalScrollerProps {
   containerClassName?: string
   isTab?: boolean
   showChevrons?: boolean
+  children?: React.ReactNode
 }
 
 export function HorizontalScroller({
-  items,
+  items = [],
   activeId,
   onItemClick,
   className = '',
@@ -33,6 +34,7 @@ export function HorizontalScroller({
   containerClassName = '',
   isTab = false,
   showChevrons = true,
+  children,
 }: HorizontalScrollerProps) {
   const router = useRouter()
   const [isMobile, setIsMobile] = useState(false)
@@ -185,24 +187,26 @@ export function HorizontalScroller({
           className={`flex overflow-x-auto scroll-smooth gap-1 px-0 py-0 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${containerClassName}`}
           role={isTab ? 'tablist' : undefined}
         >
-          {items.map((item) => (
-            <div
-              key={item.id}
-              data-item-id={item.id}
-              onClick={() => handleItemClick(item)}
-              className={`flex-shrink-0 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium h-12 min-w-[90px] whitespace-nowrap transition-colors cursor-pointer ${
-                activeId === item.id
-                  ? 'bg-app-theme-blue text-primary-foreground'
-                  : 'text-primary hover:bg-app-theme-blue hover:text-primary-foreground'
-              } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''} ${itemClassName}`}
-              role={isTab ? 'tab' : undefined}
-              aria-selected={isTab ? activeId === item.id : undefined}
-            >
-              {item.icon && <span className="flex-shrink-0">{item.icon}</span>}
-              {item.label && <span className="truncate">{item.label}</span>}
-              {item.content && item.content}
-            </div>
-          ))}
+          {children
+            ? children
+            : items.map((item) => (
+                <div
+                  key={item.id}
+                  data-item-id={item.id}
+                  onClick={() => handleItemClick(item)}
+                  className={`flex-shrink-0 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium h-12 min-w-[90px] whitespace-nowrap transition-colors cursor-pointer ${
+                    activeId === item.id
+                      ? 'bg-app-theme-blue text-primary-foreground'
+                      : 'text-primary hover:bg-app-theme-blue hover:text-primary-foreground'
+                  } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''} ${itemClassName}`}
+                  role={isTab ? 'tab' : undefined}
+                  aria-selected={isTab ? activeId === item.id : undefined}
+                >
+                  {item.icon && <span className="flex-shrink-0">{item.icon}</span>}
+                  {item.label && <span className="truncate">{item.label}</span>}
+                  {item.content && item.content}
+                </div>
+              ))}
         </div>
       </div>
     )
@@ -215,24 +219,26 @@ export function HorizontalScroller({
       style={{ gridTemplateColumns: `repeat(auto-fit, minmax(100px, 1fr))` }}
       role={isTab ? 'tablist' : undefined}
     >
-      {items.map((item) => (
-        <div
-          key={item.id}
-          data-item-id={item.id}
-          onClick={() => handleItemClick(item)}
-          className={`flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 transition-colors cursor-pointer ${
-            activeId === item.id
-              ? 'bg-app-theme-blue text-primary-foreground'
-              : 'text-primary hover:bg-app-theme-blue hover:text-primary-foreground'
-          } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''} ${itemClassName}`}
-          role={isTab ? 'tab' : undefined}
-          aria-selected={isTab ? activeId === item.id : undefined}
-        >
-          {item.icon && <span className="flex-shrink-0">{item.icon}</span>}
-          {item.label && <span>{item.label}</span>}
-          {item.content && item.content}
-        </div>
-      ))}
+      {children
+        ? children
+        : items.map((item) => (
+            <div
+              key={item.id}
+              data-item-id={item.id}
+              onClick={() => handleItemClick(item)}
+              className={`flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 transition-colors cursor-pointer ${
+                activeId === item.id
+                  ? 'bg-app-theme-blue text-primary-foreground'
+                  : 'text-primary hover:bg-app-theme-blue hover:text-primary-foreground'
+              } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''} ${itemClassName}`}
+              role={isTab ? 'tab' : undefined}
+              aria-selected={isTab ? activeId === item.id : undefined}
+            >
+              {item.icon && <span className="flex-shrink-0">{item.icon}</span>}
+              {item.label && <span>{item.label}</span>}
+              {item.content && item.content}
+            </div>
+          ))}
     </div>
   )
 }

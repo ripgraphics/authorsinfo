@@ -305,7 +305,22 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .engagement-comment-count:hover {
-  text-decoration: underline;
+  color: var(--color-app-theme-blue);
+  background-color: #EBF5FF;
+  text-decoration: none !important;
+  transition: color 150ms ease, background-color 150ms ease;
+  /* no padding here; padding should be applied per-element where needed */
+  border-radius: 9999px;
+}
+
+/* Reusable hover utility for app-theme controls (global)
+   - `hover-app-theme` is the preferred global name
+   - keep `hover-comment-app-theme` as an alias for backward compatibility */
+.hover-app-theme:hover,
+.hover-comment-app-theme:hover {
+  color: var(--color-app-theme-blue) !important;
+  background-color: #EBF5FF !important;
+  transition: color 150ms ease, background-color 150ms ease;
 }
 
 .engagement-action-buttons {
@@ -764,6 +779,27 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
     height: 2em;
     background: linear-gradient(transparent, white);
     pointer-events: none;
+  }
+
+  /* Global hover utility for app theme colors (placed in utilities layer so Tailwind doesn't override) */
+  .hover-app-theme:hover,
+  .hover-comment-app-theme:hover {
+    color: var(--color-app-theme-blue) !important;
+    background-color: #EBF5FF !important;
+    text-decoration: none !important;
+    transition: color 150ms ease, background-color 150ms ease;
+    border-radius: 6px !important;
+  }
+
+  /* Specific small padding for the "View more comments" button only */
+  .view-more-comments {
+    padding: 2px 5px !important;
+  }
+
+  /* Small action padding reused for inline action buttons (Like/Reply) */
+  .action-small-pad {
+    padding: 2px 5px !important;
+    display: inline-block !important;
   }
 }
 

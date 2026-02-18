@@ -374,10 +374,10 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
 
         {/* Comments Display */}
         {displayCommentCount > 0 && (
-          <div className="engagement-comments text-sm text-gray-600 hover:text-app-theme-blue cursor-pointer relative group transition-colors duration-200">
+          <div className="engagement-comments text-sm text-gray-600 hover-app-theme hover:text-app-theme-blue cursor-pointer relative group transition-colors duration-200">
             <span
               onClick={onCommentsClick}
-              className="inline-flex items-center justify-center cursor-pointer font-medium px-2 py-1 rounded-md hover:bg-app-theme-blue hover:text-white transition-colors duration-200"
+              className="inline-flex items-center justify-center cursor-pointer font-medium px-2 py-1 rounded-md hover-app-theme hover:bg-app-theme-blue hover:text-white transition-colors duration-200"
             >
               {displayCommentCount} comment{displayCommentCount !== 1 ? 's' : ''}
             </span>

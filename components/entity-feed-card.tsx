@@ -63,6 +63,7 @@ import { EnterpriseEngagementActions } from '@/components/enterprise/enterprise-
 import type { EntityType } from '@/lib/engagement/config'
 import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
 import { ReactionType, useEngagement } from '@/contexts/engagement-context'
+import { CommentActionButtons } from '@/components/enterprise/comment-action-buttons'
 import { NestedCommentThread } from '@/components/enterprise/nested-comment-thread'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
@@ -2167,7 +2168,7 @@ export default function EntityFeedCard({
             {(post.comment_count || comments.length) > 1 && (
               <button
                 onClick={() => setShowCommentsModal(true)}
-                className="text-sm text-gray-600 font-medium mb-2 hover:underline"
+                className="text-sm text-gray-600 font-medium mb-2 hover-app-theme view-more-comments"
               >
                 View more comments
               </button>
@@ -2216,11 +2217,12 @@ export default function EntityFeedCard({
                         )}
                       </div>
                       <div className="flex items-center justify-between mt-1 ml-2">
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <span>{formatTimeAgo(first.created_at)}</span>
-                          <button className="hover:underline">Like</button>
-                          <button className="hover:underline">Reply</button>
-                        </div>
+                        <CommentActionButtons
+                          entityId={post.id}
+                          entityType={engagementEntityType}
+                          timestamp={formatTimeAgo(first.created_at)}
+                          className="gap-4"
+                        />
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button
@@ -2366,18 +2368,15 @@ export default function EntityFeedCard({
                             {firstReply.comment_text}
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 mt-1 ml-2 text-[11px] text-gray-500">
-                          <span>{formatTimeAgo(firstReply.created_at)}</span>
-                          <button className="hover:underline">Like</button>
-                          <button
-                            className="hover:underline"
-                            onClick={() =>
-                              setExpandedReplies((prev) => ({ ...prev, [first.id]: true }))
-                            }
-                          >
-                            Reply
-                          </button>
-                        </div>
+                        <CommentActionButtons
+                          entityId={post.id}
+                          entityType={engagementEntityType}
+                          timestamp={formatTimeAgo(firstReply.created_at)}
+                          textSize="text-[11px]"
+                          onReplyClick={() =>
+                            setExpandedReplies((prev) => ({ ...prev, [first.id]: true }))
+                          }
+                        />
                         {expandedReplies[first.id] && (
                           <div className="mt-2">
                             <EntityCommentComposer

@@ -821,7 +821,7 @@ export function EnterpriseEngagementActions({
 
           {/* Comment Count */}
           {stats?.commentCount > 0 && (
-            <div className="engagement-comment-count text-sm text-gray-600 hover:underline cursor-pointer">
+            <div className="engagement-comment-count text-sm text-gray-600 hover-app-theme cursor-pointer">
               {formatCount(stats.commentCount, 'comment')}
             </div>
           )}

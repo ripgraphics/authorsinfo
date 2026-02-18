@@ -27,6 +27,8 @@ import {
 } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { CommentActionButtons } from '@/components/enterprise/comment-action-buttons'
+import type { EntityType } from '@/lib/engagement/config'
 
 interface Comment {
   id: string
@@ -605,29 +607,14 @@ export default function EntityComments({
                     </div>
 
                     {/* Comment Actions */}
-                    <div className="entity-comment-actions flex items-center gap-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="entity-comment-action text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                        onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                      >
-                        <Reply className="h-3 w-3 mr-1" />
-                        Reply
-                      </Button>
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="entity-comment-action text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                      >
-                        <ThumbsUp className="h-3 w-3 mr-1" />
-                        Like
-                      </Button>
-
-                      <span className="entity-comment-timestamp text-xs text-gray-400">
-                        {formatTimestamp(comment.created_at)}
-                      </span>
+                    <div className="entity-comment-actions">
+                      <CommentActionButtons
+                        entityId={entityId}
+                        entityType={entityType as EntityType}
+                        timestamp={formatTimestamp(comment.created_at)}
+                        onReplyClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                        className="gap-4"
+                      />
                     </div>
 
                     {/* Reply Input */}

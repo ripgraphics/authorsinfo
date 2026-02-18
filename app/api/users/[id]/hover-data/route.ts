@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { supabaseAdmin } from '@/lib/supabase'
 import { getFollowersCount, getMutualFriendsCount } from '@/lib/follows-server'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -7,7 +7,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { id: userId } = await params
     const { searchParams } = new URL(request.url)
     const currentUserId = searchParams.get('currentUserId') || null
-    const supabase = await createRouteHandlerClientAsync()
+
+    // User profile data is public — use supabaseAdmin to bypass RLS
+    // so all users (authenticated or not) see the same results.
+    const supabase = supabaseAdmin
 
     // Use Promise.all for parallel queries to speed up the response
     const [userData, booksRead, friends, reverseFriends, profileData, followersCountResult, mutualFriendsCountResult] = await Promise.all([

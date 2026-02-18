@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Running tmpclaude cleanup before commit..."
+if command -v npm >/dev/null 2>&1; then
+  npm run clean:tmpclaude || true
+fi
+
+exit 0

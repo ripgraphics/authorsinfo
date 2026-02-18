@@ -2222,6 +2222,8 @@ export default function EntityFeedCard({
                           entityType={engagementEntityType}
                           timestamp={formatTimeAgo(first.created_at)}
                           className="gap-4"
+                          showLike={!!user}
+                          showReply={!!user}
                         />
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -2376,6 +2378,8 @@ export default function EntityFeedCard({
                           onReplyClick={() =>
                             setExpandedReplies((prev) => ({ ...prev, [first.id]: true }))
                           }
+                          showLike={!!user}
+                          showReply={!!user}
                         />
                         {expandedReplies[first.id] && (
                           <div className="mt-2">

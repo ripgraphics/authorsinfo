@@ -614,6 +614,8 @@ export default function EntityComments({
                         timestamp={formatTimestamp(comment.created_at)}
                         onReplyClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
                         className="gap-4"
+                        showLike={!!currentUser}
+                        showReply={!!currentUser}
                       />
                     </div>
 

@@ -57,3 +57,5 @@ dev-server.log
 # Python cache and temporary output
 __pycache__/
 vercel_list_output.txt
+# Temporary directories created by assistant tooling
+tmpclaude-*

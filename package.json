@@ -21,6 +21,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "gemini": "node scripts/run-gemini-cli.mjs"
+    ,
+    "clean:tmpclaude": "bash ./scripts/cleanup-tmpclaude.sh || powershell -ExecutionPolicy Bypass -File ./scripts/cleanup-tmpclaude.ps1"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

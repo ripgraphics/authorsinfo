@@ -58,6 +58,7 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { REACTION_OPTIONS_METADATA } from '@/lib/engagement/config'
@@ -171,6 +172,26 @@ export function EnterpriseEngagementActions({
 }: EnterpriseEngagementActionsProps) {
   const { user } = useAuth()
   const { toast } = useToast()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const redirectTarget = (() => {
+    const path = pathname || '/'
+    const search = searchParams?.toString()
+    return search ? `${path}?${search}` : path
+  })()
+
+  const requireAuth = useCallback(
+    (fn?: () => void) => {
+      if (user) {
+        fn?.()
+        return
+      }
+      router.push(`/login?redirect=${encodeURIComponent(redirectTarget)}`)
+    },
+    [user, router, redirectTarget]
+  )
 
   // Use the enterprise engagement context
   const {
@@ -530,15 +551,27 @@ export function EnterpriseEngagementActions({
 
     return (
       <div className="relative flex-1">
-        <Button
-          ref={reactionButtonRef}
-          variant="ghost"
-          size="sm"
-          onMouseEnter={handleReactionButtonHover}
-          onMouseLeave={handleReactionButtonLeave}
-          onClick={handleReactionButtonHover}
-          disabled={!!engagement?.isLoading}
-          aria-busy={!!engagement?.isLoading}
+            <Button
+              ref={reactionButtonRef}
+              variant="ghost"
+              size="sm"
+              onMouseEnter={(e) => {
+                if (!user) {
+                  requireAuth()
+                  return
+                }
+                handleReactionButtonHover(e)
+              }}
+              onMouseLeave={() => {
+                if (!user) {
+                  requireAuth()
+                  return
+                }
+                handleReactionButtonLeave()
+              }}
+              onClick={() => requireAuth(() => setShowReactionPopup(true))}
+              disabled={!!engagement?.isLoading}
+              aria-busy={!!engagement?.isLoading}
           aria-label={
             engagement?.isLoading
               ? 'Reaction in progress'
@@ -572,7 +605,7 @@ export function EnterpriseEngagementActions({
         </Button>
 
         {/* Reaction Popup */}
-        {showReactionPopup && (
+        {user && showReactionPopup && (
           <EnterpriseReactionPopup
             entityId={entityId}
             entityType={entityType}
@@ -621,18 +654,20 @@ export function EnterpriseEngagementActions({
 
     return (
       <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => {
-          if (onCommentClick) {
-            onCommentClick()
-            return
+          variant="ghost"
+          size="sm"
+          onClick={() =>
+            requireAuth(() => {
+              if (onCommentClick) {
+                onCommentClick()
+                return
+              }
+              setIsCommentInputVisible(!isCommentInputVisible)
+            })
           }
-          setIsCommentInputVisible(!isCommentInputVisible)
-        }}
-        disabled={!!engagement?.isLoading}
-        className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
-      >
+          disabled={!!engagement?.isLoading}
+          className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+        >
         <MessageSquare className="h-5 w-5 mr-0 md:mr-2" />
         <span className="engagement-action-label hidden md:inline">Comment</span>
       </Button>

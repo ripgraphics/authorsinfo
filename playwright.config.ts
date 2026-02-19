@@ -1,15 +1,21 @@
 import { defineConfig, devices } from '@playwright/test'
+import * as fs from 'fs'
+import * as path from 'path'
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
+// Ensure the storageState file exists before Playwright evaluates config.
+// global-setup.js will overwrite it with real auth data at runtime.
+const authDir = path.resolve(__dirname, 'tests-e2e', '.auth')
+const storageStatePath = path.join(authDir, 'storageState.json')
+if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true })
+if (!fs.existsSync(storageStatePath)) {
+  fs.writeFileSync(storageStatePath, JSON.stringify({ cookies: [], origins: [] }))
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
+  globalSetup: require.resolve('./tests-e2e/global-setup'),
   testDir: './tests-e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -28,6 +34,8 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3034',
+    /* Use storageState produced by global-setup for authenticated tests */
+    storageState: storageStatePath,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

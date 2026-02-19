@@ -3,6 +3,7 @@
 import React from 'react'
 import { InlineLikeButton } from '@/components/enterprise/inline-like-button'
 import type { EntityType } from '@/lib/engagement/config'
+import { ReactionSummary } from '@/components/enterprise/enterprise-reaction-popup'
 
 /**
  * CommentActionButtons
@@ -33,6 +34,8 @@ export interface CommentActionButtonsProps {
   showReply?: boolean
   /** Whether to show the timestamp (default: true) */
   showTimestamp?: boolean
+  /** Whether to show the reaction summary (default: true) */
+  showReactionSummary?: boolean
 }
 
 export function CommentActionButtons({
@@ -45,6 +48,7 @@ export function CommentActionButtons({
   showLike = true,
   showReply = true,
   showTimestamp = true,
+  showReactionSummary = true,
 }: CommentActionButtonsProps) {
   return (
     <div className={`flex items-center gap-3 ${textSize} text-gray-500 ${className ?? ''}`}>
@@ -58,6 +62,14 @@ export function CommentActionButtons({
         <button className="hover-app-theme action-small-pad" onClick={onReplyClick}>
           Reply
         </button>
+      )}
+
+      {showReactionSummary && (
+        <ReactionSummary 
+          entityId={entityId} 
+          entityType={entityType} 
+          maxReactions={3} 
+        />
       )}
     </div>
   )

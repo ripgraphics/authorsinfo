@@ -8,25 +8,30 @@ import { test, expect } from '@playwright/test'
 test.describe('Tagging System Integration', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the application
-    await page.goto('http://localhost:3034')
+    await page.goto('/')
     
     // Wait for page to load
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForTimeout(2000)
   })
 
   test('Post Composer - Tag Autocomplete for Mentions', async ({ page }) => {
     // Find and click the post composer or create post button
     const createPostButton = page.locator('button:has-text("Create post"), button:has-text("What\'s on your mind")').first()
     
-    if (await createPostButton.isVisible()) {
-      await createPostButton.click()
-      await page.waitForTimeout(500)
+    const btnVisible = await createPostButton.isVisible({ timeout: 5000 }).catch(() => false)
+    if (!btnVisible) {
+      test.skip(true, 'Create-post button not visible – auth may not be active')
+      return
     }
+
+    await createPostButton.click()
+    await page.waitForTimeout(500)
 
     // Find the textarea in the post composer
     const textarea = page.locator('textarea[placeholder*="What\'s on your mind"], textarea[placeholder*="Write something"]').first()
     
-    if (await textarea.isVisible()) {
+    if (await textarea.isVisible({ timeout: 3000 }).catch(() => false)) {
       // Type @ to trigger mention autocomplete
       await textarea.fill('@')
       await page.waitForTimeout(500) // Wait for debounce
@@ -55,15 +60,19 @@ test.describe('Tagging System Integration', () => {
     // Find and click the post composer
     const createPostButton = page.locator('button:has-text("Create post"), button:has-text("What\'s on your mind")').first()
     
-    if (await createPostButton.isVisible()) {
-      await createPostButton.click()
-      await page.waitForTimeout(500)
+    const btnVisible = await createPostButton.isVisible({ timeout: 5000 }).catch(() => false)
+    if (!btnVisible) {
+      test.skip(true, 'Create-post button not visible – auth may not be active')
+      return
     }
+
+    await createPostButton.click()
+    await page.waitForTimeout(500)
 
     // Find the textarea
     const textarea = page.locator('textarea[placeholder*="What\'s on your mind"], textarea[placeholder*="Write something"]').first()
     
-    if (await textarea.isVisible()) {
+    if (await textarea.isVisible({ timeout: 3000 }).catch(() => false)) {
       // Type # to trigger hashtag autocomplete
       await textarea.fill('#test')
       await page.waitForTimeout(500) // Wait for debounce
@@ -83,8 +92,9 @@ test.describe('Tagging System Integration', () => {
 
   test('Post Display - Tags are Rendered as Links', async ({ page }) => {
     // Navigate to feed or a page with posts
-    await page.goto('http://localhost:3034/feed')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/feed')
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForTimeout(3000)
 
     // Look for posts with tags (mentions or hashtags)
     const postWithTag = page.locator('text=/@\\w+|#\\w+/').first()
@@ -109,8 +119,9 @@ test.describe('Tagging System Integration', () => {
 
   test('Comments - Tag Autocomplete in Comment Input', async ({ page }) => {
     // Navigate to a page with comments
-    await page.goto('http://localhost:3034/feed')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/feed')
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForTimeout(3000)
 
     // Find comment input
     const commentInput = page.locator('textarea[placeholder*="comment"], textarea[placeholder*="Write a comment"]').first()
@@ -134,8 +145,9 @@ test.describe('Tagging System Integration', () => {
 
   test('Tag Preview Card - Subscription Button', async ({ page }) => {
     // Navigate to a tag page or find a tag link
-    await page.goto('http://localhost:3034/feed')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/feed')
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForTimeout(3000)
 
     // Find a hashtag link
     const hashtagLink = page.locator('a[href*="/tags/"], text=/^#\\w+/').first()

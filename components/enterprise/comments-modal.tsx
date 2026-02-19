@@ -20,6 +20,8 @@ import {
 import { cn } from '@/lib/utils'
 import { TaggedTextRenderer } from '@/components/tags/tagged-text-renderer'
 import { TagEnabledTextarea } from '@/components/tags/tag-enabled-textarea'
+import { CommentActionButtons } from '@/components/enterprise/comment-action-buttons'
+import { ReactionSummary } from '@/components/enterprise/enterprise-reaction-popup'
 
 export interface Comment {
   id: string
@@ -82,6 +84,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   allowCommenting = true,
 }) => {
   const [comments, setComments] = useState<Comment[]>([])
+  const [totalCount, setTotalCount] = useState<number>(commentCount)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newComment, setNewComment] = useState('')
@@ -104,6 +107,10 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
       if (response.ok) {
         const data = await response.json()
+
+        if (data?.total_count !== undefined && data?.total_count !== null) {
+          setTotalCount(Number(data.total_count))
+        }
 
         if (data.data && Array.isArray(data.data)) {
           setComments(data.data.slice(0, maxComments))
@@ -253,7 +260,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     <ReusableModal
       open={isOpen}
       onOpenChange={(open) => { if (!open) onClose() }}
-      title={`${title} (${commentCount})`}
+      title={`${title} (${totalCount})`}
       description={description}
       contentClassName={cn('max-w-2xl max-h-[90vh]', className)}
     >
@@ -282,11 +289,11 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                               avatar_url={comment.user.avatar_url}
                               className="text-sm font-semibold text-foreground"
                             />
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground mr-1">
                               {formatDate(comment.created_at)}
                             </span>
                           </div>
-                          <div className="text-sm text-foreground leading-relaxed">
+                          <div className="text-sm text-foreground leading-relaxed break-words">
                             <TaggedTextRenderer
                               text={comment.comment_text}
                               showPreviews={true}
@@ -295,31 +302,15 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                         </div>
 
                         {/* Comment Actions */}
-                        <div className="flex items-center gap-4 mt-2 ml-2">
-                          <button
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors"
-                            onClick={() => handleCommentLike(comment.id)}
-                          >
-                            <Heart
-                              className={cn(
-                                'h-3 w-3',
-                                comment.user_has_liked ? 'text-red-500 fill-current' : ''
-                              )}
-                            />
-                            {comment.like_count || 0}
-                          </button>
-                          {showReplies && (
-                            <button
-                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                              onClick={() => setReplyingTo(comment.id)}
-                            >
-                              <Reply className="h-3 w-3" />
-                              Reply
-                            </button>
-                          )}
-                          <button className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                            <MoreHorizontal className="h-3 w-3" />
-                          </button>
+                        <div className="flex items-center mt-1 ml-2">
+                          <CommentActionButtons
+                            entityId={comment.id}
+                            entityType="comment"
+                            showTimestamp={false}
+                            onReplyClick={() => setReplyingTo(comment.id)}
+                            showReply={showReplies}
+                            textSize="text-[11px]"
+                          />
                         </div>
 
                         {/* Reply Input */}
@@ -370,12 +361,12 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                                         name={reply.user.name}
                                         avatar_url={reply.user.avatar_url}
                                         className="text-xs font-medium text-foreground"
-                                      />
-                                      <span className="text-xs text-muted-foreground">
+                                        />
+                                      <span className="text-xs text-muted-foreground mr-1">
                                         {formatDate(reply.created_at)}
                                       </span>
                                     </div>
-                                    <div className="text-xs text-foreground leading-relaxed">
+                                    <div className="text-xs text-foreground leading-relaxed break-words">
                                       <TaggedTextRenderer
                                         text={reply.comment_text}
                                         showPreviews={true}
@@ -384,19 +375,14 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                                   </div>
 
                                   {/* Reply Actions */}
-                                  <div className="flex items-center gap-3 mt-1 ml-2">
-                                    <button
-                                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors"
-                                      onClick={() => handleCommentLike(reply.id)}
-                                    >
-                                      <Heart
-                                        className={cn(
-                                          'h-2.5 w-2.5',
-                                          reply.user_has_liked ? 'text-red-500 fill-current' : ''
-                                        )}
-                                      />
-                                      {reply.like_count || 0}
-                                    </button>
+                                  <div className="flex items-center mt-1 ml-2">
+                                    <CommentActionButtons
+                                      entityId={reply.id}
+                                      entityType="comment"
+                                      showTimestamp={false}
+                                      showReply={false}
+                                      textSize="text-[10px]"
+                                    />
                                   </div>
                                 </div>
                               </div>

@@ -207,6 +207,10 @@ export function EnterpriseReactionPopup({
   }, [position, triggerRef])
 
   const getPositionClasses = useCallback(() => {
+    if (!autoPosition) {
+      return 'relative z-[100]'
+    }
+
     const baseClasses = 'absolute z-[100]'
 
     switch (popupPosition) {
@@ -221,7 +225,7 @@ export function EnterpriseReactionPopup({
       default:
         return `${baseClasses} top-full mt-2 left-1/2 transform -translate-x-1/2`
     }
-  }, [popupPosition])
+  }, [popupPosition, autoPosition])
 
   const getSizeClasses = useCallback(() => {
     if (variant === 'facebook') {

@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test'
  */
 test.describe('Cross-post badge', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3034')
+    await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
   })
 
@@ -16,7 +16,7 @@ test.describe('Cross-post badge', () => {
 
     // Navigate to a book timeline (public; no auth required)
     const bookId = '9a5909bb-e759-44ab-b8d0-7143482f66e8'
-    await page.goto(`http://localhost:3034/books/${bookId}`)
+    await page.goto(`/books/${bookId}`)
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(3000)
 
@@ -34,10 +34,11 @@ test.describe('Cross-post badge', () => {
   })
 
   test('cross-post badge visible when present on timeline', async ({ page }) => {
+    test.setTimeout(60_000)
     const bookId = '9a5909bb-e759-44ab-b8d0-7143482f66e8'
-    await page.goto(`http://localhost:3034/books/${bookId}`)
+    await page.goto(`/books/${bookId}`)
     await page.waitForLoadState('domcontentloaded')
-    await page.waitForTimeout(4000)
+    await page.waitForTimeout(3000)
 
     const badge = page.locator('.enterprise-feed-card-cross-post')
     const count = await badge.count()

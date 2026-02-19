@@ -2218,8 +2218,8 @@ export default function EntityFeedCard({
                       </div>
                       <div className="flex items-center justify-between mt-1 ml-2">
                         <CommentActionButtons
-                          entityId={post.id}
-                          entityType={engagementEntityType}
+                          entityId={first.id}
+                          entityType="comment"
                           timestamp={formatTimeAgo(first.created_at)}
                           className="gap-4"
                           showLike={!!user}
@@ -2371,8 +2371,8 @@ export default function EntityFeedCard({
                           </div>
                         </div>
                         <CommentActionButtons
-                          entityId={post.id}
-                          entityType={engagementEntityType}
+                          entityId={firstReply.id}
+                          entityType="comment"
                           timestamp={formatTimeAgo(firstReply.created_at)}
                           textSize="text-[11px]"
                           onReplyClick={() =>
@@ -2688,14 +2688,24 @@ export default function EntityFeedCard({
                         </div>
 
                         {/* Comment Actions */}
-                        {user && (
-                          <div className="flex items-center justify-between mt-2 ml-2">
-                            <div className="flex items-center gap-4">
-                              <button className="text-xs font-medium text-gray-500 hover:text-app-theme-blue transition-colors">
-                                Like
-                              </button>
+                        <div className="flex items-center justify-between mt-2 ml-2">
+                          <div className="flex items-center gap-4">
+                            <CommentActionButtons
+                              entityId={comment.id}
+                              entityType="comment"
+                              onReplyClick={() =>
+                                setExpandedReplies((prev) => ({
+                                  ...prev,
+                                  [comment.id]: !prev[comment.id],
+                                }))
+                              }
+                              showLike={!!user}
+                              showReply={!!user}
+                              showTimestamp={false}
+                            />
+                            {comment.reply_count > 0 && (
                               <button
-                                className="text-xs font-medium text-gray-500 hover:text-app-theme-blue transition-colors"
+                                className="text-xs font-medium text-gray-500 hover-app-theme action-small-pad"
                                 onClick={() =>
                                   setExpandedReplies((prev) => ({
                                     ...prev,
@@ -2703,29 +2713,15 @@ export default function EntityFeedCard({
                                   }))
                                 }
                               >
-                                Reply
+                                {expandedReplies[comment.id]
+                                  ? 'Hide'
+                                  : `Show ${comment.reply_count} replies`}
                               </button>
-                              {comment.reply_count > 0 && (
-                                <button
-                                  className="text-xs font-medium text-app-theme-blue hover:underline"
-                                  onClick={() =>
-                                    setExpandedReplies((prev) => ({
-                                      ...prev,
-                                      [comment.id]: !prev[comment.id],
-                                    }))
-                                  }
-                                >
-                                  {expandedReplies[comment.id]
-                                    ? 'Hide'
-                                    : `Show ${comment.reply_count} replies`}
-                                </button>
-                              )}
-                            </div>
+                            )}
                           </div>
-                        )}
-
+                        </div>
                         {/* Nested Replies Section */}
-                        {expandedReplies[comment.id] && (
+                        {(expandedReplies[comment.id] || !user) && (
                           <div className="mt-4 ml-4 space-y-4 border-l-2 border-gray-100 pl-4">
                             {comment.replies?.map((reply: any) => (
                               <div key={reply.id} className="flex items-start gap-2">
@@ -2756,6 +2752,24 @@ export default function EntityFeedCard({
                                     <div className="text-xs text-gray-800">
                                       {reply.comment_text}
                                     </div>
+                                  </div>
+
+                                  {/* Reply Actions */}
+                                  <div className="flex items-center mt-1 ml-2">
+                                    <CommentActionButtons
+                                      entityId={reply.id}
+                                      entityType="comment"
+                                      textSize="text-[11px]"
+                                      onReplyClick={() =>
+                                        setExpandedReplies((prev) => ({
+                                          ...prev,
+                                          [comment.id]: true,
+                                        }))
+                                      }
+                                      showLike={!!user}
+                                      showReply={!!user}
+                                      showTimestamp={false}
+                                    />
                                   </div>
                                 </div>
                               </div>

@@ -609,8 +609,8 @@ export default function EntityComments({
                     {/* Comment Actions */}
                     <div className="entity-comment-actions">
                       <CommentActionButtons
-                        entityId={entityId}
-                        entityType={entityType as EntityType}
+                        entityId={comment.id}
+                        entityType="comment"
                         timestamp={formatTimestamp(comment.created_at)}
                         onReplyClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
                         className="gap-4"

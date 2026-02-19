@@ -47,6 +47,7 @@ dev-server.log
 /playwright-report/
 /test-results/
 /blob-report/
+tests-e2e/.auth/
 
 # corrupted filenames
 *chema*

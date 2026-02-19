@@ -271,6 +271,25 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Also compute total count of comments (including replies) for this entity
+    let totalCommentsCount: number | null = null
+    try {
+      let totalQuery = supabaseAdmin.from('comments').select('id', { count: 'exact' })
+      totalQuery = totalQuery.eq('is_hidden', false).eq('is_deleted', false)
+      if (entityTypeMatchValues.length > 0) {
+        totalQuery = totalQuery.in('entity_type', entityTypeMatchValues).eq('entity_id', effectiveEntityId)
+      } else {
+        totalQuery = totalQuery.eq('entity_id', effectiveEntityId)
+      }
+      const totalRes = await totalQuery
+      // supabase returns .count when count requested
+      // @ts-ignore
+      totalCommentsCount = typeof totalRes.count === 'number' ? totalRes.count : null
+    } catch (e) {
+      console.warn('Failed to compute total comments count', e)
+      totalCommentsCount = null
+    }
+
     // Formatted comment shape returned by the API
     interface FormattedComment {
       id: unknown
@@ -407,6 +426,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: formattedComments,
       count,
+      total_count: totalCommentsCount,
       limit,
       offset,
     })

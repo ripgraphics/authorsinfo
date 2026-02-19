@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { EnterpriseReactionPopup } from '@/components/enterprise/enterprise-reaction-popup'
 import { useEngagement, ReactionType } from '@/contexts/engagement-context'
 import type { EntityType } from '@/lib/engagement/config'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 /**
  * InlineLikeButton
@@ -88,49 +89,63 @@ export function InlineLikeButton({
     }, 800)
   }, [])
 
+  const handleLikeClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      // Toggle the default 'like' reaction directly on click
+      await setReaction(entityId, entityType, 'like')
+      setShowPopup(false)
+    },
+    [entityId, entityType, setReaction]
+  )
+
   const handleReactionChange = useCallback(
     async (rt: ReactionType | null) => {
-      try {
-        if (rt) {
-          await setReaction(entityId, entityType, rt)
-        } else {
-          await removeReaction(entityId, entityType)
-        }
-        onReactionChangeProp?.(rt)
-        setTimeout(() => setShowPopup(false), 500)
-      } catch (err) {
-        console.error('Error setting reaction:', err)
-      }
+      // The reaction has already been set/removed by the EnterpriseReactionPopup
+      // using the engagement context. This callback is for notification/UI cleanup.
+      onReactionChangeProp?.(rt)
+      // Auto-close after a short delay
+      setTimeout(() => setShowPopup(false), 500)
     },
-    [entityId, entityType, setReaction, removeReaction, onReactionChangeProp]
+    [onReactionChangeProp]
   )
 
   return (
-    <div className={`relative inline-block ${className ?? ''}`}>
-      <button
-        ref={buttonRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onClick={() => setShowPopup((s) => !s)}
-        className={buttonClassName}
-      >
-        {label}
-      </button>
-      {showPopup && (
-        <EnterpriseReactionPopup
-          entityId={entityId}
-          entityType={entityType}
-          isVisible={showPopup}
-          onClose={() => setShowPopup(false)}
-          triggerRef={buttonRef as unknown as React.RefObject<HTMLElement>}
+    <div className={`inline-block ${className ?? ''}`}>
+      <Popover open={showPopup} onOpenChange={setShowPopup}>
+        <PopoverTrigger asChild>
+          <button
+            ref={buttonRef}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onClick={handleLikeClick}
+            className={buttonClassName}
+          >
+            {label}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent 
+          className="w-auto p-0 border-none bg-transparent shadow-none" 
+          side="top" 
+          sideOffset={8}
           onMouseEnter={handlePopupMouseEnter}
           onMouseLeave={handlePopupMouseLeave}
-          autoPosition={true}
-          size={popupSize}
-          animation="scale"
-          onReactionChange={handleReactionChange}
-        />
-      )}
+        >
+          <EnterpriseReactionPopup
+            entityId={entityId}
+            entityType={entityType}
+            isVisible={showPopup}
+            onClose={() => setShowPopup(false)}
+            triggerRef={buttonRef as unknown as React.RefObject<HTMLElement>}
+            autoPosition={false} // Popover handles positioning
+            size={popupSize}
+            animation="scale"
+            onReactionChange={handleReactionChange}
+            className="static translate-x-0 translate-y-0" // Reset internal positioning
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

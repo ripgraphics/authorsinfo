@@ -225,6 +225,13 @@ export function EnterprisePhotoViewer({
   }, [albumId])
 
   const loadAlbumOwner = async () => {
+    // Defensive: ensure supabase client is available and has expected API
+    const isSupabaseReady = !!supabase && typeof (supabase as any).from === 'function'
+    if (!isSupabaseReady) {
+      console.warn('⚠️ Supabase client not available in this environment, skipping loadAlbumOwner()')
+      return
+    }
+
     try {
       // Get album details to find the owner
       const { data: album, error: albumError } = await (supabase.from('photo_albums') as any)
@@ -295,14 +302,21 @@ export function EnterprisePhotoViewer({
     } catch (error) {
       console.error('Error loading album owner:', error)
       // Fallback to current user if we can't get album owner
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (user) {
-        setAlbumOwner({
-          name: (user as any)?.name || user.user_metadata?.full_name || user.email || 'User',
-          avatar_url: (user as any)?.avatar_url || null,
-        })
+      try {
+        const isAuthAvailable = !!supabase.auth && typeof (supabase.auth as any).getUser === 'function'
+        if (isAuthAvailable) {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser()
+          if (user) {
+            setAlbumOwner({
+              name: (user as any)?.name || user.user_metadata?.full_name || user.email || 'User',
+              avatar_url: (user as any)?.avatar_url || null,
+            })
+          }
+        }
+      } catch (e) {
+        // ignore fallback errors
       }
     }
   }
@@ -320,6 +334,19 @@ export function EnterprisePhotoViewer({
   }, [currentIndex, photos, albumId])
 
   const loadPhotoData = async (photoId: string, albumId?: string) => {
+    // Defensive: ensure supabase client is available and has expected API
+    const isSupabaseReady = !!supabase && typeof (supabase as any).from === 'function'
+    if (!isSupabaseReady) {
+      console.warn('⚠️ Supabase client not available in this environment, skipping loadPhotoData() and using props fallback')
+      const currentPhoto = photos[currentIndex]
+      if (currentPhoto) {
+        setPhoto(currentPhoto)
+        setPhotoData(currentPhoto)
+        setIsPhotoDataLoaded(true)
+      }
+      return
+    }
+
     try {
       console.log('🔍 loadPhotoData called with photoId:', photoId, 'albumId:', albumId)
       console.log('🔍 currentIndex:', currentIndex)

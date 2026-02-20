@@ -6,18 +6,14 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { fireEvent } from '@testing-library/react'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
 
-const mockDeleteResolve = jest.fn().mockResolvedValue({ data: [{ id: 'row-1' }], error: null })
+const mockFetch = jest.fn()
 
 const selectChain = {
-  eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }),
-  limit: () => Promise.resolve({ data: [], error: null }),
-}
-const deleteChain = {
   eq: () => ({
-    eq: () => ({
-      select: () => mockDeleteResolve(),
-    }),
+    eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }),
+    single: () => Promise.resolve({ data: null, error: null }),
   }),
+  limit: () => Promise.resolve({ data: [], error: null }),
 }
 
 jest.mock('@/lib/supabase/client', () => ({
@@ -27,7 +23,13 @@ jest.mock('@/lib/supabase/client', () => ({
     },
     from: () => ({
       select: () => selectChain,
-      delete: () => deleteChain,
+      delete: () => ({
+        eq: () => ({
+          eq: () => ({
+            select: () => Promise.resolve({ data: [{ id: 'row-1' }], error: null }),
+          }),
+        }),
+      }),
     }),
   },
 }))
@@ -68,7 +70,11 @@ const defaultProps = {
 describe('EnterprisePhotoViewer delete photo', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockDeleteResolve.mockResolvedValue({ data: [{ id: 'row-1' }], error: null })
+    ;(global as typeof globalThis & { fetch: typeof fetch }).fetch = mockFetch as unknown as typeof fetch
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    })
   })
 
   it('calls onPhotoDeleted with photo id after successful delete when user confirms', async () => {
@@ -89,7 +95,9 @@ describe('EnterprisePhotoViewer delete photo', () => {
     fireEvent.click(deleteConfirmButton)
 
     await waitFor(() => {
-      expect(mockDeleteResolve).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith('/api/photos/photo-id-1?albumId=album-id-1', {
+        method: 'DELETE',
+      })
     })
 
     await waitFor(() => {
@@ -114,11 +122,15 @@ describe('EnterprisePhotoViewer delete photo', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
 
+    expect(mockFetch).not.toHaveBeenCalled()
     expect(onPhotoDeleted).not.toHaveBeenCalled()
   })
 
   it('does not call onPhotoDeleted when Supabase delete returns error', async () => {
-    mockDeleteResolve.mockResolvedValueOnce({ data: null, error: { message: 'RLS policy' } })
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'RLS policy' }),
+    })
     const onPhotoDeleted = jest.fn()
     render(<EnterprisePhotoViewer {...defaultProps} onPhotoDeleted={onPhotoDeleted} />)
 
@@ -133,7 +145,7 @@ describe('EnterprisePhotoViewer delete photo', () => {
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
 
     await waitFor(() => {
-      expect(mockDeleteResolve).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalled()
     })
 
     expect(onPhotoDeleted).not.toHaveBeenCalled()

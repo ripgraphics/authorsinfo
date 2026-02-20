@@ -57,10 +57,9 @@ describe('lib/engagement/config', () => {
   })
 
   describe('getLikeCountSource', () => {
-    it('returns posts.like_count for activity', () => {
+    it('returns null for activity when using dynamic RPC-based counts', () => {
       const source = getLikeCountSource('activity')
-      expect(source).not.toBeNull()
-      expect(source).toEqual({ table: 'posts', column: 'like_count' })
+      expect(source).toBeNull()
     })
 
     it('returns null for other entity types', () => {

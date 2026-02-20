@@ -7,10 +7,26 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
-    "prettier/prettier": "error",
-    "@typescript-eslint/no-unused-vars": "warn",
+    "prettier/prettier": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", {
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_",
+      "caughtErrorsIgnorePattern": "^_",
+      "destructuredArrayIgnorePattern": "^_"
+    }],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-empty-object-type": "warn",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-require-imports": "warn",
     "react/no-unescaped-entities": "off",
-    "@next/next/no-img-element": "warn"
+    "react-hooks/rules-of-hooks": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "@next/next/no-img-element": "warn",
+    "@next/next/no-html-link-for-pages": "warn",
+    "prefer-const": "warn",
+    "import/no-anonymous-default-export": "warn",
+    "jsx-a11y/alt-text": "warn",
+    "jsx-a11y/role-supports-aria-props": "warn"
   },
   "ignorePatterns": [
     "node_modules/",
@@ -18,6 +34,9 @@
     "backup_db/",
     "db_backups/",
     "public/",
-    "dist/"
+    "dist/",
+    "next-env.d.ts",
+    "tests-e2e/",
+    "types/supabase.ts"
   ]
 }

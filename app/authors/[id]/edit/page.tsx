@@ -34,8 +34,6 @@ export default function EditAuthorPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [authorImageUrl, setAuthorImageUrl] = useState<string | null>(null)
-  const legacySocialKey = ['face', 'book', '_handle'].join('')
-
   // Fetch author data
   useEffect(() => {
     async function fetchAuthorData() {
@@ -187,7 +185,7 @@ export default function EditAuthorPage() {
         nationality: selectedNationality,
         website: formData.get('website') as string,
         twitter_handle: formData.get('twitter_handle') as string,
-        [legacySocialKey]: formData.get('social_handle') as string,
+        social_handle: formData.get('social_handle') as string,
         instagram_handle: formData.get('instagram_handle') as string,
         goodreads_url: formData.get('goodreads_url') as string,
         author_image_id: newAuthorImageId,
@@ -428,7 +426,7 @@ export default function EditAuthorPage() {
                             <Input
                               id="social_handle"
                               name="social_handle"
-                              defaultValue={(author as any)[legacySocialKey] || ''}
+                              defaultValue={author.social_handle || ''}
                               placeholder="username or profile name"
                             />
                           </div>

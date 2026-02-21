@@ -3,8 +3,6 @@ import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase'
 import { upsertContactInfo } from '@/utils/contactInfo'
 
-const legacySocialKey = ['face', 'book', '_handle'].join('')
-
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await context.params
@@ -72,7 +70,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         if (data.nationality !== undefined) sanitizedData.nationality = data.nationality || null
         if (data.website !== undefined) sanitizedData.website = data.website || null
         if (data.twitter_handle !== undefined) sanitizedData.twitter_handle = data.twitter_handle || null
-        if (data.social_handle !== undefined) sanitizedData[legacySocialKey] = data.social_handle || null
+        if (data.social_handle !== undefined) sanitizedData.social_handle = data.social_handle || null
         if (data.instagram_handle !== undefined) sanitizedData.instagram_handle = data.instagram_handle || null
         if (data.goodreads_url !== undefined) sanitizedData.goodreads_url = data.goodreads_url || null
 
@@ -178,11 +176,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        if (field === 'social_handle') {
-          updateData[legacySocialKey] = body[field]
-        } else {
-          updateData[field] = body[field]
-        }
+        updateData[field] = body[field]
       }
     }
 

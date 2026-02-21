@@ -41,9 +41,7 @@ export function OverviewSection({
 }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const legacySocialKey = ['face', 'book', '_handle'].join('')
-  const socialHandle =
-    author.social_handle || (author as Record<string, string | null | undefined>)[legacySocialKey] || null
+  const socialHandle = author.social_handle || null
 
   const handleRefresh = () => {
     setRefreshKey((prev) => prev + 1)
@@ -142,7 +140,7 @@ export function OverviewSection({
               )}
               {socialHandle && (
                 <a
-                  href={`https://${['face', 'book'].join('')}.com/${socialHandle}`}
+                  href={socialHandle.startsWith('http') ? socialHandle : `https://www.${socialHandle}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium"

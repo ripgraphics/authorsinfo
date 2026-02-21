@@ -33,7 +33,6 @@ export function EditSectionModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
-  const legacySocialKey = ['face', 'book', '_handle'].join('')
 
   // Fetch fresh author data from Supabase when modal opens (single source of truth)
   useEffect(() => {
@@ -54,7 +53,7 @@ export function EditSectionModal({
             nationality: authorData.nationality || '',
             website: authorData.website || '',
             twitter_handle: authorData.twitter_handle || '',
-            social_handle: authorData[legacySocialKey] || '',
+            social_handle: authorData.social_handle || '',
             instagram_handle: authorData.instagram_handle || '',
             goodreads_url: authorData.goodreads_url || '',
           })

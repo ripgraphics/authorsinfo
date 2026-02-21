@@ -31,7 +31,6 @@ export function EditSectionModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
-  const legacySocialKey = ['face', 'book', '_handle'].join('')
 
   // Fetch fresh entity data from Supabase when modal opens for overview section (single source of truth)
   useEffect(() => {
@@ -53,7 +52,7 @@ export function EditSectionModal({
               nationality: entityData.nationality || '',
               website: entityData.website || '',
               twitter_handle: entityData.twitter_handle || '',
-              social_handle: entityData[legacySocialKey] || '',
+              social_handle: entityData.social_handle || '',
               instagram_handle: entityData.instagram_handle || '',
               goodreads_url: entityData.goodreads_url || '',
             })

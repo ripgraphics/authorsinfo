@@ -31,8 +31,6 @@ export default function AddAuthorPage() {
     instagram_handle: '',
     goodreads_url: '',
   })
-  const legacySocialKey = ['face', 'book', '_handle'].join('')
-
   // Fetch nationalities on component mount
   useEffect(() => {
     async function fetchNationalities() {
@@ -92,12 +90,8 @@ export default function AddAuthorPage() {
 
     try {
       // Create author in database
-      const { social_handle, ...persistedFormData } = formData
       const { data: createdAuthor, error } = await (supabaseClient.from('authors') as any)
-        .insert({
-          ...persistedFormData,
-          [legacySocialKey]: social_handle,
-        })
+        .insert(formData)
         .select('id')
         .single()
 

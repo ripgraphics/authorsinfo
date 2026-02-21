@@ -30,82 +30,20 @@ export function useAuth() {
     // Single request function with retry logic inside
     const makeRequest = async (attempt: number): Promise<UserWithRole | null> => {
       console.log(`🚀 Fetching user data (attempt ${attempt + 1}/${MAX_RETRIES + 1})`)
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'useAuth.ts:32',
-          message: 'makeRequest called',
-          data: { attempt },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'E',
-        }),
-      }).catch(() => {})
-      // #endregion
-
       const response = await fetch('/api/auth-users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
       })
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'useAuth.ts:40',
-          message: 'API response received',
-          data: { status: response.status, statusText: response.statusText, ok: response.ok },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'E',
-        }),
-      }).catch(() => {})
-      // #endregion
-
       // Handle 401 (Unauthorized) gracefully - this just means user is not logged in
       if (response.status === 401) {
         console.log('ℹ️ No authenticated user (401) - user is not logged in')
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            location: 'useAuth.ts:44',
-            message: '401 handled gracefully',
-            data: { returningNull: true },
-            timestamp: Date.now(),
-            sessionId: 'debug-session',
-            runId: 'run1',
-            hypothesisId: 'E',
-          }),
-        }).catch(() => {})
-        // #endregion
         return null // Return null instead of throwing error
       }
 
       if (!response.ok) {
         const errorText = await response.text()
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            location: 'useAuth.ts:50',
-            message: 'API error response',
-            data: { status: response.status, errorText },
-            timestamp: Date.now(),
-            sessionId: 'debug-session',
-            runId: 'run1',
-            hypothesisId: 'E',
-          }),
-        }).catch(() => {})
-        // #endregion
         console.error(`❌ API returned ${response.status}: ${errorText}`)
         throw new Error(`API returned ${response.status}: ${errorText}`)
       }
@@ -312,3 +250,4 @@ export function useAuth() {
 
   return { user, loading }
 }
+

@@ -5,8 +5,8 @@ import {
   getAuthorsByBookId,
   getPublisherById,
   getReviewsByBookId,
-  getBooksByPublisherId,
-  getBooksByAuthorId,
+  getBooksCountByPublisherId,
+  getBooksCountByAuthorId,
   testDatabaseConnection,
 } from '@/app/actions/data'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -219,8 +219,7 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
     let publisherMutualFriendsCount = 0
     if (publisher) {
       const { getPublisherAuthorCount } = await import('@/app/actions/data')
-      const publisherBooks = await getBooksByPublisherId(publisher.id)
-      publisherBooksCount = publisherBooks.length
+      publisherBooksCount = await getBooksCountByPublisherId(publisher.id)
       publisherAuthorCount = await getPublisherAuthorCount(publisher.id)
       
       // Get followers count
@@ -246,30 +245,36 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
     const authorBookCounts: Record<string, number> = {}
     const authorFollowersCounts: Record<string, number> = {}
     const authorMutualFriendsCounts: Record<string, number> = {}
-    for (const author of authors) {
-      const booksByAuthor = await getBooksByAuthorId(author.id)
-      authorBookCounts[author.id] = booksByAuthor.length
-      
-      // Get followers count
-      try {
-        authorFollowersCounts[author.id] = await getFollowersCount(author.id, 'author')
-      } catch (error) {
-        console.error(`Error fetching followers count for author ${author.id}:`, error)
-        authorFollowersCounts[author.id] = 0
-      }
-      
-      // Get mutual friends count
-      if (currentUserId) {
-        try {
-          authorMutualFriendsCounts[author.id] = await getMutualFriendsCount(author.id, 'author', currentUserId)
-        } catch (error) {
-          console.error(`Error fetching mutual friends count for author ${author.id}:`, error)
-          authorMutualFriendsCounts[author.id] = 0
+    const authorStats = await Promise.all(
+      authors.map(async (author) => {
+        const [bookCount, followersCount, mutualFriendsCount] = await Promise.all([
+          getBooksCountByAuthorId(author.id),
+          getFollowersCount(author.id, 'author').catch((error) => {
+            console.error(`Error fetching followers count for author ${author.id}:`, error)
+            return 0
+          }),
+          currentUserId
+            ? getMutualFriendsCount(author.id, 'author', currentUserId).catch((error) => {
+                console.error(`Error fetching mutual friends count for author ${author.id}:`, error)
+                return 0
+              })
+            : Promise.resolve(0),
+        ])
+
+        return {
+          authorId: author.id,
+          bookCount,
+          followersCount,
+          mutualFriendsCount,
         }
-      } else {
-        authorMutualFriendsCounts[author.id] = 0
-      }
-    }
+      })
+    )
+
+    authorStats.forEach((stat) => {
+      authorBookCounts[stat.authorId] = stat.bookCount
+      authorFollowersCounts[stat.authorId] = stat.followersCount
+      authorMutualFriendsCounts[stat.authorId] = stat.mutualFriendsCount
+    })
 
     // Map DB reviews to domain Review
     let reviews: Review[] = []

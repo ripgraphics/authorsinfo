@@ -47,6 +47,13 @@ let supabase: any = null
 let presenceChannel: RealtimeChannel | null = null
 let activityChannel: RealtimeChannel | null = null
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message?: string }).message || fallback)
+  }
+  return fallback
+}
+
 export const useRealtimeStore = create<RealtimeState>()(
   persist(
     (set, get) => ({
@@ -58,6 +65,13 @@ export const useRealtimeStore = create<RealtimeState>()(
 
       initialize: async (userId: string) => {
         try {
+          if (!supabaseUrl || !supabaseAnonKey) {
+            set({
+              isConnected: false,
+              connectionError: 'Supabase client configuration is missing',
+            })
+            return
+          }
           if (!supabase) {
             supabase = createClient(supabaseUrl, supabaseAnonKey)
           }
@@ -73,7 +87,7 @@ export const useRealtimeStore = create<RealtimeState>()(
         } catch (error: any) {
           set({ 
             isConnected: false, 
-            connectionError: error.message 
+            connectionError: getErrorMessage(error, 'Realtime initialization failed'),
           })
         }
       },
@@ -136,17 +150,32 @@ export const useRealtimeStore = create<RealtimeState>()(
               onlineUserCount: current.size,
             })
           })
-          .subscribe(async (status) => {
+          .subscribe(async (status, err) => {
             if (status === 'SUBSCRIBED') {
-              const userId = (await supabase.auth.getSession()).data.session?.user?.id
-              if (userId) {
-                await presenceChannel?.track({
-                  userId,
-                  status: 'online',
-                  lastSeen: new Date().toISOString(),
-                  typing: false,
+              try {
+                const userId = (await supabase.auth.getSession()).data.session?.user?.id
+                if (userId) {
+                  await presenceChannel?.track({
+                    userId,
+                    status: 'online',
+                    lastSeen: new Date().toISOString(),
+                    typing: false,
+                  })
+                }
+              } catch (error) {
+                set({
+                  isConnected: false,
+                  connectionError: getErrorMessage(error, 'Realtime presence tracking failed'),
                 })
               }
+              return
+            }
+
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+              set({
+                isConnected: false,
+                connectionError: getErrorMessage(err, `Realtime presence ${status.toLowerCase()}`),
+              })
             }
           })
       },
@@ -168,7 +197,14 @@ export const useRealtimeStore = create<RealtimeState>()(
               activityFeed: [payload.activity, ...state.activityFeed].slice(0, 100),
             }))
           })
-          .subscribe()
+          .subscribe((status, err) => {
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+              set({
+                isConnected: false,
+                connectionError: getErrorMessage(err, `Realtime activity ${status.toLowerCase()}`),
+              })
+            }
+          })
       },
 
       updatePresence: async (
@@ -177,15 +213,22 @@ export const useRealtimeStore = create<RealtimeState>()(
       ) => {
         if (!presenceChannel) return
 
-        const session = await supabase.auth.getSession()
-        const userId = session.data.session?.user?.id
+        try {
+          const session = await supabase.auth.getSession()
+          const userId = session.data.session?.user?.id
 
-        if (userId) {
-          await presenceChannel.track({
-            userId,
-            status,
-            lastSeen: new Date().toISOString(),
-            typing,
+          if (userId) {
+            await presenceChannel.track({
+              userId,
+              status,
+              lastSeen: new Date().toISOString(),
+              typing,
+            })
+          }
+        } catch (error) {
+          set({
+            isConnected: false,
+            connectionError: getErrorMessage(error, 'Realtime presence update failed'),
           })
         }
       },
@@ -202,32 +245,39 @@ export const useRealtimeStore = create<RealtimeState>()(
         }
 
         // Insert into database
-        const { error } = await supabase
-          .from('activity_stream')
-          .insert([
-            {
-              user_id: newActivity.userId,
-              type: newActivity.type,
-              title: newActivity.title,
-              description: newActivity.description,
-              entity_type: newActivity.entityType,
-              entity_id: newActivity.entityId,
-              visibility: newActivity.visibility,
-              metadata: newActivity.metadata,
-            },
-          ])
+        try {
+          const { error } = await supabase
+            .from('activity_stream')
+            .insert([
+              {
+                user_id: newActivity.userId,
+                type: newActivity.type,
+                title: newActivity.title,
+                description: newActivity.description,
+                entity_type: newActivity.entityType,
+                entity_id: newActivity.entityId,
+                visibility: newActivity.visibility,
+                metadata: newActivity.metadata,
+              },
+            ])
 
-        if (!error) {
-          // Broadcast to other clients
-          await activityChannel.send({
-            type: 'broadcast',
-            event: 'new_activity',
-            payload: { activity: newActivity },
+          if (!error) {
+            // Broadcast to other clients
+            await activityChannel.send({
+              type: 'broadcast',
+              event: 'new_activity',
+              payload: { activity: newActivity },
+            })
+
+            set((state) => ({
+              activityFeed: [newActivity, ...state.activityFeed].slice(0, 100),
+            }))
+          }
+        } catch (error) {
+          set({
+            isConnected: false,
+            connectionError: getErrorMessage(error, 'Realtime activity send failed'),
           })
-
-          set((state) => ({
-            activityFeed: [newActivity, ...state.activityFeed].slice(0, 100),
-          }))
         }
       },
 

@@ -174,28 +174,6 @@ export function ClientBookPage({
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'client.tsx:143',
-        message: 'useEffect triggered',
-        data: {
-          justUpdatedCoverImage,
-          bookCoverImageId: book?.cover_image_id,
-          bookDataCoverImageId: bookData?.cover_image_id,
-          bookCoverImageUrl: book?.cover_image?.url,
-          bookDataCoverImageUrl: bookData?.cover_image?.url,
-        },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        runId: 'run1',
-        hypothesisId: 'A',
-      }),
-    }).catch(() => { })
-    // #endregion
-
     // SUPABASE IS THE SOURCE OF TRUTH: If bookData has a cover_image_id that differs from book prop,
     // preserve bookData because it came from Supabase (fresh API fetch)
     // This handles the case where book prop is stale from server-side rendering
@@ -203,21 +181,6 @@ export function ClientBookPage({
     const bookPropCoverId = book?.cover_image_id
 
     if (bookDataCoverId && bookPropCoverId && bookDataCoverId !== bookPropCoverId) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'client.tsx:151',
-          message: 'Preserving bookData - Supabase source of truth',
-          data: { bookDataCoverImageId: bookDataCoverId, bookPropCoverImageId: bookPropCoverId },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'E',
-        }),
-      }).catch(() => { })
-      // #endregion
       // Keep bookData (Supabase value) and only sync other fields from book prop
       setBookData((prev) => ({
         ...book,
@@ -231,21 +194,6 @@ export function ClientBookPage({
 
     // If bookData has cover_image_id but book prop doesn't, preserve bookData (Supabase has it)
     if (bookDataCoverId && !bookPropCoverId) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'client.tsx:165',
-          message: 'Preserving bookData - book prop missing cover_image_id',
-          data: { bookDataCoverImageId: bookDataCoverId },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'E',
-        }),
-      }).catch(() => { })
-      // #endregion
       setBookData((prev) => ({
         ...book,
         cover_image_id: prev.cover_image_id,
@@ -257,43 +205,10 @@ export function ClientBookPage({
 
     // If we just updated the cover image, skip the reset to preserve the new image
     if (justUpdatedCoverImage) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'client.tsx:162',
-          message: 'Skipping reset - justUpdatedCoverImage is true',
-          data: { justUpdatedCoverImage },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'A',
-        }),
-      }).catch(() => { })
-      // #endregion
       setJustUpdatedCoverImage(false)
       return
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'client.tsx:169',
-        message: 'Resetting bookData to book prop',
-        data: {
-          bookCoverImageId: book?.cover_image_id,
-          bookDataCoverImageId: bookData?.cover_image_id,
-        },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        runId: 'run1',
-        hypothesisId: 'C',
-      }),
-    }).catch(() => { })
-    // #endregion
     setBookData(book)
   }, [book, justUpdatedCoverImage, bookData?.cover_image_id])
 
@@ -731,22 +646,6 @@ export function ClientBookPage({
         oldId: prev.cover_image_id,
         newId: newImageId,
       })
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'client.tsx:542',
-          message: 'Updating bookData with new cover image',
-          data: { oldCoverImageId: prev.cover_image_id, newImageId, newImageUrl },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'E',
-        }),
-      }).catch(() => { })
-      // #endregion
-
       const baseCoverImage =
         prev.cover_image ||
         (prev.cover_image_id ? { id: prev.cover_image_id, url: prev.cover_image_url || '' } : null)
@@ -770,25 +669,6 @@ export function ClientBookPage({
         cover_image_url: updated.cover_image_url,
         cover_image: updated.cover_image,
       })
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'client.tsx:568',
-          message: 'bookData updated with new cover_image_id',
-          data: {
-            updatedCoverImageId: updated.cover_image_id,
-            updatedCoverImageUrl: updated.cover_image_url,
-          },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'E',
-        }),
-      }).catch(() => { })
-      // #endregion
-
       return updated
     })
 
@@ -800,84 +680,19 @@ export function ClientBookPage({
     // Fetch fresh book data from API to ensure we have the latest data
     try {
       console.log('🔄 Fetching fresh book data from API...')
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'client.tsx:577',
-          message: 'Fetching fresh book data from API',
-          data: { bookId: params.id, currentCoverImageId: bookData?.cover_image_id, newImageId },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'B',
-        }),
-      }).catch(() => { })
-      // #endregion
       const response = await fetch(`/api/books/${params.id}`)
       if (response.ok) {
         const result = await response.json()
         if (result.success && result.data) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              location: 'client.tsx:583',
-              message: 'Fresh book data received from API',
-              data: {
-                apiCoverImageId: result.data?.cover_image_id,
-                expectedImageId: newImageId,
-                apiCoverImageUrl: result.data?.cover_image?.url,
-                matches: result.data?.cover_image_id === newImageId,
-              },
-              timestamp: Date.now(),
-              sessionId: 'debug-session',
-              runId: 'run1',
-              hypothesisId: 'B',
-            }),
-          }).catch(() => { })
-          // #endregion
           console.log('✅ Fresh book data received, updating state')
           setBookData(result.data)
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              location: 'client.tsx:586',
-              message: 'Setting bookData and justUpdatedCoverImage flag',
-              data: { coverImageId: result.data?.cover_image_id },
-              timestamp: Date.now(),
-              sessionId: 'debug-session',
-              runId: 'run1',
-              hypothesisId: 'A',
-            }),
-          }).catch(() => { })
-          // #endregion
           // Keep the flag set to prevent reset
           setJustUpdatedCoverImage(true)
         }
       }
     } catch (error) {
       console.error('❌ Error fetching fresh book data:', error)
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'client.tsx:590',
-          message: 'Error fetching fresh book data',
-          data: { error: error instanceof Error ? error.message : 'unknown' },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'B',
-        }),
-      }).catch(() => { })
-      // #endregion
-    }
+      }
 
     // Clear any existing timeout
     if (refreshTimeoutRef.current) {
@@ -1827,3 +1642,4 @@ export function ClientBookPage({
     </div>
   )
 }
+

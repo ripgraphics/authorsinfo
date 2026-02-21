@@ -174,48 +174,9 @@ export async function POST(request: Request) {
       userError = error as any
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'auth-users/route.ts:156',
-        message: 'getUser result',
-        data: {
-          hasUser: !!user,
-          hasError: !!userError,
-          errorName: userError?.name,
-          errorMessage: userError?.message,
-          errorConstructor: userError?.constructor?.name,
-          errorString: String(userError),
-          errorKeys: userError ? Object.keys(userError) : [],
-        },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        runId: 'run1',
-        hypothesisId: 'A',
-      }),
-    }).catch(() => {})
-    // #endregion
-
     // If there's an error OR no user, return 401 (not logged in)
     // This handles both cases: errors during auth check and simply no user
     if (userError || !user) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'auth-users/route.ts:165',
-          message: 'No user or error - returning 401',
-          data: { hasError: !!userError, hasUser: !!user, errorMessage: userError?.message },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'A',
-        }),
-      }).catch(() => {})
-      // #endregion
       // All authentication failures return 401 - this is expected for public users
       // Don't log as error unless it's a clear server/database issue
       if (
@@ -317,4 +278,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
 

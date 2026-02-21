@@ -322,6 +322,36 @@ export async function getBooksByAuthorId(authorId: string, limit = 10): Promise<
   }
 }
 
+export async function getBooksCountByAuthorId(authorId: string): Promise<number> {
+  try {
+    const { count, error } = await supabaseAdmin
+      .from('book_authors')
+      .select('book_id', { count: 'exact', head: true })
+      .eq('author_id', authorId)
+
+    if (!error && count !== null) {
+      if (count > 0) {
+        return count
+      }
+    }
+
+    const { count: fallbackCount, error: fallbackError } = await supabaseAdmin
+      .from('books')
+      .select('id', { count: 'exact', head: true })
+      .eq('author_id', authorId)
+
+    if (fallbackError) {
+      console.error('Error counting books by author (fallback):', fallbackError)
+      return 0
+    }
+
+    return fallbackCount || 0
+  } catch (error) {
+    console.error('Error counting books by author:', error)
+    return 0
+  }
+}
+
 // Get count of unique authors for a publisher
 export async function getPublisherAuthorCount(publisherId: string): Promise<number> {
   try {
@@ -390,6 +420,25 @@ export async function getBooksByPublisherId(publisherId: string, limit = 10): Pr
   } catch (error) {
     console.error('Error fetching books by publisher:', error)
     return []
+  }
+}
+
+export async function getBooksCountByPublisherId(publisherId: string): Promise<number> {
+  try {
+    const { count, error } = await supabaseAdmin
+      .from('books')
+      .select('id', { count: 'exact', head: true })
+      .eq('publisher_id', publisherId)
+
+    if (error) {
+      console.error('Error counting books by publisher:', error)
+      return 0
+    }
+
+    return count || 0
+  } catch (error) {
+    console.error('Error counting books by publisher:', error)
+    return 0
   }
 }
 

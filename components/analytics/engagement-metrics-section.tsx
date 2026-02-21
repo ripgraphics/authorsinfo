@@ -13,8 +13,8 @@ interface EngagementMetrics {
   entity_breakdown: Record<string, number>;
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
-const ENTITY_COLORS = ['#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6'];
+const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
+const ENTITY_COLORS = ['hsl(var(--chart-5))', 'hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))'];
 
 export default function EngagementMetricsSection() {
   const [metrics, setMetrics] = useState<EngagementMetrics | null>(null);
@@ -108,7 +108,7 @@ export default function EngagementMetricsSection() {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="value" fill="#3b82f6" />
+              <Bar dataKey="value" fill={COLORS[0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -125,7 +125,7 @@ export default function EngagementMetricsSection() {
                 labelLine={false}
                 label={({ name, value }) => `${name}: ${value}`}
                 outerRadius={80}
-                fill="#8884d8"
+                fill={COLORS[1]}
                 dataKey="value"
               >
                 {entityChartData.map((entry, index) => (

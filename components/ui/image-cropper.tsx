@@ -212,7 +212,7 @@ export function ImageCropper({
                 position: 'relative',
               },
               cropAreaStyle: {
-                border: '2px solid #fff',
+                border: '2px solid white',
               },
             }}
           />

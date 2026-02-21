@@ -1,7 +1,7 @@
 # Enhanced Comment Modal Implementation Summary
 
 ## Overview
-This document summarizes the implementation of an enterprise-grade comment modal that matches the Facebook-style design requested by the user. The modal displays when users click on the "X comments" link in feed post cards.
+This document summarizes the implementation of an enterprise-grade comment modal that matches the Platform-style design requested by the user. The modal displays when users click on the "X comments" link in feed post cards.
 
 ## Current Database Schema Analysis
 
@@ -24,14 +24,14 @@ This document summarizes the implementation of an enterprise-grade comment modal
 - **Features**:
   - Prominent "X comments" link with hover effects
   - Enhanced hover dropdown showing recent comments with avatars
-  - Facebook-style styling with blue hover states
+  - Platform-style styling with blue hover states
   - Smooth transitions and animations
 
 ### Enhanced Comment Modal
 - **Location**: `components/entity-feed-card.tsx` (lines ~1976-2052)
 - **Features**:
   - **Modal Header**: Professional design with icon, title, and description
-  - **Comment List**: Facebook-style comment bubbles with user avatars
+  - **Comment List**: Platform-style comment bubbles with user avatars
   - **Nested Replies**: Support for threaded conversations
   - **Comment Actions**: Like and Reply buttons for each comment
   - **Input Section**: Rich comment input with emoji, image, and link support
@@ -39,7 +39,7 @@ This document summarizes the implementation of an enterprise-grade comment modal
 
 ## Key Features Implemented
 
-### 1. Facebook-Style Comment Bubbles
+### 1. Platform-style Comment Bubbles
 - Rounded corners (`rounded-2xl`)
 - Gray background (`bg-gray-100`)
 - User avatars and names prominently displayed
@@ -152,7 +152,7 @@ This document summarizes the implementation of an enterprise-grade comment modal
 
 ## Conclusion
 
-The enhanced comment modal successfully implements a Facebook-style design that provides:
+The enhanced comment modal successfully implements a Platform-style design that provides:
 - **Professional Appearance**: Enterprise-grade visual design
 - **Enhanced Functionality**: Rich comment interaction features
 - **Improved User Experience**: Intuitive and engaging interface

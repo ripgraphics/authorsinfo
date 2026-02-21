@@ -149,7 +149,7 @@ export interface EntityHeaderProps {
       twitter?: string
       linkedin?: string
       instagram?: string
-      facebook?: string
+      social?: string
       website?: string
     }
     phone?: string

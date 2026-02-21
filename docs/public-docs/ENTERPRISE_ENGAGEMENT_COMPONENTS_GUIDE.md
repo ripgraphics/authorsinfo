@@ -94,7 +94,7 @@ A reusable modal component for displaying comments with enterprise-grade feature
 - **Nested Replies**: Support for comment threads and replies
 - **Real-time Updates**: Built-in refresh functionality
 - **Rich Interactions**: Like, reply, and user management
-- **Professional UI**: Facebook-style comment interface
+- **Professional UI**: Platform-style comment interface
 - **Accessibility**: Screen reader friendly
 
 #### Props Interface
@@ -354,7 +354,7 @@ interface EngagementDisplayProps {
 - **Scalable**: Easy to add new entity types
 
 ### 3. **Enterprise Features**
-- **Professional UI**: Facebook-style design with modern aesthetics
+- **Professional UI**: Platform-style design with modern aesthetics
 - **Accessibility**: Screen reader friendly with proper ARIA labels
 - **Performance**: Efficient data fetching and state management
 - **Error Handling**: Robust error states and recovery mechanisms

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { CloseButton } from '@/components/ui/close-button'
 
-export default function TestFacebookClosePage() {
+export default function TestCloseButtonPage() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (

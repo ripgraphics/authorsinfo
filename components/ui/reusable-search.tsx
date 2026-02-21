@@ -53,7 +53,7 @@ interface ReusableSearchProps {
 
 /**
  * Enterprise-grade reusable search component with:
- * - Instant results on every keystroke (like Amazon/Facebook)
+ * - Instant results on every keystroke (like Amazon/platform apps)
  * - Continuous typing without interruption
  * - Delayed URL updates to prevent Server Component re-renders
  * - Simple, performant implementation

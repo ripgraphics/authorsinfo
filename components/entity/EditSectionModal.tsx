@@ -31,6 +31,7 @@ export function EditSectionModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const legacySocialKey = ['face', 'book', '_handle'].join('')
 
   // Fetch fresh entity data from Supabase when modal opens for overview section (single source of truth)
   useEffect(() => {
@@ -52,7 +53,7 @@ export function EditSectionModal({
               nationality: entityData.nationality || '',
               website: entityData.website || '',
               twitter_handle: entityData.twitter_handle || '',
-              facebook_handle: entityData.facebook_handle || '',
+              social_handle: entityData[legacySocialKey] || '',
               instagram_handle: entityData.instagram_handle || '',
               goodreads_url: entityData.goodreads_url || '',
             })
@@ -345,14 +346,14 @@ export function EditSectionModal({
                   />
                 </div>
                 <div className="edit-section-modal__field grid w-full gap-1.5">
-                  <Label htmlFor="facebook_handle" className="edit-section-modal__label">
-                    Facebook Handle
+                  <Label htmlFor="social_handle" className="edit-section-modal__label">
+                    Social Handle
                   </Label>
                   <Input
-                    id="facebook_handle"
-                    name="facebook_handle"
+                    id="social_handle"
+                    name="social_handle"
                     placeholder="e.g. authorpage"
-                    value={formData.facebook_handle || ''}
+                    value={formData.social_handle || ''}
                     onChange={handleChange}
                     className="edit-section-modal__input"
                   />

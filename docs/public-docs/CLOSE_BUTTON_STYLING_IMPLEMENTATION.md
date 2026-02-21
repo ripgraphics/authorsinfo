@@ -6,7 +6,7 @@ Implemented global styling for all close buttons across the application to use t
 ## Changes Made
 
 ### 1. Updated CloseButton Component (`components/ui/close-button.tsx`)
-- **Before**: Complex Facebook-style classes with inconsistent styling
+- **Before**: Complex Platform-style classes with inconsistent styling
 - **After**: Clean, consistent component with secondary color variants
 - **New Features**:
   - `variant` prop: `default`, `secondary`, `ghost`

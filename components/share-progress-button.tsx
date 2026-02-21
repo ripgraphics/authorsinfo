@@ -24,7 +24,7 @@
 
 import React, { useState } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { Share2, Loader2, Check, Copy, Twitter, Facebook } from 'lucide-react';
+import { Share2, Loader2, Check, Copy, Twitter } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -48,7 +48,7 @@ export interface ShareableChallengeData {
 }
 
 /** Share destination type */
-export type ShareDestination = 'feed' | 'clipboard' | 'twitter' | 'facebook';
+export type ShareDestination = 'feed' | 'clipboard' | 'twitter';
 
 /** Shared content data */
 export interface ShareContent {
@@ -121,14 +121,6 @@ export function getTwitterShareUrl(text: string, url?: string): string {
 }
 
 /**
- * Get Facebook share URL
- */
-export function getFacebookShareUrl(url: string): string {
-  const params = new URLSearchParams({ u: url });
-  return `https://www.facebook.com/sharer/sharer.php?${params.toString()}`;
-}
-
-/**
  * Copy text to clipboard
  */
 export async function copyToClipboard(text: string): Promise<boolean> {
@@ -149,7 +141,6 @@ export function getShareIcon(destination: ShareDestination): React.ReactNode {
     feed: <Share2 className="h-4 w-4" />,
     clipboard: <Copy className="h-4 w-4" />,
     twitter: <Twitter className="h-4 w-4" />,
-    facebook: <Facebook className="h-4 w-4" />,
   };
   return icons[destination] || <Share2 className="h-4 w-4" />;
 }
@@ -162,7 +153,6 @@ export function getShareLabel(destination: ShareDestination): string {
     feed: 'Share to Feed',
     clipboard: 'Copy to Clipboard',
     twitter: 'Share on Twitter',
-    facebook: 'Share on Facebook',
   };
   return labels[destination] || 'Share';
 }
@@ -235,11 +225,6 @@ export function ShareProgressButton({
             window.open(getTwitterShareUrl(content, shareContent.url), '_blank', 'noopener,noreferrer');
             break;
             
-          case 'facebook':
-            if (shareContent.url) {
-              window.open(getFacebookShareUrl(shareContent.url), '_blank', 'noopener,noreferrer');
-            }
-            break;
         }
       }
 

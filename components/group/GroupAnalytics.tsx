@@ -122,9 +122,9 @@ export default function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="total" stroke="#8884d8" name="Total Members" />
-              <Line type="monotone" dataKey="active" stroke="#82ca9d" name="Active Members" />
-              <Line type="monotone" dataKey="new" stroke="#ffc658" name="New Members" />
+              <Line type="monotone" dataKey="total" stroke="hsl(var(--chart-1))" name="Total Members" />
+              <Line type="monotone" dataKey="active" stroke="hsl(var(--chart-2))" name="Active Members" />
+              <Line type="monotone" dataKey="new" stroke="hsl(var(--chart-3))" name="New Members" />
             </LineChart>
           </ResponsiveContainer>
         )
@@ -141,16 +141,16 @@ export default function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
                 type="monotone"
                 dataKey="total"
                 stackId="1"
-                stroke="#8884d8"
-                fill="#8884d8"
+                stroke="hsl(var(--chart-1))"
+                fill="hsl(var(--chart-1))"
                 name="Total Content"
               />
               <Area
                 type="monotone"
                 dataKey="new"
                 stackId="2"
-                stroke="#82ca9d"
-                fill="#82ca9d"
+                stroke="hsl(var(--chart-2))"
+                fill="hsl(var(--chart-2))"
                 name="New Content"
               />
             </AreaChart>
@@ -162,15 +162,15 @@ export default function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
-              <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-              <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+              <YAxis yAxisId="left" orientation="left" stroke="hsl(var(--chart-1))" />
+              <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--chart-2))" />
               <Tooltip />
               <Legend />
-              <Bar yAxisId="left" dataKey="rate" fill="#8884d8" name="Engagement Rate (%)" />
+              <Bar yAxisId="left" dataKey="rate" fill="hsl(var(--chart-1))" name="Engagement Rate (%)" />
               <Bar
                 yAxisId="right"
                 dataKey="interactions"
-                fill="#82ca9d"
+                fill="hsl(var(--chart-2))"
                 name="Total Interactions"
               />
             </BarChart>

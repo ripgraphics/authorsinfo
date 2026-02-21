@@ -47,8 +47,8 @@ export function AdminSidebar() {
   }
 
   return (
-    <aside className="h-screen bg-[#121212] text-white fixed left-0 top-0 bottom-0 z-40 flex flex-col transition-all duration-300 shadow-lg w-64">
-      <div className="flex items-center gap-2 px-4 h-16 bg-[#121212] border-b border-white/10">
+    <aside className="h-screen bg-sidebar text-sidebar-foreground fixed left-0 top-0 bottom-0 z-40 flex flex-col transition-all duration-300 shadow-lg w-64">
+      <div className="flex items-center gap-2 px-4 h-16 bg-sidebar border-b border-sidebar-border/40">
         <div className="text-cyan-400">
           <Image
             src="/images/authorsinfo-logo-w-135x45.svg"
@@ -496,7 +496,7 @@ export function AdminSidebar() {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-white/10 bg-[#121212]">
+      <div className="p-4 border-t border-sidebar-border/40 bg-sidebar">
         <button
           className="flex items-center justify-between w-full gap-3 rounded-md hover:bg-white/10 p-2 transition-colors"
           type="button"

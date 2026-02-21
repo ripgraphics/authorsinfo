@@ -49,26 +49,26 @@ interface ChartDataPoint {
  * Different color for each segment type
  */
 const SEGMENT_COLORS: Record<SegmentType, string> = {
-  behavioral: '#3b82f6', // Blue
-  demographic: '#ef4444', // Red
-  engagement: '#10b981', // Green
-  activity: '#f59e0b', // Amber
+  behavioral: 'hsl(var(--chart-1))',
+  demographic: 'hsl(var(--chart-2))',
+  engagement: 'hsl(var(--chart-3))',
+  activity: 'hsl(var(--chart-4))',
 };
 
 /**
  * Color for pie chart segments (cycle through palette)
  */
 const PIE_COLORS = [
-  '#3b82f6', // Blue
-  '#ef4444', // Red
-  '#10b981', // Green
-  '#f59e0b', // Amber
-  '#8b5cf6', // Purple
-  '#ec4899', // Pink
-  '#06b6d4', // Cyan
-  '#f97316', // Orange
-  '#14b8a6', // Teal
-  '#d946ef', // Magenta
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  'hsl(var(--primary))',
+  'hsl(var(--secondary))',
+  'hsl(var(--accent))',
+  'hsl(var(--muted-foreground))',
+  'hsl(var(--ring))',
 ];
 
 /**
@@ -148,8 +148,8 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
-        <div className="h-96 bg-gray-100 rounded animate-pulse" />
+      <div className={`w-full bg-card rounded-lg border p-4 ${className}`}>
+        <div className="h-96 bg-muted rounded animate-pulse" />
       </div>
     );
   }
@@ -157,20 +157,20 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
   if (!chartData || chartData.length === 0) {
     return (
       <div
-        className={`w-full bg-white rounded-lg border border-gray-200 flex items-center justify-center ${className}`}
+        className={`w-full bg-card rounded-lg border flex items-center justify-center ${className}`}
         style={{ height }}
       >
-        <p className="text-gray-500 text-sm">No segment data available</p>
+        <p className="text-muted-foreground text-sm">No segment data available</p>
       </div>
     );
   }
 
   return (
-    <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
+    <div className={`w-full bg-card rounded-lg border p-4 ${className}`}>
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-slate-900">User Segmentation</h3>
-        <p className="text-sm text-slate-600 mt-1">
+        <h3 className="text-lg font-semibold text-foreground">User Segmentation</h3>
+        <p className="text-sm text-muted-foreground mt-1">
           Distribution of {chartData.length} segments with {totalMembers.toLocaleString()} total members
         </p>
       </div>
@@ -187,7 +187,7 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
                 labelLine={false}
                 label={({ name, value, percent = 0 }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 outerRadius={120}
-                fill="#8884d8"
+                fill="hsl(var(--chart-1))"
                 dataKey="value"
                 onClick={(entry) => {
                   const selected = chartData.find((d) => d.segmentId === entry.payload.segmentId);
@@ -206,8 +206,8 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
               <Tooltip
                 formatter={(value) => `${Number(value).toLocaleString()} members`}
                 contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
                   borderRadius: '0.5rem',
                   boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                 }}
@@ -218,7 +218,7 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
               data={chartData}
               margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
                 angle={-45}
@@ -226,25 +226,25 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
                 height={100}
                 interval={0}
                 tick={{ fontSize: 12 }}
-                stroke="#6b7280"
+                stroke="hsl(var(--muted-foreground))"
               />
               <YAxis
-                stroke="#6b7280"
+                stroke="hsl(var(--muted-foreground))"
                 style={{ fontSize: '12px' }}
                 label={{ value: 'Members', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip
                 formatter={(value) => `${Number(value).toLocaleString()} members`}
                 contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
                   borderRadius: '0.5rem',
                   boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                 }}
               />
               <Bar
                 dataKey="value"
-                fill="#3b82f6"
+                fill="hsl(var(--chart-1))"
                 onClick={(entry) => {
                   const selected = chartData.find((d) => d.segmentId === entry.payload.segmentId);
                   if (selected && onSelectSegment) {
@@ -267,20 +267,20 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
 
       {/* Type Breakdown */}
       <div className="space-y-3 mb-6">
-        <h4 className="text-sm font-semibold text-slate-900">Breakdown by Type</h4>
+        <h4 className="text-sm font-semibold text-foreground">Breakdown by Type</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {Object.entries(typeBreakdown).map(([type, count]) => (
             <div
               key={type}
-              className="p-3 rounded-lg border border-gray-200 bg-gray-50"
+              className="p-3 rounded-lg border bg-muted/50"
             >
-              <p className="text-xs font-semibold text-gray-600 uppercase">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">
                 {getSegmentTypeLabel(type as SegmentType)}
               </p>
-              <p className="text-lg font-bold text-slate-900 mt-1">
+              <p className="text-lg font-bold text-foreground mt-1">
                 {count.toLocaleString()}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {totalMembers > 0 ? `${((count / totalMembers) * 100).toFixed(1)}%` : '0%'}
               </p>
             </div>
@@ -289,8 +289,8 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
       </div>
 
       {/* Segment List */}
-      <div className="border-t border-gray-200 pt-4">
-        <h4 className="text-sm font-semibold text-slate-900 mb-3">All Segments</h4>
+      <div className="border-t pt-4">
+        <h4 className="text-sm font-semibold text-foreground mb-3">All Segments</h4>
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {chartData.map((entry, idx) => {
             const segment = segments.find((s) => s.id === entry.segmentId);
@@ -302,8 +302,8 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
                 onClick={() => segment && onSelectSegment?.(segment)}
                 className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
                   onSelectSegment
-                    ? 'hover:bg-gray-50 cursor-pointer border-gray-200'
-                    : 'border-gray-100 bg-gray-50'
+                    ? 'hover:bg-muted/50 cursor-pointer'
+                    : 'border-border/60 bg-muted/40'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -312,17 +312,17 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
                     style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
                   />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{entry.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-medium text-foreground">{entry.name}</p>
+                    <p className="text-xs text-muted-foreground">
                       {getSegmentTypeLabel(entry.segmentType)}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-foreground">
                     {entry.value.toLocaleString()}
                   </p>
-                  <p className="text-xs text-gray-500">{percentage}%</p>
+                  <p className="text-xs text-muted-foreground">{percentage}%</p>
                 </div>
               </div>
             );

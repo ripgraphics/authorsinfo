@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Enterprise Tagging System is a comprehensive, Facebook-style tagging solution that supports user mentions, entity mentions, hashtags, locations, collaborators, and taxonomy tags across all entities in the application.
+The Enterprise Tagging System is a comprehensive, Platform-style tagging solution that supports user mentions, entity mentions, hashtags, locations, collaborators, and taxonomy tags across all entities in the application.
 
 ## Features
 

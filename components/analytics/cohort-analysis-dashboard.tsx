@@ -137,8 +137,8 @@ export default function CohortAnalysisDashboard() {
             <YAxis yAxisId="right" orientation="right" label={{ value: 'Members (scaled)', angle: 90, position: 'insideRight' }} />
             <Tooltip />
             <Legend />
-            <Bar yAxisId="left" dataKey="D30 Retention" fill="#8884d8" />
-            <Bar yAxisId="right" dataKey="Members" fill="#82ca9d" />
+            <Bar yAxisId="left" dataKey="D30 Retention" fill="hsl(var(--chart-1))" />
+            <Bar yAxisId="right" dataKey="Members" fill="hsl(var(--chart-2))" />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -157,7 +157,7 @@ export default function CohortAnalysisDashboard() {
               <Scatter
                 name="Cohort Retention"
                 data={heatmapData}
-                fill="#8884d8"
+                fill="hsl(var(--chart-1))"
                 fillOpacity={0.7}
               />
             </ScatterChart>

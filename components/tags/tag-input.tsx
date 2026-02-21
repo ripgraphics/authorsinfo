@@ -1,6 +1,6 @@
 /**
  * TagInput Component
- * Facebook-style inline mention and hashtag input with autocomplete
+ * Platform-style inline mention and hashtag input with autocomplete
  */
 
 'use client'

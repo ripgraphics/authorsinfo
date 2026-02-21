@@ -256,7 +256,7 @@ export function ReportsClient() {
               description="New user sign-ups over time"
               labels={userActivityData?.userRegistrations.labels || []}
               data={userActivityData?.userRegistrations.data || []}
-              color="#3b82f6"
+              color="hsl(var(--chart-1))"
               loading={isLoading}
             />
             <LineChart
@@ -264,7 +264,7 @@ export function ReportsClient() {
               description="User login activity over time"
               labels={userActivityData?.userLogins.labels || []}
               data={userActivityData?.userLogins.data || []}
-              color="#10b981"
+              color="hsl(var(--chart-2))"
               loading={isLoading}
             />
           </div>
@@ -274,7 +274,7 @@ export function ReportsClient() {
             description="User reading activity over time"
             labels={userActivityData?.readingActivity.labels || []}
             data={userActivityData?.readingActivity.data || []}
-            color="#f59e0b"
+            color="hsl(var(--chart-3))"
             loading={isLoading}
           />
         </TabsContent>
@@ -316,7 +316,7 @@ export function ReportsClient() {
             description="Number of books per genre"
             labels={(contentPopularityData?.genrePopularity || []).map((item: any) => item.name)}
             data={(contentPopularityData?.genrePopularity || []).map((item: any) => item.bookCount)}
-            color="#8b5cf6"
+            color="hsl(var(--chart-4))"
             loading={isLoading}
             height={400}
           />
@@ -341,7 +341,7 @@ export function ReportsClient() {
                 readingTrendsData?.completionRates.abandoned || 0,
                 readingTrendsData?.completionRates.inProgress || 0,
               ]}
-              colors={['#10b981', '#ef4444', '#f59e0b']}
+              colors={['hsl(var(--chart-2))', 'hsl(var(--chart-4))', 'hsl(var(--chart-3))']}
               loading={isLoading}
             />
           </div>
@@ -351,7 +351,7 @@ export function ReportsClient() {
             description="Total reading time per day"
             labels={readingTrendsData?.readingTimeByDay.labels || []}
             data={readingTrendsData?.readingTimeByDay.data || []}
-            color="#ec4899"
+            color="hsl(var(--chart-5))"
             loading={isLoading}
           />
         </TabsContent>
@@ -391,7 +391,7 @@ export function ReportsClient() {
             description="Number of books per author"
             labels={(authorPerformanceData?.topAuthors || []).map((author: any) => author.name)}
             data={(authorPerformanceData?.topAuthors || []).map((author: any) => author.bookCount)}
-            color="#6366f1"
+            color="hsl(var(--primary))"
             loading={isLoading}
             height={400}
           />

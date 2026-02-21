@@ -20,16 +20,16 @@ export function PieChart({
   labels,
   data,
   colors = [
-    '#3b82f6',
-    '#ef4444',
-    '#10b981',
-    '#f59e0b',
-    '#8b5cf6',
-    '#ec4899',
-    '#6366f1',
-    '#14b8a6',
-    '#f43f5e',
-    '#84cc16',
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+    'hsl(var(--primary))',
+    'hsl(var(--secondary))',
+    'hsl(var(--accent))',
+    'hsl(var(--ring))',
+    'hsl(var(--muted-foreground))',
   ],
   height = 300,
   loading = false,
@@ -42,13 +42,22 @@ export function PieChart({
     const ctx = canvasRef.current.getContext('2d')
     if (!ctx) return
 
+    const getThemeColor = (token: string, fallback: string) => {
+      if (typeof window === 'undefined') return fallback
+      const value = getComputedStyle(document.documentElement).getPropertyValue(token).trim()
+      return value ? `hsl(${value})` : fallback
+    }
+
+    const mutedForeground = getThemeColor('--muted-foreground', 'hsl(var(--muted-foreground))')
+    const background = getThemeColor('--background', 'hsl(var(--background))')
+
     // Clear previous chart
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
 
     if (labels.length === 0 || data.length === 0) {
       // Draw "No data" message
       ctx.font = '16px sans-serif'
-      ctx.fillStyle = '#6b7280'
+      ctx.fillStyle = mutedForeground
       ctx.textAlign = 'center'
       ctx.fillText('No data available', canvasRef.current.width / 2, canvasRef.current.height / 2)
       return
@@ -58,7 +67,7 @@ export function PieChart({
     const total = data.reduce((sum, value) => sum + value, 0)
     if (total === 0) {
       ctx.font = '16px sans-serif'
-      ctx.fillStyle = '#6b7280'
+      ctx.fillStyle = mutedForeground
       ctx.textAlign = 'center'
       ctx.fillText('No data available', canvasRef.current.width / 2, canvasRef.current.height / 2)
       return
@@ -82,7 +91,7 @@ export function PieChart({
       ctx.closePath()
       ctx.fillStyle = colors[i % colors.length]
       ctx.fill()
-      ctx.strokeStyle = '#ffffff'
+      ctx.strokeStyle = background
       ctx.lineWidth = 2
       ctx.stroke()
 
@@ -96,7 +105,7 @@ export function PieChart({
       if (data[i] / total > 0.05) {
         const percentage = Math.round((data[i] / total) * 100)
         ctx.font = 'bold 14px sans-serif'
-        ctx.fillStyle = '#ffffff'
+        ctx.fillStyle = background
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText(`${percentage}%`, labelX, labelY)
@@ -116,13 +125,13 @@ export function PieChart({
       // Draw color box
       ctx.fillStyle = colors[i % colors.length]
       ctx.fillRect(legendX, y, 15, 15)
-      ctx.strokeStyle = '#ffffff'
+      ctx.strokeStyle = background
       ctx.lineWidth = 1
       ctx.strokeRect(legendX, y, 15, 15)
 
       // Draw label
       ctx.font = '12px sans-serif'
-      ctx.fillStyle = '#6b7280'
+      ctx.fillStyle = mutedForeground
       ctx.textAlign = 'left'
       ctx.textBaseline = 'middle'
       const labelText = labels[i].length > 15 ? labels[i].substring(0, 15) + '...' : labels[i]

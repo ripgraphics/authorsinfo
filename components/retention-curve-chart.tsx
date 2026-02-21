@@ -53,14 +53,14 @@ interface RetentionDataPoint {
  * Pastel palette for good visual separation
  */
 const DEFAULT_COLORS = [
-  '#3b82f6', // Blue
-  '#ef4444', // Red
-  '#10b981', // Green
-  '#f59e0b', // Amber
-  '#8b5cf6', // Purple
-  '#ec4899', // Pink
-  '#06b6d4', // Cyan
-  '#f97316', // Orange
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  'hsl(var(--primary))',
+  'hsl(var(--secondary))',
+  'hsl(var(--accent))',
 ];
 
 /**
@@ -119,8 +119,8 @@ export const RetentionCurveChart: React.FC<RetentionCurveChartProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
-        <div className="h-96 bg-gray-100 rounded animate-pulse" />
+      <div className={`w-full bg-card rounded-lg border p-4 ${className}`}>
+        <div className="h-96 bg-muted rounded animate-pulse" />
       </div>
     );
   }
@@ -128,10 +128,10 @@ export const RetentionCurveChart: React.FC<RetentionCurveChartProps> = ({
   if (!cohorts || cohorts.length === 0) {
     return (
       <div
-        className={`w-full bg-white rounded-lg border border-gray-200 flex items-center justify-center ${className}`}
+        className={`w-full bg-card rounded-lg border flex items-center justify-center ${className}`}
         style={{ height }}
       >
-        <p className="text-gray-500 text-sm">No cohort data available</p>
+        <p className="text-muted-foreground text-sm">No cohort data available</p>
       </div>
     );
   }
@@ -141,11 +141,11 @@ export const RetentionCurveChart: React.FC<RetentionCurveChartProps> = ({
   const cohortLabels = selectedCohorts.map((c) => c.cohort_name || `Cohort ${c.cohort_id}`);
 
   return (
-    <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
+    <div className={`w-full bg-card rounded-lg border p-4 ${className}`}>
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-slate-900">Retention Curves</h3>
-        <p className="text-sm text-slate-600 mt-1">
+        <h3 className="text-lg font-semibold text-foreground">Retention Curves</h3>
+        <p className="text-sm text-muted-foreground mt-1">
           Retention percentage over time for {cohortLabels.length} cohorts
         </p>
       </div>
@@ -165,14 +165,14 @@ export const RetentionCurveChart: React.FC<RetentionCurveChartProps> = ({
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="name"
-              stroke="#6b7280"
+              stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: '12px' }}
             />
             <YAxis
-              stroke="#6b7280"
+              stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: '12px' }}
               domain={[0, 100]}
               label={{ value: 'Retention %', angle: -90, position: 'insideLeft' }}
@@ -180,8 +180,8 @@ export const RetentionCurveChart: React.FC<RetentionCurveChartProps> = ({
             <Tooltip
               formatter={(value) => `${Number(value).toFixed(1)}%`}
               contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e5e7eb',
+                backgroundColor: 'hsl(var(--popover))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '0.5rem',
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
               }}
@@ -216,14 +216,14 @@ export const RetentionCurveChart: React.FC<RetentionCurveChartProps> = ({
             data={chartData}
             margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="name"
-              stroke="#6b7280"
+              stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: '12px' }}
             />
             <YAxis
-              stroke="#6b7280"
+              stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: '12px' }}
               domain={[0, 100]}
               label={{ value: 'Retention %', angle: -90, position: 'insideLeft' }}
@@ -231,8 +231,8 @@ export const RetentionCurveChart: React.FC<RetentionCurveChartProps> = ({
             <Tooltip
               formatter={(value) => `${Number(value).toFixed(1)}%`}
               contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e5e7eb',
+                backgroundColor: 'hsl(var(--popover))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '0.5rem',
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
               }}
@@ -266,7 +266,7 @@ export const RetentionCurveChart: React.FC<RetentionCurveChartProps> = ({
       </ResponsiveContainer>
 
       {/* Footer Info */}
-      <div className="mt-4 text-xs text-gray-600">
+      <div className="mt-4 text-xs text-muted-foreground">
         <p>
           Showing {cohortLabels.length} of {cohorts.length} cohorts
           {cohorts.length > maxCohorts && ` (${cohorts.length - maxCohorts} more available)`}

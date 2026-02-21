@@ -22,7 +22,7 @@ export type Author = {
   nationality?: string | null
   website?: string | null
   permalink?: string | null
-  facebook_handle?: string | null
+  social_handle?: string | null
   instagram_handle?: string | null
   twitter_handle?: string | null
   goodreads_url?: string | null

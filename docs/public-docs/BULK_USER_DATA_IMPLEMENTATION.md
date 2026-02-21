@@ -121,4 +121,4 @@ EntityHoverCard → userStats prop → Instant display (0ms delay)
 2. **Pass userStats to hover cards** instead of making individual API calls
 3. **Enjoy instant hover card performance** across your entire application
 
-This implementation gives you **Facebook-level performance** for user hover cards! 🎯
+This implementation gives you **enterprise-level performance** for user hover cards! 🎯

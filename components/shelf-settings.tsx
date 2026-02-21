@@ -30,14 +30,14 @@ const SHELF_ICONS = [
 ];
 
 const SHELF_COLORS = [
-  '#3B82F6',
-  '#EF4444',
-  '#10B981',
-  '#F59E0B',
-  '#8B5CF6',
-  '#EC4899',
-  '#06B6D4',
-  '#6366F1',
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  'hsl(var(--primary))',
+  'hsl(var(--secondary))',
+  'hsl(var(--accent))',
 ];
 
 interface ShelfSettingsProps {
@@ -51,7 +51,7 @@ export function ShelfSettings({ isOpen, shelf, onClose }: ShelfSettingsProps) {
   const [name, setName] = useState(shelf.name);
   const [description, setDescription] = useState(shelf.description || '');
   const [icon, setIcon] = useState(shelf.icon || '📚');
-  const [color, setColor] = useState(shelf.color || '#3B82F6');
+  const [color, setColor] = useState(shelf.color || 'hsl(var(--chart-1))');
   const [isPublic, setIsPublic] = useState(shelf.isPublic ?? true);
   const [localError, setLocalError] = useState('');
 

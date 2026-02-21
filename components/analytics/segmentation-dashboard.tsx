@@ -18,7 +18,16 @@ interface Segment {
   updated_at: string;
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+const COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  'hsl(var(--primary))',
+  'hsl(var(--secondary))',
+  'hsl(var(--accent))',
+];
 
 const SEGMENT_TYPE_LABELS: Record<string, string> = {
   behavioral: 'Behavioral',
@@ -138,7 +147,7 @@ export default function UserSegmentationDashboard() {
               labelLine={false}
               label={({ name, value }) => `${name}: ${value}`}
               outerRadius={80}
-              fill="#8884d8"
+              fill={COLORS[0]}
               dataKey="value"
             >
               {chartData.map((entry, index) => (
@@ -160,7 +169,7 @@ export default function UserSegmentationDashboard() {
             <XAxis dataKey="type" />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="count" fill="#3b82f6" />
+            <Bar dataKey="count" fill={COLORS[0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

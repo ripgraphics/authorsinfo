@@ -178,7 +178,7 @@ CREATE TABLE "public"."moderation_queue" (
 - **Shares**: Track sharing across platforms
 - **Bookmarks**: Personal bookmarking with folders and notes
 - **Tags**: Entity tagging with categories and colors
-- **Reactions**: Facebook-style reactions on comments
+- **Reactions**: Platform-style reactions on comments
 
 ### 4. Enterprise Auditing
 - Automatic logging of all social actions

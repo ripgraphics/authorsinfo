@@ -8,14 +8,14 @@ import { Textarea } from '@/components/ui/textarea'
 function getColorFromId(id: string) {
   // Simple hash to color
   const colors = [
-    '#f87171',
-    '#60a5fa',
-    '#34d399',
-    '#fbbf24',
-    '#a78bfa',
-    '#f472b6',
-    '#38bdf8',
-    '#facc15',
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+    'hsl(var(--primary))',
+    'hsl(var(--secondary))',
+    'hsl(var(--accent))',
   ]
   let hash = 0
   for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)

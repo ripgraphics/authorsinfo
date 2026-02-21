@@ -29,14 +29,14 @@ const SHELF_ICONS = [
 ];
 
 const SHELF_COLORS = [
-  '#3B82F6', // Blue
-  '#EF4444', // Red
-  '#10B981', // Green
-  '#F59E0B', // Amber
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#6366F1', // Indigo
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  'hsl(var(--primary))',
+  'hsl(var(--secondary))',
+  'hsl(var(--accent))',
 ];
 
 interface ShelfCreationModalProps {
@@ -55,7 +55,7 @@ export function ShelfCreationModal({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('📚');
-  const [color, setColor] = useState('#3B82F6');
+  const [color, setColor] = useState('hsl(var(--chart-1))');
   const [isPublic, setIsPublic] = useState(true);
   const [error, setError] = useState('');
 
@@ -87,7 +87,7 @@ export function ShelfCreationModal({
       setName('');
       setDescription('');
       setIcon('📚');
-      setColor('#3B82F6');
+      setColor('hsl(var(--chart-1))');
       setIsPublic(true);
       onClose();
     }

@@ -1,6 +1,6 @@
 /**
  * Create Post Modal Component
- * Facebook-style post creation modal with live link preview
+ * Platform-style post creation modal with live link preview
  * Phase 1: Create Post Modal with Live Link Preview
  */
 

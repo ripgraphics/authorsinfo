@@ -20,7 +20,7 @@ export function BarChartHorizontal({
   description,
   labels,
   data,
-  color = '#3b82f6',
+  color = 'hsl(var(--chart-1))',
   height = 300,
   loading = false,
   maxBars = 10,
@@ -33,6 +33,16 @@ export function BarChartHorizontal({
     const ctx = canvasRef.current.getContext('2d')
     if (!ctx) return
 
+    const getThemeColor = (token: string, fallback: string) => {
+      if (typeof window === 'undefined') return fallback
+      const value = getComputedStyle(document.documentElement).getPropertyValue(token).trim()
+      return value ? `hsl(${value})` : fallback
+    }
+
+    const mutedForeground = getThemeColor('--muted-foreground', 'hsl(var(--muted-foreground))')
+    const border = getThemeColor('--border', 'hsl(var(--border))')
+    const muted = getThemeColor('--muted', 'hsl(var(--muted))')
+
     // Clear previous chart
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
 
@@ -43,7 +53,7 @@ export function BarChartHorizontal({
     if (limitedLabels.length === 0 || limitedData.length === 0) {
       // Draw "No data" message
       ctx.font = '16px sans-serif'
-      ctx.fillStyle = '#6b7280'
+      ctx.fillStyle = mutedForeground
       ctx.textAlign = 'center'
       ctx.fillText('No data available', canvasRef.current.width / 2, canvasRef.current.height / 2)
       return
@@ -59,7 +69,7 @@ export function BarChartHorizontal({
 
     // Draw x-axis
     ctx.beginPath()
-    ctx.strokeStyle = '#e5e7eb'
+    ctx.strokeStyle = border
     ctx.lineWidth = 1
     ctx.moveTo(padding.left, padding.top)
     ctx.lineTo(padding.left, canvasRef.current.height - padding.bottom)
@@ -67,7 +77,7 @@ export function BarChartHorizontal({
 
     // Draw x-axis labels
     ctx.font = '12px sans-serif'
-    ctx.fillStyle = '#6b7280'
+    ctx.fillStyle = mutedForeground
     ctx.textAlign = 'center'
     const xLabelCount = 5
     for (let i = 0; i <= xLabelCount; i++) {
@@ -77,7 +87,7 @@ export function BarChartHorizontal({
 
       // Draw vertical grid line
       ctx.beginPath()
-      ctx.strokeStyle = '#f3f4f6'
+      ctx.strokeStyle = muted
       ctx.moveTo(x, padding.top)
       ctx.lineTo(x, canvasRef.current.height - padding.bottom)
       ctx.stroke()
@@ -88,7 +98,7 @@ export function BarChartHorizontal({
       const y = padding.top + barSpacing * (i + 1) + barHeight * i
 
       // Draw label
-      ctx.fillStyle = '#6b7280'
+      ctx.fillStyle = mutedForeground
       ctx.font = '12px sans-serif'
       ctx.textAlign = 'right'
       ctx.fillText(
@@ -103,7 +113,7 @@ export function BarChartHorizontal({
       ctx.fillRect(padding.left, y, barWidth, barHeight)
 
       // Draw value at the end of the bar
-      ctx.fillStyle = '#6b7280'
+      ctx.fillStyle = mutedForeground
       ctx.textAlign = 'left'
       ctx.fillText(limitedData[i].toString(), padding.left + barWidth + 5, y + barHeight / 2 + 4)
     }

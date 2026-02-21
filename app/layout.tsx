@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         suppressHydrationWarning
         className={`${inter.className} root-layout__body min-h-screen flex flex-col items-center`}
-        style={{ backgroundColor: '#F2F4F7' }}
+        style={{ backgroundColor: 'hsl(var(--background))' }}
       >
         <ThemeProvider
           attribute="class"

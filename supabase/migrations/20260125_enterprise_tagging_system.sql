@@ -1,6 +1,6 @@
 -- Enterprise Tagging System Migration
 -- Date: 2026-01-25
--- Comprehensive Facebook-style tagging system supporting mentions, hashtags, locations, and taxonomy
+-- Comprehensive Platform-style tagging system supporting mentions, hashtags, locations, and taxonomy
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";

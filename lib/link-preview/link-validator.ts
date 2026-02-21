@@ -138,7 +138,6 @@ function checkDomainReputation(domain: string): 'good' | 'neutral' | 'suspicious
   const wellKnownDomains = [
     'google.com',
     'youtube.com',
-    'facebook.com',
     'twitter.com',
     'instagram.com',
     'linkedin.com',

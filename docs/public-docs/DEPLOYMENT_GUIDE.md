@@ -1,7 +1,7 @@
 # 🚀 Enterprise Engagement System Deployment Guide
 
 ## 📋 Overview
-This guide will help you deploy the complete enterprise-grade engagement system with Facebook-style reactions, comments, shares, bookmarks, and views.
+This guide will help you deploy the complete enterprise-grade engagement system with Platform-style reactions, comments, shares, bookmarks, and views.
 
 ## 🗄️ Database Setup
 
@@ -34,7 +34,7 @@ After running the script, you should see:
 ### Step 1: Verify Component Updates
 The following components have been updated:
 - ✅ `contexts/engagement-context.tsx` - Centralized engagement state management
-- ✅ `components/enterprise/enterprise-reaction-popup.tsx` - Facebook-style reaction popup
+- ✅ `components/enterprise/enterprise-reaction-popup.tsx` - Platform-style reaction popup
 - ✅ `components/enterprise/enterprise-engagement-actions.tsx` - Complete engagement actions
 - ✅ `app/layout.tsx` - Wrapped with EngagementProvider
 - ✅ `components/entity-feed-card.tsx` - Updated to use new components
@@ -53,7 +53,7 @@ All API endpoints are ready:
 ### Test the Reaction Popup
 1. Navigate to: `http://localhost:3034/authors/e31e061d-a4a8-4cc8-af18-754786ad5ee3?tab=timeline`
 2. Hover over any "Like" button in the engagement actions
-3. You should see a Facebook-style reaction popup with:
+3. You should see a Platform-style reaction popup with:
    - 👍 Like, ❤️ Love, 🤗 Care, 😂 Haha, 😮 Wow, 😢 Sad, 😠 Angry
 4. Click any reaction to apply it
 5. The button should update to show your selected reaction

@@ -47,7 +47,7 @@ const normalizeShelfEntry = (entry: any): Shelf | null => {
     name: entry.name,
     description: entry.description,
     icon: entry.icon,
-    color: entry.color || '#3B82F6',
+    color: entry.color || 'hsl(var(--chart-1))',
     isDefault: entry.isDefault ?? entry.is_default ?? false,
     isPublic: entry.isPublic ?? entry.is_public ?? true,
     displayOrder: entry.displayOrder ?? entry.display_order ?? 0,

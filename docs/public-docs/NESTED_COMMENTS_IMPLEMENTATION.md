@@ -1,7 +1,7 @@
 # Nested Comments System Implementation
 
 ## 🚀 **Overview**
-This document outlines the implementation of a **Facebook-style nested comment system** that allows users to reply to specific comments, creating threaded conversations. This feature is essential for an enterprise-grade application and provides a superior user experience for discussions.
+This document outlines the implementation of a **Platform-style nested comment system** that allows users to reply to specific comments, creating threaded conversations. This feature is essential for an enterprise-grade application and provides a superior user experience for discussions.
 
 ## 📊 **Features Implemented**
 

@@ -3,7 +3,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 import { AlbumImage } from '../types'
 
-type SharePlatform = 'facebook' | 'twitter' | 'pinterest' | 'linkedin' | 'whatsapp' | 'email'
+type SharePlatform = 'twitter' | 'pinterest' | 'linkedin' | 'whatsapp' | 'email'
 
 interface ShareOptions {
   platform: SharePlatform
@@ -42,8 +42,6 @@ export function usePhotoGalleryShare() {
     const hashtags = options.hashtags?.map((tag) => `%23${tag}`).join('') || ''
 
     switch (options.platform) {
-      case 'facebook':
-        return `https://www.facebook.com/sharer/sharer.php?u=${imageUrl}&quote=${title}%20${description}${hashtags}`
       case 'twitter':
         return `https://twitter.com/intent/tweet?url=${imageUrl}&text=${title}%20${description}${hashtags}`
       case 'pinterest':
@@ -115,7 +113,7 @@ export function usePhotoGalleryShare() {
   const copyShareLink = useCallback(
     async (image: AlbumImage) => {
       try {
-        const shareUrl = generateShareUrl(image, { platform: 'facebook' })
+        const shareUrl = (image as any).url || ''
         await navigator.clipboard.writeText(shareUrl)
 
         // Track copy event

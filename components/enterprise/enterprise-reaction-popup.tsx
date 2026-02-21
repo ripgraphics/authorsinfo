@@ -58,7 +58,7 @@ export interface ReactionPopupProps {
   theme?: 'light' | 'dark' | 'auto'
   size?: 'sm' | 'md' | 'lg'
   animation?: 'fade' | 'slide' | 'scale' | 'bounce'
-  variant?: 'default' | 'facebook'
+  variant?: 'default' | 'compact'
   onMouseEnter?: () => void
   onMouseLeave?: () => void
 }
@@ -115,7 +115,7 @@ export function EnterpriseReactionPopup({
   theme = 'auto',
   size = 'md',
   animation = 'fade',
-  variant = 'facebook',
+  variant = 'compact',
   onMouseEnter,
   onMouseLeave,
 }: ReactionPopupProps) {
@@ -228,7 +228,7 @@ export function EnterpriseReactionPopup({
   }, [popupPosition, autoPosition])
 
   const getSizeClasses = useCallback(() => {
-    if (variant === 'facebook') {
+    if (variant === 'compact') {
       return 'p-1.5 gap-1.5'
     }
 
@@ -392,7 +392,7 @@ export function EnterpriseReactionPopup({
                   'relative rounded-full transition-all duration-300 ease-out',
                   'flex flex-col items-center justify-center',
                   'transform hover:scale-150 hover:-translate-y-2 active:scale-95',
-                  variant === 'facebook' ? 'w-10 h-10 text-2xl' : 'w-12 h-12 text-lg gap-1',
+                  variant === 'compact' ? 'w-10 h-10 text-2xl' : 'w-12 h-12 text-lg gap-1',
                   isCurrentReaction
                     ? `${reaction.color} ${reaction.bgColor} shadow-sm`
                     : 'text-gray-600 hover:text-gray-800',
@@ -405,8 +405,8 @@ export function EnterpriseReactionPopup({
                 {/* Reaction Icon */}
                 <div>{reaction.emoji}</div>
 
-                {/* Reaction Count (if enabled and not facebook variant) */}
-                {variant !== 'facebook' && showReactionCounts && count > 0 && (
+                {/* Reaction Count (if enabled and not compact variant) */}
+                {variant !== 'compact' && showReactionCounts && count > 0 && (
                   <Badge
                     variant="secondary"
                     className={cn(
@@ -423,7 +423,7 @@ export function EnterpriseReactionPopup({
 
           <TooltipContent
             side={popupPosition === 'top' ? 'top' : 'bottom'}
-            sideOffset={variant === 'facebook' ? 20 : 5}
+            sideOffset={variant === 'compact' ? 20 : 5}
             className="rounded-full text-white border-0 px-3 py-1 shadow-lg"
             style={{ backgroundColor: 'var(--color-app-theme-blue)' }}
           >
@@ -522,7 +522,7 @@ export function EnterpriseReactionPopup({
         className={cn(
           'absolute z-[100] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-gray-100',
           'backdrop-blur-md bg-white/98',
-          variant === 'facebook' ? 'rounded-full px-1 py-1' : 'rounded-2xl p-4',
+          variant === 'compact' ? 'rounded-full px-1 py-1' : 'rounded-2xl p-4',
           getPositionClasses(),
           getAnimationClasses(),
           className
@@ -538,7 +538,7 @@ export function EnterpriseReactionPopup({
           {reactionSummaryText}
         </div>
 
-        {variant === 'facebook' ? (
+        {variant === 'compact' ? (
           <div className="flex items-center gap-0.5">
             {REACTION_OPTIONS.map(renderReactionButton)}
           </div>

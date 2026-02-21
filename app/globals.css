@@ -34,8 +34,8 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  /* Application theme blue (single source of truth for #40A3D8) */
-  --color-app-theme-blue: #40A3D8;
+  /* Application theme blue alias from semantic accent token */
+  --color-app-theme-blue: hsl(var(--accent));
 
   /* Chart palette */
   --color-chart-1: hsl(var(--chart-1));
@@ -150,7 +150,7 @@ body {
 /* ContentEditable placeholder styles */
 [contenteditable]:empty:before {
   content: attr(data-placeholder);
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
   pointer-events: none;
 }
 
@@ -216,8 +216,10 @@ button.app-text-link {
   padding: 0;
 }
 
-/* Global button hover behavior - default to secondary color on hover */
-button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([class*="destructive"]):not([class*="secondary"]):not([data-no-secondary-hover]):not([class*="app-text-link"]):hover {
+/* Legacy secondary-hover behavior (opt-in only).
+   Use this class on specific custom buttons that should force secondary on hover.
+   Keeping this opt-in prevents overriding shadcn/ui button variant hover states. */
+.secondary-hover-default:hover {
   background-color: hsl(var(--secondary)) !important;
   transition: background-color 0.2s ease-in-out !important;
 }
@@ -264,7 +266,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
   overflow: hidden;
 }
 
-/* Facebook-style Engagement Design */
+/* Platform-style Engagement Design */
 .enterprise-engagement-actions {
   background: white;
   border-radius: 0 0 8px 8px;
@@ -272,8 +274,8 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .engagement-reactions-display {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e4e6ea;
+  background: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .engagement-reactions-likes {
@@ -294,19 +296,19 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .engagement-reaction-count {
   font-weight: 500;
-  color: #65676b;
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
 }
 
 .engagement-comment-count {
   font-weight: 500;
-  color: #65676b;
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
 }
 
 .engagement-comment-count:hover {
-  color: var(--color-app-theme-blue);
-  background-color: #EBF5FF;
+  color: hsl(var(--accent));
+  background-color: hsl(var(--accent) / 0.12);
   text-decoration: none !important;
   transition: color 150ms ease, background-color 150ms ease;
   /* no padding here; padding should be applied per-element where needed */
@@ -318,32 +320,32 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
    - keep `hover-comment-app-theme` as an alias for backward compatibility */
 .hover-app-theme:hover,
 .hover-comment-app-theme:hover {
-  color: var(--color-app-theme-blue) !important;
-  background-color: #EBF5FF !important;
+  color: hsl(var(--accent)) !important;
+  background-color: hsl(var(--accent) / 0.12) !important;
   transition: color 150ms ease, background-color 150ms ease;
 }
 
 .engagement-action-buttons {
   background: white;
-  border-bottom: 1px solid #e4e6ea;
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .engagement-action-button {
   position: relative;
   font-weight: 600;
-  color: #65676b;
+  color: hsl(var(--muted-foreground));
   transition: all 0.2s ease;
   border-radius: 6px;
   height: 40px;
 }
 
 .engagement-action-button:hover {
-  background-color: #f2f3f5;
-  color: #050505;
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
 }
 
 .engagement-action-button:active {
-  background-color: #e4e6ea;
+  background-color: hsl(var(--border));
   transform: scale(0.98);
 }
 
@@ -354,7 +356,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .engagement-comment-input {
   background: white;
-  border-top: 1px solid #e4e6ea;
+  border-top: 1px solid hsl(var(--border));
 }
 
 .engagement-comment-input-container {
@@ -366,7 +368,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .engagement-comment-textarea {
-  background: #f0f2f5;
+  background: hsl(var(--muted));
   border: none;
   border-radius: 20px;
   padding: 8px 12px;
@@ -378,7 +380,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .engagement-comment-textarea:focus {
   background: white;
-  box-shadow: 0 0 0 2px #1877f2;
+  box-shadow: 0 0 0 2px hsl(var(--accent));
 }
 
 .engagement-comment-actions {
@@ -399,7 +401,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .engagement-comment-action-icon:hover {
-  background-color: #e4e6ea;
+  background-color: hsl(var(--border));
 }
 
 .engagement-comment-submit {
@@ -407,7 +409,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .engagement-comment-submit-button {
-  background: #1877f2;
+  background: hsl(var(--accent));
   color: white;
   border: none;
   border-radius: 6px;
@@ -419,7 +421,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .engagement-comment-submit-button:hover:not(:disabled) {
-  background: #166fe5;
+  background: hsl(var(--accent) / 0.9);
   transform: translateY(-1px);
 }
 
@@ -428,7 +430,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
   cursor: not-allowed;
 }
 
-/* Entity Comments Facebook Style */
+/* Entity Comments Social Style */
 .entity-comments-container {
   background: white;
   border-radius: 8px;
@@ -437,18 +439,18 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-comments-header {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e4e6ea;
+  background: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .entity-comments-title {
-  color: #050505;
+  color: hsl(var(--foreground));
   font-weight: 600;
 }
 
 .entity-comment-input-section {
   background: white;
-  border-bottom: 1px solid #e4e6ea;
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .entity-comment-input-container {
@@ -460,7 +462,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-comment-textarea {
-  background: #f0f2f5;
+  background: hsl(var(--muted));
   border: none;
   border-radius: 20px;
   padding: 8px 12px;
@@ -472,7 +474,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .entity-comment-textarea:focus {
   background: white;
-  box-shadow: 0 0 0 2px #1877f2;
+  box-shadow: 0 0 0 2px hsl(var(--accent));
 }
 
 .entity-comment-actions {
@@ -493,7 +495,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-comment-action-icon:hover {
-  background-color: #e4e6ea;
+  background-color: hsl(var(--border));
 }
 
 .entity-comment-submit {
@@ -501,7 +503,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-comment-submit-button {
-  background: #1877f2;
+  background: hsl(var(--accent));
   color: white;
   border: none;
   border-radius: 6px;
@@ -513,7 +515,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-comment-submit-button:hover:not(:disabled) {
-  background: #166fe5;
+  background: hsl(var(--accent) / 0.9);
   transform: translateY(-1px);
 }
 
@@ -540,7 +542,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-comment-item:hover {
-  background: #f8f9fa;
+  background: hsl(var(--muted));
 }
 
 .entity-comment-content {
@@ -561,15 +563,15 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .entity-comment-author {
   font-weight: 600;
-  color: #050505;
+  color: hsl(var(--foreground));
 }
 
 .entity-comment-timestamp {
-  color: #65676b;
+  color: hsl(var(--muted-foreground));
 }
 
 .entity-comment-text {
-  color: #050505;
+  color: hsl(var(--foreground));
   line-height: 1.4;
   margin-bottom: 8px;
 }
@@ -582,14 +584,14 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .entity-comment-action {
   font-size: 12px;
-  color: #65676b;
+  color: hsl(var(--muted-foreground));
   transition: all 0.2s ease;
   border-radius: 4px;
 }
 
 .entity-comment-action:hover {
-  color: #050505;
-  background: #f2f3f5;
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
 }
 
 .entity-reply-input {
@@ -606,7 +608,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-reply-textarea {
-  background: #f0f2f5;
+  background: hsl(var(--muted));
   border: none;
   border-radius: 18px;
   padding: 6px 10px;
@@ -618,7 +620,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .entity-reply-textarea:focus {
   background: white;
-  box-shadow: 0 0 0 2px #1877f2;
+  box-shadow: 0 0 0 2px hsl(var(--accent));
 }
 
 .entity-reply-submit {
@@ -627,18 +629,18 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .entity-reply-cancel {
   font-size: 12px;
-  color: #65676b;
+  color: hsl(var(--muted-foreground));
   transition: all 0.2s ease;
   border-radius: 4px;
 }
 
 .entity-reply-cancel:hover {
-  color: #050505;
-  background: #f2f3f5;
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
 }
 
 .entity-reply-submit-button {
-  background: #1877f2;
+  background: hsl(var(--accent));
   color: white;
   border: none;
   border-radius: 6px;
@@ -650,7 +652,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-reply-submit-button:hover:not(:disabled) {
-  background: #166fe5;
+  background: hsl(var(--accent) / 0.9);
   transform: translateY(-1px);
 }
 
@@ -665,7 +667,7 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 }
 
 .entity-reply-item {
-  background: #f0f2f5;
+  background: hsl(var(--muted));
   border-radius: 8px;
   padding: 8px;
 }
@@ -688,15 +690,15 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
 
 .entity-reply-author {
   font-weight: 600;
-  color: #050505;
+  color: hsl(var(--foreground));
 }
 
 .entity-reply-timestamp {
-  color: #65676b;
+  color: hsl(var(--muted-foreground));
 }
 
 .entity-reply-text {
-  color: #050505;
+  color: hsl(var(--foreground));
   line-height: 1.4;
 }
 
@@ -784,8 +786,8 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
   /* Global hover utility for app theme colors (placed in utilities layer so Tailwind doesn't override) */
   .hover-app-theme:hover,
   .hover-comment-app-theme:hover {
-    color: var(--color-app-theme-blue) !important;
-    background-color: #EBF5FF !important;
+    color: hsl(var(--accent)) !important;
+    background-color: hsl(var(--accent) / 0.12) !important;
     text-decoration: none !important;
     transition: color 150ms ease, background-color 150ms ease;
     border-radius: 6px !important;

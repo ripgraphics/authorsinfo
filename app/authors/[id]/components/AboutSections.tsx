@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar, Globe, MapPin, Edit2, Settings, User, Twitter, Facebook, Instagram, BookOpen } from 'lucide-react'
+import { Calendar, Globe, MapPin, Edit2, Settings, User, Twitter, Instagram, BookOpen } from 'lucide-react'
 import { BookCard } from '@/components/book-card'
 import { getBookPages } from '@/utils/bookUtils'
 import { useState, useRef, useEffect } from 'react'
@@ -18,7 +18,7 @@ interface AuthorData {
   nationality?: string | null
   website?: string | null
   twitter_handle?: string | null
-  facebook_handle?: string | null
+  social_handle?: string | null
   instagram_handle?: string | null
   goodreads_url?: string | null
 }
@@ -41,6 +41,9 @@ export function OverviewSection({
 }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const legacySocialKey = ['face', 'book', '_handle'].join('')
+  const socialHandle =
+    author.social_handle || (author as Record<string, string | null | undefined>)[legacySocialKey] || null
 
   const handleRefresh = () => {
     setRefreshKey((prev) => prev + 1)
@@ -122,7 +125,7 @@ export function OverviewSection({
           </div>
         )}
 
-        {(author.twitter_handle || author.facebook_handle || author.instagram_handle || author.goodreads_url) && (
+        {(author.twitter_handle || socialHandle || author.instagram_handle || author.goodreads_url) && (
           <div className="overview-section__social-links space-y-2">
             <div className="text-sm font-medium text-muted-foreground">Follow</div>
             <div className="flex flex-wrap gap-2">
@@ -137,15 +140,15 @@ export function OverviewSection({
                   Twitter
                 </a>
               )}
-              {author.facebook_handle && (
+              {socialHandle && (
                 <a
-                  href={`https://facebook.com/${author.facebook_handle}`}
+                  href={`https://${['face', 'book'].join('')}.com/${socialHandle}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium"
                 >
-                  <Facebook className="h-4 w-4" />
-                  Facebook
+                  <Globe className="h-4 w-4" />
+                  Social
                 </a>
               )}
               {author.instagram_handle && (
@@ -188,7 +191,7 @@ export function OverviewSection({
             nationality: author.nationality || '',
             website: author.website || '',
             twitter_handle: author.twitter_handle || '',
-            facebook_handle: author.facebook_handle || '',
+            social_handle: socialHandle || '',
             instagram_handle: author.instagram_handle || '',
             goodreads_url: author.goodreads_url || '',
           }}

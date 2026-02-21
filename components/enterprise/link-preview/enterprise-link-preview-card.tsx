@@ -1,6 +1,6 @@
 /**
  * Enterprise Link Preview Card Component
- * Rich, Facebook-style link preview card
+ * Rich, Platform-style link preview card
  * Phase 2: Enterprise Link Post Component
  */
 

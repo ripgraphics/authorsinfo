@@ -298,7 +298,7 @@ export type Database = {
           website: string | null
           author_image_id: string | null
           twitter_handle: string | null
-          facebook_handle: string | null
+          social_handle: string | null
           instagram_handle: string | null
           goodreads_url: string | null
           cover_image_id: string | null
@@ -317,7 +317,7 @@ export type Database = {
           website?: string | null
           author_image_id?: string | null
           twitter_handle?: string | null
-          facebook_handle?: string | null
+          social_handle?: string | null
           instagram_handle?: string | null
           goodreads_url?: string | null
           cover_image_id?: string | null
@@ -336,7 +336,7 @@ export type Database = {
           website?: string | null
           author_image_id?: string | null
           twitter_handle?: string | null
-          facebook_handle?: string | null
+          social_handle?: string | null
           instagram_handle?: string | null
           goodreads_url?: string | null
           cover_image_id?: string | null

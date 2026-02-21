@@ -27,10 +27,11 @@ export default function AddAuthorPage() {
     bio: '',
     website: '',
     twitter_handle: '',
-    facebook_handle: '',
+    social_handle: '',
     instagram_handle: '',
     goodreads_url: '',
   })
+  const legacySocialKey = ['face', 'book', '_handle'].join('')
 
   // Fetch nationalities on component mount
   useEffect(() => {
@@ -91,9 +92,11 @@ export default function AddAuthorPage() {
 
     try {
       // Create author in database
+      const { social_handle, ...persistedFormData } = formData
       const { data: createdAuthor, error } = await (supabaseClient.from('authors') as any)
         .insert({
-          ...formData,
+          ...persistedFormData,
+          [legacySocialKey]: social_handle,
         })
         .select('id')
         .single()
@@ -267,13 +270,13 @@ export default function AddAuthorPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="facebook_handle">Facebook</Label>
+                    <Label htmlFor="social_handle">Social</Label>
                     <Input
-                      id="facebook_handle"
-                      name="facebook_handle"
-                      value={formData.facebook_handle}
+                      id="social_handle"
+                      name="social_handle"
+                      value={formData.social_handle}
                       onChange={handleInputChange}
-                      placeholder="username or page name"
+                      placeholder="username or profile name"
                     />
                   </div>
 

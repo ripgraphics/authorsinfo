@@ -41,7 +41,6 @@ import {
   Maximize,
   Copy,
   ExternalLink,
-  Facebook,
   Twitter,
   Instagram,
   Send,
@@ -714,12 +713,6 @@ export function EnterprisePhotoViewer({
         case 'copy':
           await navigator.clipboard.writeText(shareUrl)
           toast({ title: 'Link copied to clipboard!' })
-          break
-        case 'facebook':
-          window.open(
-            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-            '_blank'
-          )
           break
         case 'twitter':
           window.open(
@@ -1862,11 +1855,7 @@ export function EnterprisePhotoViewer({
                     <h4 className="photo-share-social-media-title font-semibold mb-2">
                       Share on Social Media
                     </h4>
-                    <div className="photo-share-social-media-buttons grid grid-cols-2 gap-2">
-                      <Button variant="outline" onClick={() => handleShare('facebook')}>
-                        <Facebook className="h-4 w-4 mr-2" />
-                        Facebook
-                      </Button>
+                    <div className="photo-share-social-media-buttons grid grid-cols-1 gap-2">
                       <Button variant="outline" onClick={() => handleShare('twitter')}>
                         <Twitter className="h-4 w-4 mr-2" />
                         Twitter

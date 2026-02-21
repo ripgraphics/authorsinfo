@@ -10,26 +10,26 @@ export const dynamic = 'force-dynamic';
 
 // Genre color mapping
 const genreColors: Record<string, string> = {
-  'fiction': '#3B82F6',
-  'non-fiction': '#10B981',
-  'mystery': '#8B5CF6',
-  'thriller': '#EF4444',
-  'romance': '#EC4899',
-  'fantasy': '#F59E0B',
-  'science fiction': '#06B6D4',
-  'horror': '#1F2937',
-  'biography': '#6366F1',
-  'history': '#D97706',
-  'self-help': '#84CC16',
-  'business': '#0891B2',
-  'science': '#14B8A6',
-  'poetry': '#A855F7',
-  'children': '#FB923C',
-  'young adult': '#F472B6',
-  'graphic novel': '#4ADE80',
-  'memoir': '#818CF8',
-  'philosophy': '#78716C',
-  'religion': '#FCD34D',
+  'fiction': 'hsl(var(--chart-1))',
+  'non-fiction': 'hsl(var(--chart-2))',
+  'mystery': 'hsl(var(--chart-3))',
+  'thriller': 'hsl(var(--chart-4))',
+  'romance': 'hsl(var(--chart-5))',
+  'fantasy': 'hsl(var(--primary))',
+  'science fiction': 'hsl(var(--secondary))',
+  'horror': 'hsl(var(--foreground))',
+  'biography': 'hsl(var(--ring))',
+  'history': 'hsl(var(--accent))',
+  'self-help': 'hsl(var(--chart-2))',
+  'business': 'hsl(var(--chart-5))',
+  'science': 'hsl(var(--chart-3))',
+  'poetry': 'hsl(var(--chart-4))',
+  'children': 'hsl(var(--chart-1))',
+  'young adult': 'hsl(var(--chart-5))',
+  'graphic novel': 'hsl(var(--chart-2))',
+  'memoir': 'hsl(var(--ring))',
+  'philosophy': 'hsl(var(--muted-foreground))',
+  'religion': 'hsl(var(--accent))',
 };
 
 // GET /api/genre-stats - Get genre statistics
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
           percentage: totalBooks > 0 ? (s.booksRead / totalBooks) * 100 : 0,
           totalPages: s.pagesRead,
           totalMinutes: s.totalMinutes,
-          color: genreColors[s.genre.toLowerCase()] || '#9CA3AF',
+          color: genreColors[s.genre.toLowerCase()] || 'hsl(var(--muted-foreground))',
         }));
 
       return NextResponse.json({
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       totalMinutes: s.total_minutes || 0,
       avgRating: s.avg_rating,
       lastReadAt: s.last_read_at,
-      color: genreColors[s.genre.toLowerCase()] || '#9CA3AF',
+      color: genreColors[s.genre.toLowerCase()] || 'hsl(var(--muted-foreground))',
     }));
 
     return NextResponse.json({

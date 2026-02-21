@@ -21,16 +21,16 @@ const triggerConfettiEffect = async (tier: string) => {
     const confetti = confettiModule.default;
     
     const colors: Record<string, string[]> = {
-      gold: ['#FFD700', '#FFA500', '#FFFF00'],
-      platinum: ['#67E8F9', '#0EA5E9', '#22D3EE'],
-      diamond: ['#A855F7', '#EC4899', '#8B5CF6'],
+      gold: ['hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--accent))'],
+      platinum: ['hsl(var(--chart-1))', 'hsl(var(--secondary))', 'hsl(var(--chart-5))'],
+      diamond: ['hsl(var(--chart-5))', 'hsl(var(--primary))', 'hsl(var(--chart-4))'],
     };
 
     confetti({
       particleCount: tier === 'diamond' ? 150 : 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: colors[tier] || ['#FFD700'],
+      colors: colors[tier] || ['hsl(var(--chart-3))'],
     });
   } catch {
     // canvas-confetti not installed, skip effect

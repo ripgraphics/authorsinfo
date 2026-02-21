@@ -218,7 +218,12 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
                 metrics['reactions']?.[metrics['reactions'].length - 1]?.value || 0,
                 metrics['shares']?.[metrics['shares'].length - 1]?.value || 0,
               ]}
-              colors={['#3b82f6', '#10b981', '#f59e0b', '#ef4444']}
+              colors={[
+                'hsl(var(--chart-1))',
+                'hsl(var(--chart-2))',
+                'hsl(var(--chart-3))',
+                'hsl(var(--chart-4))',
+              ]}
             />
           </CardContent>
         </Card>

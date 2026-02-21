@@ -2,13 +2,13 @@
 
 ## Overview
 
-The `EntityComments` component is a reusable, enterprise-grade comment system that provides Facebook-style commenting functionality for any entity type in your application. It uses database data instead of mock data and supports threaded comments, likes, and social interactions.
+The `EntityComments` component is a reusable, enterprise-grade comment system that provides Platform-style commenting functionality for any entity type in your application. It uses database data instead of mock data and supports threaded comments, likes, and social interactions.
 
 ## Features
 
 - **Universal Entity Support**: Works with any entity type (photos, books, authors, publishers, users, groups, etc.)
 - **Database Integration**: Uses actual database data from `photo_comments` and `comments` tables
-- **Facebook-Style UI**: Mimics Facebook's comment section design and functionality
+- **Platform-style UI**: Mimics platform comment section design and functionality
 - **Threaded Comments**: Supports nested replies and comment threading
 - **Real-time Interactions**: Like, comment, share, and download functionality
 - **Authentication Integration**: Requires user authentication for interactions

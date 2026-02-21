@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         description: description?.trim() || null,
         icon: icon || null,
-        color: color || '#3B82F6',
+        color: color || 'hsl(var(--chart-1))',
         is_public: isPublic !== undefined ? isPublic : true,
         display_order: nextOrder,
       })

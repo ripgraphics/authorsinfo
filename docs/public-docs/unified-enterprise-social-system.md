@@ -103,7 +103,7 @@ CREATE TABLE "public"."shares" (
     "entity_type" VARCHAR(50) NOT NULL,
     "entity_id" UUID NOT NULL,
     "user_id" UUID,
-    "share_type" VARCHAR(50) NOT NULL, -- facebook, twitter, instagram, whatsapp, email, link, embed, download
+    "share_type" VARCHAR(50) NOT NULL, -- Social, twitter, instagram, whatsapp, email, link, embed, download
     "platform_data" JSONB, -- Platform-specific data
     "referrer_url" TEXT,
     "ip_address" INET,

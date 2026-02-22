@@ -2,10 +2,9 @@
 
 import React, { useState, useCallback, useEffect } from 'react'
 import { ReusableModal } from '@/components/ui/reusable-modal'
-import EntityName from '@/components/entity-name'
-import EntityAvatar from '@/components/entity-avatar'
+import { UserInfoCard } from '@/components/user-info-card'
 import { Button } from '@/components/ui/button'
-import { Heart, User, ThumbsUp, Smile, Star, AlertTriangle, Zap } from 'lucide-react'
+import { Heart, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ReactionUser {
@@ -19,6 +18,13 @@ export interface ReactionUser {
   }
   reaction_type?: string
   created_at: string
+}
+
+interface ReactionModalUser {
+  id: string
+  user: ReactionUser['user']
+  created_at: string
+  reactionTypes: string[]
 }
 
 export interface ReactionsModalProps {
@@ -54,7 +60,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   showReactionTypes = false,
   maxReactions = 50,
 }) => {
-  const [reactions, setReactions] = useState<ReactionUser[]>([])
+  const [reactions, setReactions] = useState<ReactionModalUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,17 +73,53 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
       setError(null)
 
       const response = await fetch(
-        `/api/engagement?entity_id=${entityId}&entity_type=${entityType}`
+        `/api/engagement/reactions/counts?entity_id=${entityId}&entity_type=${entityType}`,
+        { cache: 'no-store' }
       )
 
       if (response.ok) {
         const data = await response.json()
+        const usersByType: Record<string, ReactionUser[]> = data.users_by_type || {}
+        const flattened = Object.entries(usersByType).flatMap(([reactionType, items]) =>
+          (items || []).map((item) => ({
+            ...item,
+            reaction_type: reactionType,
+          }))
+        )
 
-        if (data.recent_likes && Array.isArray(data.recent_likes)) {
-          setReactions(data.recent_likes.slice(0, maxReactions))
-        } else {
-          setReactions([])
-        }
+        const usersMap = new Map<string, ReactionModalUser>()
+
+        flattened.forEach((item) => {
+          const userId = item.user?.id
+          if (!userId) return
+
+          const existing = usersMap.get(userId)
+          if (!existing) {
+            usersMap.set(userId, {
+              id: userId,
+              user: item.user,
+              created_at: item.created_at,
+              reactionTypes: item.reaction_type ? [item.reaction_type] : [],
+            })
+            return
+          }
+
+          const existingDate = new Date(existing.created_at).getTime()
+          const currentDate = new Date(item.created_at).getTime()
+          if (currentDate > existingDate) {
+            existing.created_at = item.created_at
+          }
+
+          if (item.reaction_type && !existing.reactionTypes.includes(item.reaction_type)) {
+            existing.reactionTypes.push(item.reaction_type)
+          }
+        })
+
+        const uniqueUsers = Array.from(usersMap.values())
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, maxReactions)
+
+        setReactions(uniqueUsers)
       } else {
         setError('Failed to fetch reactions')
         setReactions([])
@@ -98,74 +140,6 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
     }
   }, [isOpen, fetchReactions])
 
-  // Handle user click
-  const handleUserClick = (userId: string) => {
-    if (onUserClick) {
-      onUserClick(userId)
-    } else {
-      // Default behavior: navigate to user profile
-      console.log('Navigate to user profile:', userId)
-    }
-  }
-
-  // Handle add friend
-  const handleAddFriend = (userId: string) => {
-    if (onAddFriend) {
-      onAddFriend(userId)
-    } else {
-      // Default behavior: send friend request
-      console.log('Send friend request to:', userId)
-    }
-  }
-
-  // Get reaction icon based on type
-  const getReactionIcon = (reactionType?: string) => {
-    if (customReactionIcon) return customReactionIcon
-
-    switch (reactionType?.toLowerCase()) {
-      case 'love':
-        return <Heart className="h-4 w-4 text-red-500" />
-      case 'like':
-        return <ThumbsUp className="h-4 w-4 text-blue-500" />
-      case 'care':
-        return <Heart className="h-4 w-4 text-yellow-500" />
-      case 'haha':
-        return <Smile className="h-4 w-4 text-yellow-500" />
-      case 'wow':
-        return <Star className="h-4 w-4 text-purple-500" />
-      case 'sad':
-        return <AlertTriangle className="h-4 w-4 text-blue-500" />
-      case 'angry':
-        return <Zap className="h-4 w-4 text-red-600" />
-      default:
-        return <Heart className="h-4 w-4 text-red-500" />
-    }
-  }
-
-  // Get reaction color based on type
-  const getReactionColor = (reactionType?: string) => {
-    if (customReactionColor) return customReactionColor
-
-    switch (reactionType?.toLowerCase()) {
-      case 'love':
-        return 'from-red-500 to-pink-500'
-      case 'like':
-        return 'from-blue-500 to-blue-600'
-      case 'care':
-        return 'from-yellow-500 to-orange-500'
-      case 'haha':
-        return 'from-yellow-400 to-yellow-500'
-      case 'wow':
-        return 'from-purple-500 to-pink-500'
-      case 'sad':
-        return 'from-blue-400 to-blue-500'
-      case 'angry':
-        return 'from-red-600 to-red-700'
-      default:
-        return 'from-red-500 to-pink-500'
-    }
-  }
-
   return (
     <ReusableModal
       open={isOpen}
@@ -177,62 +151,22 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
         <div className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 min-h-0 overflow-y-auto -mx-4 -mt-2 px-4 py-4">
             {!isLoading && !error && reactions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 {reactions.map((reaction) => (
-                  <div
-                    key={reaction.id}
-                    className="flex items-center gap-3 p-4 hover:bg-accent/50 rounded-xl transition-all duration-200 border border-border hover:border-input"
-                  >
-                    {/* User Avatar */}
-                    <div className="relative">
-                      <EntityAvatar
-                        type="user"
-                        id={reaction.user.id}
-                        name={reaction.user.name}
-                        src={reaction.user.avatar_url}
-                        size="md"
-                      />
-                      {/* Online Status Indicator */}
-                      {reaction.user.is_online && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                      )}
-                    </div>
-
-                    {/* User Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <EntityName
-                            type="user"
-                            id={reaction.user.id}
-                            name={reaction.user.name}
-                            className="text-sm font-semibold text-foreground block truncate"
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {reaction.user.location || 'Location not set'}
-                          </p>
-                          {showReactionTypes && reaction.reaction_type && (
-                            <div className="flex items-center gap-1 mt-1">
-                              {getReactionIcon(reaction.reaction_type)}
-                              <span className="text-xs text-muted-foreground capitalize">
-                                {reaction.reaction_type}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Add Friend Button */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 transition-all duration-200 flex items-center gap-1.5"
-                          onClick={() => handleAddFriend(reaction.user.id)}
-                        >
-                          <User className="h-3 w-3" />
-                          Add friend
-                        </Button>
-                      </div>
-                    </div>
+                  <div key={reaction.id}>
+                    <UserInfoCard
+                      userId={reaction.user.id}
+                      userName={reaction.user.name}
+                      userAvatarUrl={reaction.user.avatar_url}
+                      showMessage={false}
+                      showFollow={false}
+                      showFriend={true}
+                    />
+                    {showReactionTypes && reaction.reactionTypes.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1 ml-2 capitalize">
+                        {reaction.reactionTypes.join(', ')}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

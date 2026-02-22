@@ -146,12 +146,12 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
       onOpenChange={(open) => { if (!open) onClose() }}
       title={`${title} (${reactionCount})`}
       description={description}
-      contentClassName={cn('max-w-2xl max-h-[90vh]', className)}
+      contentClassName={cn('w-full max-w-4xl max-h-[90vh]', className)}
     >
         <div className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 min-h-0 overflow-y-auto -mx-4 -mt-2 px-4 py-4">
             {!isLoading && !error && reactions.length > 0 ? (
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reactions.map((reaction) => (
                   <div key={reaction.id}>
                     <UserInfoCard

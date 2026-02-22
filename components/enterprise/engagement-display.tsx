@@ -78,9 +78,9 @@ const EngagementHoverPopup: React.FC<{
               </div>
             )
           })}
-          {totalCount > 15 && (
+          {totalCount > Math.min(items.length, 15) && (
             <div className="text-sm text-white font-normal pt-1 mt-1">
-              and {totalCount - 15} more...
+              and {totalCount - Math.min(items.length, 15)} more...
             </div>
           )}
         </div>
@@ -124,6 +124,37 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   const [internalReactionCount, setInternalReactionCount] = useState(reactionCount)
   const [internalCommentCount, setInternalCommentCount] = useState(commentCount)
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
+
+  // Create a derived reactions array that includes the optimistic currentReaction
+  const displayReactions = React.useMemo(() => {
+    let updatedReactions = [...reactions]
+    
+    if (user && currentReaction) {
+      const userIndex = updatedReactions.findIndex(r => r.user?.id === user.id)
+      
+      if (userIndex >= 0) {
+        updatedReactions[userIndex] = {
+          ...updatedReactions[userIndex],
+          reaction_type: currentReaction
+        }
+      } else {
+        updatedReactions.unshift({
+          id: `optimistic-${user.id}`,
+          user: {
+            id: user.id,
+            name: user.name || user.email?.split('@')[0] || 'You',
+            avatar_url: user.avatar_url || undefined
+          },
+          reaction_type: currentReaction,
+          created_at: new Date().toISOString()
+        })
+      }
+    } else if (user && !currentReaction) {
+      updatedReactions = updatedReactions.filter(r => r.user?.id !== user.id)
+    }
+    
+    return updatedReactions
+  }, [reactions, user, currentReaction])
 
   // Use context stats if they exist and are non-zero, or if we have no internal count yet
   const displayReactionCount =
@@ -311,6 +342,12 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
     }
   }
 
+  const uniqueReactionTypes = Array.from(
+    new Set([
+      ...displayReactions.map((r) => r.reaction_type || 'like'),
+    ])
+  )
+
   return (
     <div
       className={cn(
@@ -323,12 +360,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
         {displayReactionCount > 0 && (
           <div className="engagement-reactions flex items-center relative group">
             <div className="flex items-center -space-x-1.5 mr-2">
-              {Array.from(
-                new Set([
-                  ...reactions.map((r) => r.reaction_type || 'like'),
-                  ...(currentReaction ? [currentReaction] : []),
-                ])
-              )
+              {uniqueReactionTypes
                 .slice(0, 3)
                 .map((type, idx) => (
                   <div
@@ -336,39 +368,48 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                     onMouseEnter={() => setActiveFilter(type)}
                     onMouseLeave={() => setActiveFilter(null)}
                     className={cn(
-                      'engagement-reaction-icon rounded-full p-0.5 z-[3] transition-transform hover:scale-110 cursor-pointer'
+                      'engagement-reaction-icon rounded-full p-0.5 z-[3] transition-transform hover:scale-110 cursor-pointer relative group/icon'
                     )}
                     style={{ zIndex: 10 - idx }}
                   >
                     <div>
                       {getReactionIcon(type)}
                     </div>
+                    {/* Reusable hover popup for individual reaction icon */}
+                    <EngagementHoverPopup
+                      title={type.charAt(0).toUpperCase() + type.slice(1)}
+                      items={displayReactions.filter(r => (r.reaction_type || 'like') === type)}
+                      totalCount={displayReactions.filter(r => (r.reaction_type || 'like') === type).length}
+                      isLoading={isLoadingReactions}
+                      emptyMessage={`No ${type} reactions`}
+                      className="opacity-0 group-hover/icon:opacity-100"
+                    />
                   </div>
                 ))}
             </div>
-            <span
-              className="engagement-reaction-count text-sm text-gray-500 hover:text-app-theme-blue cursor-pointer font-medium transition-colors duration-200"
-              onClick={onReactionsClick}
-              onMouseEnter={() => setActiveFilter(null)}
-            >
-              {displayReactionCount}
-            </span>
+            <div className="relative group/count">
+              <span
+                className="engagement-reaction-count text-sm text-gray-500 hover:text-app-theme-blue cursor-pointer font-medium transition-colors duration-200"
+                onClick={onReactionsClick}
+                onMouseEnter={() => setActiveFilter(null)}
+              >
+                {displayReactionCount}
+              </span>
 
-            {/* Reusable hover popup for reactions */}
-            <EngagementHoverPopup
-              title={
-                activeFilter
-                  ? activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1)
-                  : (reactions.length > 0 && new Set(reactions.map(r => r.reaction_type)).size > 1
+              {/* Reusable hover popup for total reactions count */}
+              <EngagementHoverPopup
+                title={
+                  uniqueReactionTypes.length > 1
                     ? 'Reactions'
-                    : (userReactionType ? userReactionType.charAt(0).toUpperCase() + userReactionType.slice(1) : 'Reactions'))
-              }
-              items={activeFilter ? reactions.filter(r => r.reaction_type === activeFilter) : reactions}
-              totalCount={activeFilter ? reactions.filter(r => r.reaction_type === activeFilter).length : displayReactionCount}
-              isLoading={isLoadingReactions}
-              emptyMessage={activeFilter ? `No ${activeFilter} reactions` : 'No recent reactions'}
-              className="opacity-0 group-hover:opacity-100"
-            />
+                    : (uniqueReactionTypes[0] ? uniqueReactionTypes[0].charAt(0).toUpperCase() + uniqueReactionTypes[0].slice(1) : 'Reactions')
+                }
+                items={displayReactions}
+                totalCount={displayReactionCount}
+                isLoading={isLoadingReactions}
+                emptyMessage={'No recent reactions'}
+                className="opacity-0 group-hover/count:opacity-100"
+              />
+            </div>
           </div>
         )}
 

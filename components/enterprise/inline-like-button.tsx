@@ -44,7 +44,7 @@ export function InlineLikeButton({
   popupSize = 'sm',
   onReactionChange: onReactionChangeProp,
 }: InlineLikeButtonProps) {
-  const { setReaction, removeReaction } = useEngagement()
+  const { setReaction, getEngagement } = useEngagement()
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [showPopup, setShowPopup] = useState(false)
@@ -94,10 +94,20 @@ export function InlineLikeButton({
       e.preventDefault()
       e.stopPropagation()
       // Toggle the default 'like' reaction directly on click
-      await setReaction(entityId, entityType, 'like')
+      const currentReaction = getEngagement(entityId, entityType)?.userReaction ?? null
+      const nextReaction = currentReaction === 'like' ? null : 'like'
+      const success = await setReaction(entityId, entityType, 'like')
+      if (success) {
+        onReactionChangeProp?.(nextReaction)
+        window.dispatchEvent(
+          new CustomEvent('engagement-reaction-changed', {
+            detail: { entityId, entityType, reactionType: nextReaction },
+          })
+        )
+      }
       setShowPopup(false)
     },
-    [entityId, entityType, setReaction]
+    [entityId, entityType, setReaction, getEngagement, onReactionChangeProp]
   )
 
   const handleReactionChange = useCallback(
@@ -105,6 +115,11 @@ export function InlineLikeButton({
       // The reaction has already been set/removed by the EnterpriseReactionPopup
       // using the engagement context. This callback is for notification/UI cleanup.
       onReactionChangeProp?.(rt)
+      window.dispatchEvent(
+        new CustomEvent('engagement-reaction-changed', {
+          detail: { entityId, entityType, reactionType: rt },
+        })
+      )
       // Auto-close after a short delay
       setTimeout(() => setShowPopup(false), 500)
     },

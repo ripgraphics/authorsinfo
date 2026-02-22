@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { InlineLikeButton } from '@/components/enterprise/inline-like-button'
 import type { EntityType } from '@/lib/engagement/config'
 import { ReactionSummary } from '@/components/enterprise/enterprise-reaction-popup'
@@ -50,12 +50,18 @@ export function CommentActionButtons({
   showTimestamp = true,
   showReactionSummary = true,
 }: CommentActionButtonsProps) {
+  const [reactionRefreshToken, setReactionRefreshToken] = useState(0)
+
   return (
     <div className={`flex items-center gap-3 ${textSize} text-gray-500 ${className ?? ''}`}>
       {showTimestamp && timestamp && <span>{timestamp}</span>}
 
       {showLike && (
-        <InlineLikeButton entityId={entityId} entityType={entityType} />
+        <InlineLikeButton
+          entityId={entityId}
+          entityType={entityType}
+          onReactionChange={() => setReactionRefreshToken((previous) => previous + 1)}
+        />
       )}
 
       {showReply && (
@@ -68,7 +74,8 @@ export function CommentActionButtons({
         <ReactionSummary 
           entityId={entityId} 
           entityType={entityType} 
-          maxReactions={3} 
+          maxReactions={4}
+          refreshToken={reactionRefreshToken}
         />
       )}
     </div>

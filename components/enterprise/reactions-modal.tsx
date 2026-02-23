@@ -73,7 +73,10 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   maxReactions = 50,
 }) => {
   // helper row component for each user
-  const ReactionUserRow: React.FC<{ user: ReactionModalUser }> = ({ user }) => {
+  const ReactionUserRow: React.FC<{ user: ReactionModalUser; activeFilter: string }> = ({
+    user,
+    activeFilter,
+  }) => {
     const { userStats } = useUserStats(user.user.id)
     return (
       <div>
@@ -86,13 +89,9 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
           showFriend={true}
           avatarSize="sm"
           mutualFriendsCount={userStats?.mutualFriendsCount}
-          reactionType={user.reactionTypes[0] || null}
+          reactionType={activeFilter === 'all' ? (user.reactionTypes[0] || null) : activeFilter}
+          reactionTypes={showReactionTypes ? user.reactionTypes : []}
         />
-        {showReactionTypes && user.reactionTypes.length > 0 && (
-          <p className="text-xs text-muted-foreground mt-1 ml-2 capitalize">
-            {user.reactionTypes.join(', ')}
-          </p>
-        )}
       </div>
     )
   }
@@ -291,21 +290,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {displayedReactions.map((reaction) => (
                   <div key={reaction.id}>
-                    <UserInfoCard
-                      userId={reaction.user.id}
-                      userName={reaction.user.name}
-                      userAvatarUrl={reaction.user.avatar_url}
-                      avatarSize="sm"
-                      reactionType={
-                        activeReactionFilter === 'all'
-                          ? (reaction.reactionTypes[0] || null)
-                          : activeReactionFilter
-                      }
-                      reactionTypes={showReactionTypes ? reaction.reactionTypes : []}
-                      showMessage={false}
-                      showFollow={false}
-                      showFriend={true}
-                    />
+                    <ReactionUserRow user={reaction} activeFilter={activeReactionFilter} />
                   </div>
                 ))}
               </div>

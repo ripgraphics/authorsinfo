@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Heart, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUserStats } from '@/hooks/useUserStats'
+import { useAuth } from '@/hooks/useAuth'
 
 export interface ReactionUser {
   id: string
@@ -56,6 +57,32 @@ export interface ReactionsModalProps {
   maxReactions?: number
 }
 
+// helper row component for each user
+const ReactionUserRow: React.FC<{ user: ReactionModalUser; activeFilter: string; currentUserId?: string; showReactionTypes: boolean }> = ({
+  user,
+  activeFilter,
+  currentUserId,
+  showReactionTypes,
+}) => {
+  const { userStats } = useUserStats(user.user.id, { currentUserId })
+  return (
+    <div>
+      <UserInfoCard
+        userId={user.user.id}
+        userName={user.user.name}
+        userAvatarUrl={user.user.avatar_url}
+        showMessage={false}
+        showFollow={false}
+        showFriend={true}
+        avatarSize="sm"
+        mutualFriendsCount={userStats?.mutualFriendsCount}
+        reactionType={activeFilter === 'all' ? (user.reactionTypes[0] || null) : activeFilter}
+        reactionTypes={showReactionTypes ? user.reactionTypes : []}
+      />
+    </div>
+  )
+}
+
 export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   isOpen,
   onClose,
@@ -72,29 +99,8 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   showReactionTypes = true,
   maxReactions = 50,
 }) => {
-  // helper row component for each user
-  const ReactionUserRow: React.FC<{ user: ReactionModalUser; activeFilter: string }> = ({
-    user,
-    activeFilter,
-  }) => {
-    const { userStats } = useUserStats(user.user.id)
-    return (
-      <div>
-        <UserInfoCard
-          userId={user.user.id}
-          userName={user.user.name}
-          userAvatarUrl={user.user.avatar_url}
-          showMessage={false}
-          showFollow={false}
-          showFriend={true}
-          avatarSize="sm"
-          mutualFriendsCount={userStats?.mutualFriendsCount}
-          reactionType={activeFilter === 'all' ? (user.reactionTypes[0] || null) : activeFilter}
-          reactionTypes={showReactionTypes ? user.reactionTypes : []}
-        />
-      </div>
-    )
-  }
+  const { user: currentUser } = useAuth()
+
   const [reactions, setReactions] = useState<ReactionModalUser[]>([])
   const [usersByReactionType, setUsersByReactionType] = useState<Record<string, ReactionModalUser[]>>({})
   const [activeReactionFilter, setActiveReactionFilter] = useState<string>('all')
@@ -290,7 +296,12 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {displayedReactions.map((reaction) => (
                   <div key={reaction.id}>
-                    <ReactionUserRow user={reaction} activeFilter={activeReactionFilter} />
+                    <ReactionUserRow 
+                      user={reaction} 
+                      activeFilter={activeReactionFilter} 
+                      currentUserId={currentUser?.id} 
+                      showReactionTypes={showReactionTypes} 
+                    />
                   </div>
                 ))}
               </div>

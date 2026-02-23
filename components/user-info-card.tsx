@@ -18,7 +18,22 @@ export interface UserInfoCardProps {
   showFriend?: boolean
   showFollow?: boolean
   onFriendChange?: () => void
+  // new props
+  mutualFriendsCount?: number
+  reactionType?: string | null
+  reactionTypes?: string[]
 }
+
+const getReactionEmoji = (type: string) =>
+  type === 'love' ? '❤️' :
+  type === 'like' ? '👍' :
+  type === 'care' ? '🤗' :
+  type === 'haha' ? '😂' :
+  type === 'wow' ? '😮' :
+  type === 'sad' ? '😢' :
+  type === 'angry' ? '😠' : '👍'
+
+const REACTION_DISPLAY_ORDER = ['like', 'love', 'care', 'haha', 'wow', 'sad', 'angry'] as const
 
 /**
  * Fully reusable user card component that displays:
@@ -40,6 +55,9 @@ export function UserInfoCard({
   showFriend = true,
   showFollow = false,
   onFriendChange,
+  mutualFriendsCount,
+  reactionType,
+  reactionTypes = [],
 }: UserInfoCardProps) {
   const [friendStatus, setFriendStatus] = useState<'none' | 'pending' | 'accepted' | 'rejected'>(
     'none'
@@ -73,6 +91,15 @@ export function UserInfoCard({
   // Determine which action button to show based on friend status
   const showFriendButton = showFriend && friendStatus !== 'accepted'
   const showMessageButton = showMessage && friendStatus === 'accepted'
+  const sortedReactionTypes = reactionTypes
+    .filter((type, index, arr) => arr.indexOf(type) === index)
+    .sort((a, b) => {
+      const aIndex = REACTION_DISPLAY_ORDER.indexOf(a as (typeof REACTION_DISPLAY_ORDER)[number])
+      const bIndex = REACTION_DISPLAY_ORDER.indexOf(b as (typeof REACTION_DISPLAY_ORDER)[number])
+      const normalizedAIndex = aIndex === -1 ? Number.MAX_SAFE_INTEGER : aIndex
+      const normalizedBIndex = bIndex === -1 ? Number.MAX_SAFE_INTEGER : bIndex
+      return normalizedAIndex - normalizedBIndex
+    })
 
   return (
     <div
@@ -83,6 +110,7 @@ export function UserInfoCard({
     >
       {/* User Avatar */}
       <div className="relative flex-shrink-0">
+        <div className="relative">
         <EntityAvatar
           type="user"
           id={userId}
@@ -90,6 +118,14 @@ export function UserInfoCard({
           src={userAvatarUrl}
           size={avatarSize}
         />
+        {reactionType && (
+          <div className="absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+            <span className="text-xs">
+              {getReactionEmoji(reactionType)}
+            </span>
+          </div>
+        )}
+      </div>
       </div>
 
       {/* User Info */}
@@ -103,6 +139,20 @@ export function UserInfoCard({
           className="text-sm font-semibold text-foreground block truncate"
           showActions={false}
         />
+        {mutualFriendsCount !== undefined && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {mutualFriendsCount === 1 ? '1 mutual friend' : `${mutualFriendsCount} mutual friends`}
+          </p>
+        )}
+        {sortedReactionTypes.length > 0 && (
+          <div className="mt-1 flex items-center gap-1">
+            {sortedReactionTypes.map((type) => (
+              <span key={type} className="text-sm leading-none" title={type}>
+                {getReactionEmoji(type)}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* User Action Buttons */}

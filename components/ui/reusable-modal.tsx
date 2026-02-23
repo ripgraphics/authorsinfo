@@ -22,7 +22,7 @@ const FOOTER_CLASS = 'flex-shrink-0 pt-4 pb-4 px-4 border-t'
 export interface ReusableModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  title: string
+  title: React.ReactNode
   description?: string | React.ReactNode
   children: React.ReactNode
   footer?: React.ReactNode

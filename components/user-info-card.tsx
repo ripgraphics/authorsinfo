@@ -104,13 +104,14 @@ export function UserInfoCard({
   return (
     <div
       className={cn(
+        'user-info-card',
         'flex items-center gap-3 p-3 sm:p-4 hover:bg-accent/50 rounded-xl transition-all duration-200 border border-border hover:border-input',
         containerClassName
       )}
     >
       {/* User Avatar */}
-      <div className="relative flex-shrink-0">
-        <div className="relative">
+      <div className={cn('user-info-card__avatar-container', 'relative flex-shrink-0')}>
+        <div className={cn('user-info-card__avatar-wrapper', 'relative')}>
         <EntityAvatar
           type="user"
           id={userId}
@@ -119,8 +120,8 @@ export function UserInfoCard({
           size={avatarSize}
         />
         {reactionType && (
-          <div className="absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <span className="text-xs">
+          <div className={cn('user-info-card__reaction-badge', 'absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm')}>
+            <span className={cn('user-info-card__reaction-emoji', 'text-xs')}>
               {getReactionEmoji(reactionType)}
             </span>
           </div>
@@ -129,25 +130,25 @@ export function UserInfoCard({
       </div>
 
       {/* User Info */}
-      <div className={cn('flex-1 min-w-0', className)}>
+      <div className={cn('user-info-card__info-container', 'flex-1 min-w-0', className)}>
         <EntityName
           type="user"
           id={userId}
           name={userName}
           avatar_url={userAvatarUrl}
           permalink={userPermalink}
-          className="text-sm font-semibold text-foreground block truncate"
+          className={cn('user-info-card__name', 'text-sm font-semibold text-foreground block truncate')}
           showActions={false}
         />
         {mutualFriendsCount !== undefined && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className={cn('user-info-card__mutual-friends', 'text-xs text-muted-foreground mt-1')}>
             {mutualFriendsCount === 1 ? '1 mutual friend' : `${mutualFriendsCount} mutual friends`}
           </p>
         )}
         {sortedReactionTypes.length > 0 && (
-          <div className="mt-1 flex items-center gap-1">
+          <div className={cn('user-info-card__reaction-types', 'mt-1 flex items-center gap-1')}>
             {sortedReactionTypes.map((type) => (
-              <span key={type} className="text-sm leading-none" title={type}>
+              <span key={type} className={cn('user-info-card__reaction-type-emoji', 'text-sm leading-none')} title={type}>
                 {getReactionEmoji(type)}
               </span>
             ))}
@@ -156,7 +157,7 @@ export function UserInfoCard({
       </div>
 
       {/* User Action Buttons */}
-      <div className="flex-shrink-0">
+      <div className={cn('user-info-card__actions-container', 'flex-shrink-0')}>
         {!isCheckingFriend && (
           <UserActionButtons
             userId={userId}

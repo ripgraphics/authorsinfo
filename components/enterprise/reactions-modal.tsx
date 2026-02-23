@@ -66,7 +66,7 @@ const ReactionUserRow: React.FC<{ user: ReactionModalUser; activeFilter: string;
 }) => {
   const { userStats } = useUserStats(user.user.id, { currentUserId })
   return (
-    <div>
+    <div className="reactions-modal__user-row">
       <UserInfoCard
         userId={user.user.id}
         userName={user.user.name}
@@ -245,22 +245,23 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
       open={isOpen}
       onOpenChange={(open) => { if (!open) onClose() }}
       title={
-        <span>
+        <span className="reactions-modal__title-container">
           {title} ({reactionCount})
-          <span className="ml-2 text-sm font-normal text-muted-foreground">
-            {description} <span className="font-semibold text-foreground">({totalPeopleReacted})</span>
+          <span className={cn('reactions-modal__title-description', 'ml-2 text-sm font-normal text-muted-foreground')}>
+            {description} <span className={cn('reactions-modal__title-count', 'font-semibold text-foreground')}>({totalPeopleReacted})</span>
           </span>
         </span>
       }
       description={undefined}
-      contentClassName={cn('w-full max-w-4xl max-h-[90vh]', className)}
+      contentClassName={cn('reactions-modal', 'w-full max-w-4xl max-h-[90vh]', className)}
     >
-        <div className="flex flex-col flex-1 min-h-0">
-          <div className="pb-3 flex items-center gap-4 text-sm">
+        <div className={cn('reactions-modal__content-container', 'flex flex-col flex-1 min-h-0')}>
+          <div className={cn('reactions-modal__tabs-container', 'pb-3 flex items-center gap-4 text-sm')}>
             <button
               type="button"
               onClick={() => setActiveReactionFilter('all')}
               className={cn(
+                'reactions-modal__tab-button',
                 'relative font-medium px-6 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 activeReactionFilter === 'all'
                   ? 'text-foreground'
@@ -269,7 +270,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
             >
               All
               {activeReactionFilter === 'all' && (
-                <span className="absolute left-0 right-0 -bottom-3 h-1 bg-app-theme-blue rounded-full" />
+                <span className={cn('reactions-modal__tab-active-indicator', 'absolute left-0 right-0 -bottom-3 h-1 bg-app-theme-blue rounded-full')} />
               )}
             </button>
             {filteredReactionEntries.map(([type, cnt]) => (
@@ -278,6 +279,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
                 type="button"
                 onClick={() => setActiveReactionFilter(type)}
                 className={cn(
+                  'reactions-modal__tab-button',
                   'relative flex items-center gap-1 px-4 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   activeReactionFilter === type
                     ? 'text-foreground'
@@ -286,16 +288,16 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
               >
                 {getReactionEmoji(type)} {cnt}
                 {activeReactionFilter === type && (
-                  <span className="absolute left-0 right-0 -bottom-3 h-1 bg-app-theme-blue rounded-full" />
+                  <span className={cn('reactions-modal__tab-active-indicator', 'absolute left-0 right-0 -bottom-3 h-1 bg-app-theme-blue rounded-full')} />
                 )}
               </button>
             ))}
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto -mx-4 -mt-2 px-4 py-4">
+          <div className={cn('reactions-modal__users-container', 'flex-1 min-h-0 overflow-y-auto -mx-4 -mt-2 px-4 py-4')}>
             {!isLoading && !error && displayedReactions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={cn('reactions-modal__users-grid', 'grid grid-cols-1 md:grid-cols-2 gap-4')}>
                 {displayedReactions.map((reaction) => (
-                  <div key={reaction.id}>
+                  <div key={reaction.id} className="reactions-modal__user-item">
                     <ReactionUserRow 
                       user={reaction} 
                       activeFilter={activeReactionFilter} 
@@ -306,24 +308,24 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
                 ))}
               </div>
             ) : !isLoading && !error ? (
-              <div className="text-center py-12">
-                <div className="text-muted-foreground mb-4">
-                  <Heart className="h-16 w-16 mx-auto" />
+              <div className={cn('reactions-modal__empty-state', 'text-center py-12')}>
+                <div className={cn('reactions-modal__empty-icon-container', 'text-muted-foreground mb-4')}>
+                  <Heart className={cn('reactions-modal__empty-icon', 'h-16 w-16 mx-auto')} />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">No reactions yet</h3>
-                <p className="text-muted-foreground">Be the first to react to this content!</p>
+                <h3 className={cn('reactions-modal__empty-title', 'text-lg font-medium text-foreground mb-2')}>No reactions yet</h3>
+                <p className={cn('reactions-modal__empty-description', 'text-muted-foreground')}>Be the first to react to this content!</p>
               </div>
             ) : null}
 
             {/* Error State */}
             {error && (
-              <div className="text-center py-12">
-                <div className="text-destructive mb-4">
-                  <AlertTriangle className="h-16 w-16 mx-auto" />
+              <div className={cn('reactions-modal__error-state', 'text-center py-12')}>
+                <div className={cn('reactions-modal__error-icon-container', 'text-destructive mb-4')}>
+                  <AlertTriangle className={cn('reactions-modal__error-icon', 'h-16 w-16 mx-auto')} />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">Error loading reactions</h3>
-                <p className="text-muted-foreground">{error}</p>
-                <Button variant="outline" onClick={fetchReactions} className="mt-4">
+                <h3 className={cn('reactions-modal__error-title', 'text-lg font-medium text-foreground mb-2')}>Error loading reactions</h3>
+                <p className={cn('reactions-modal__error-description', 'text-muted-foreground')}>{error}</p>
+                <Button variant="outline" onClick={fetchReactions} className={cn('reactions-modal__error-button', 'mt-4')}>
                   Try again
                 </Button>
               </div>
@@ -332,9 +334,9 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
 
           {/* Loading State */}
           {isLoading && (
-            <div className="px-4 py-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3" />
-              <p className="text-muted-foreground">Loading reactions...</p>
+            <div className={cn('reactions-modal__loading-state', 'px-4 py-8 text-center')}>
+              <div className={cn('reactions-modal__loading-spinner', 'animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3')} />
+              <p className={cn('reactions-modal__loading-text', 'text-muted-foreground')}>Loading reactions...</p>
             </div>
           )}
         </div>

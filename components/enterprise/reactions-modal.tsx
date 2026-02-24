@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { ReusableModal } from '@/components/ui/reusable-modal'
 import { UserInfoCard } from '@/components/user-info-card'
 import { Button } from '@/components/ui/button'
+import { HorizontalScroller } from '@/components/ui/horizontal-scroller'
 import { Heart, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUserStats } from '@/hooks/useUserStats'
@@ -259,43 +260,48 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
       contentClassName={cn('reactions-modal', 'w-full max-w-4xl max-h-[90vh]', className)}
     >
         <div className={cn('reactions-modal__content-container', 'flex flex-col flex-1 min-h-0')}>
-          <div className={cn('reactions-modal__tabs-container', 'pb-3 flex items-center gap-4 text-sm')}>
+          <HorizontalScroller
+          isTab={true}
+          showChevrons={false}
+          className={cn('reactions-modal__tabs-container', 'pb-3 text-sm')}
+          itemClassName="gap-4"
+        >
+          <button
+            type="button"
+            onClick={() => setActiveReactionFilter('all')}
+            className={cn(
+              'reactions-modal__tab-button',
+              'relative font-medium px-6 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              activeReactionFilter === 'all'
+                ? 'text-foreground'
+                : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            )}
+          >
+            All
+            {activeReactionFilter === 'all' && (
+              <span className={cn('reactions-modal__tab-active-indicator', 'absolute left-0 right-0 -bottom-3 h-1 bg-app-theme-blue rounded-full')} />
+            )}
+          </button>
+          {filteredReactionEntries.map(([type, cnt]) => (
             <button
+              key={type}
               type="button"
-              onClick={() => setActiveReactionFilter('all')}
+              onClick={() => setActiveReactionFilter(type)}
               className={cn(
                 'reactions-modal__tab-button',
-                'relative font-medium px-6 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                activeReactionFilter === 'all'
+                'relative flex items-center gap-1 px-4 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                activeReactionFilter === type
                   ? 'text-foreground'
                   : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground'
               )}
             >
-              All
-              {activeReactionFilter === 'all' && (
+              {getReactionEmoji(type)} {cnt}
+              {activeReactionFilter === type && (
                 <span className={cn('reactions-modal__tab-active-indicator', 'absolute left-0 right-0 -bottom-3 h-1 bg-app-theme-blue rounded-full')} />
               )}
             </button>
-            {filteredReactionEntries.map(([type, cnt]) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setActiveReactionFilter(type)}
-                className={cn(
-                  'reactions-modal__tab-button',
-                  'relative flex items-center gap-1 px-4 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  activeReactionFilter === type
-                    ? 'text-foreground'
-                    : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                )}
-              >
-                {getReactionEmoji(type)} {cnt}
-                {activeReactionFilter === type && (
-                  <span className={cn('reactions-modal__tab-active-indicator', 'absolute left-0 right-0 -bottom-3 h-1 bg-app-theme-blue rounded-full')} />
-                )}
-              </button>
-            ))}
-          </div>
+          ))}
+        </HorizontalScroller>
           <div className={cn('reactions-modal__users-container', 'flex-1 min-h-0 overflow-y-auto -mx-4 -mt-2 px-4 py-4')}>
             {!isLoading && !error && displayedReactions.length > 0 ? (
               <div className={cn('reactions-modal__users-grid', 'grid grid-cols-1 md:grid-cols-2 gap-4')}>

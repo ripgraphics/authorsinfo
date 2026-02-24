@@ -24,6 +24,8 @@
     "clean:tmpclaude": "bash ./scripts/cleanup-tmpclaude.sh || powershell -ExecutionPolicy Bypass -File ./scripts/cleanup-tmpclaude.ps1"
   },
   "dependencies": {
+    "eslint-plugin-descriptive-classname": "file:./eslint-plugin-descriptive-classname",
+
     "@hello-pangea/dnd": "^18.0.1",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.2.2",

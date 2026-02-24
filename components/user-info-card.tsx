@@ -110,7 +110,8 @@ export function UserInfoCard({
     <div
       className={cn(
         'user-info-card',
-        'flex items-center gap-3 p-3 sm:p-4 hover:bg-accent/50 rounded-xl transition-all duration-200 border border-border hover:border-input',
+        // reduced padding per request
+        'flex items-center gap-3 p-2 sm:p-2 hover:bg-accent/50 rounded-xl transition-all duration-200 border border-border hover:border-input',
         containerClassName
       )}
     >

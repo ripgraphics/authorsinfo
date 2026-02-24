@@ -17,6 +17,7 @@ export interface UserInfoCardProps {
   showMessage?: boolean
   showFriend?: boolean
   showFollow?: boolean
+  showMoreOptions?: boolean
   onFriendChange?: () => void
   // new props
   mutualFriendsCount?: number

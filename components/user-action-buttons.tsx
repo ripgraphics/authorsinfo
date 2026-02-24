@@ -93,6 +93,8 @@ interface UserActionButtonsProps {
   onFriendChange?: () => void
   onFollowChange?: () => void
   compact?: boolean
+  /** hide the report/block dropdown entirely */
+  showMoreOptions?: boolean
   /** When viewing own card in a list (e.g. followers), pass entity to allow "Unfollow" in dropdown */
   removeSelfEntity?: { entityId: string; entityType: 'book' | 'author' | 'publisher' | 'user' | 'group' }
   onRemoveSelf?: () => void
@@ -114,6 +116,7 @@ export function UserActionButtons({
   compact = false,
   removeSelfEntity,
   onRemoveSelf,
+  showMoreOptions = true,
 }: UserActionButtonsProps) {
   const { user } = useAuth()
   const router = useRouter()
@@ -410,21 +413,23 @@ export function UserActionButtons({
       )}
 
       {/* More options dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant={variant} size={size} className="ml-auto h-9 w-9 p-0 shrink-0">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem className="cursor-pointer">
-            Report User
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer text-destructive">
-            Block User
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {showMoreOptions && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant={variant} size={size} className="ml-auto h-9 w-9 p-0 shrink-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem className="cursor-pointer">
+              Report User
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer text-destructive">
+              Block User
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   )
 }

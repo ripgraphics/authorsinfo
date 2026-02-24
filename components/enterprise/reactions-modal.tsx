@@ -74,6 +74,7 @@ const ReactionUserRow: React.FC<{ user: ReactionModalUser; activeFilter: string;
         showMessage={false}
         showFollow={false}
         showFriend={true}
+        showMoreOptions={false}
         avatarSize="sm"
         mutualFriendsCount={userStats?.mutualFriendsCount}
         reactionType={activeFilter === 'all' ? (user.reactionTypes[0] || null) : activeFilter}

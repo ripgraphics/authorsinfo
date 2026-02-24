@@ -278,7 +278,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
                 activeId={activeReactionFilter}
                 onItemClick={(id) => setActiveReactionFilter(id)}
                 isTab={false}
-                showChevrons={false}
+                showChevrons={true}
                 className={cn('reactions-modal__tabs-container', 'pb-3 text-sm')}
               />
             )

@@ -143,7 +143,7 @@ export function HorizontalScroller({
           <>
             {/* Left Gradient Fade - sits under the button */}
             <div
-              className={`absolute left-0 top-0 h-12 w-16 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${
+              className={`absolute left-0 top-0 h-12 w-16 bg-gradient-to-r from-black/30 via-black/15 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${
                 canScrollLeft ? 'opacity-100' : 'opacity-0'
               }`}
               aria-hidden="true"
@@ -162,7 +162,7 @@ export function HorizontalScroller({
 
             {/* Right Gradient Fade - sits under the button */}
             <div
-              className={`absolute right-0 top-0 h-12 w-16 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${
+              className={`absolute right-0 top-0 h-12 w-16 bg-gradient-to-l from-black/30 via-black/15 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${
                 canScrollRight ? 'opacity-100' : 'opacity-0'
               }`}
               aria-hidden="true"

@@ -71,7 +71,9 @@ const ReactionUserRow: React.FC<{ user: ReactionModalUser; activeFilter: string;
         userId={user.user.id}
         userName={user.user.name}
         userAvatarUrl={user.user.avatar_url}
-        showMessage={false}
+        // in this modal we allow messaging friends, so enable the button and
+        // let UserInfoCard decide based on the friend status it fetches itself
+        showMessage={true}
         showFollow={false}
         showFriend={true}
         showMoreOptions={false}

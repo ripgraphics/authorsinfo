@@ -136,7 +136,17 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
     stats && (stats.reactionCount > 0 || !internalReactionCount)
       ? stats.reactionCount
       : internalReactionCount
-  const displayReactionCount = hasLoadedReactionCounts ? aggregatedReactionCount : baselineReactionCount
+  // When we've loaded the detailed reaction counts from the API we normally
+  // display `aggregatedReactionCount`.  However there is a race where the
+  // backend may not yet reflect a newly‑added like even though the global
+  // context (`stats.reactionCount`) has been optimistically updated.  In that
+  // case `aggregatedReactionCount` will still be stale (0) and the UI will show
+  // the wrong value until the next fetch or page reload.  To avoid that we take
+  // the maximum of the two sources.  The context count will always be at least
+  // as fresh as the server result.
+  const displayReactionCount = hasLoadedReactionCounts
+    ? Math.max(aggregatedReactionCount, baselineReactionCount)
+    : baselineReactionCount
   const displayCommentCount =
     stats && (stats.commentCount > 0 || !internalCommentCount)
       ? stats.commentCount

@@ -436,6 +436,13 @@ export function EngagementProvider({ children }: EngagementProviderProps) {
             })
           }
 
+          // Fire global event so display components can refresh counts immediately
+          window.dispatchEvent(
+            new CustomEvent('engagement-reaction-changed', {
+              detail: { entityId, entityType, reactionType: userReactionFromServer ?? reactionType },
+            })
+          )
+
           // Show specific toast based on exact action from server
           if (result.action === 'removed') {
             toast({

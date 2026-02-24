@@ -184,7 +184,7 @@ export function HorizontalScroller({
         {/* Scrollable Items Container */}
         <div
           ref={containerRef}
-          className={`flex overflow-x-auto scroll-smooth gap-1 px-0 py-0 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${containerClassName}`}
+          className={`flex overflow-x-auto scroll-smooth gap-1 px-0 py-0 pb-1 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${containerClassName}`}
           role={isTab ? 'tablist' : undefined}
         >
           {children
@@ -212,11 +212,11 @@ export function HorizontalScroller({
     )
   }
 
-  // Desktop grid version
+  // Desktop version: flex for children (content-sized), grid for items (full-width)
   return (
     <div
-      className={`horizontal-scroller-desktop grid h-auto mt-0 bg-transparent overflow-x-auto ${className}`}
-      style={{ gridTemplateColumns: `repeat(auto-fit, minmax(100px, 1fr))` }}
+      className={`horizontal-scroller-desktop h-auto mt-0 bg-transparent overflow-x-auto ${children ? 'flex flex-wrap items-center gap-1' : 'grid'} ${className}`}
+      style={children ? undefined : { gridTemplateColumns: `repeat(auto-fit, minmax(100px, 1fr))` }}
       role={isTab ? 'tablist' : undefined}
     >
       {children

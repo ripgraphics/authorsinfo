@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { ReusableModal } from '@/components/ui/reusable-modal'
 import { UserInfoCard } from '@/components/user-info-card'
 import { Button } from '@/components/ui/button'
+import { HorizontalScroller } from '@/components/ui/horizontal-scroller'
 import { Heart, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUserStats } from '@/hooks/useUserStats'
@@ -259,15 +260,10 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
       contentClassName={cn('reactions-modal', 'w-full max-w-4xl max-h-[90vh]', className)}
     >
         <div className={cn('reactions-modal__content-container', 'flex flex-col flex-1 min-h-0')}>
-          <div
-          className={cn(
-            'reactions-modal__tabs-container',
-            'flex items-center gap-1 pb-3 text-sm',
-            // Mobile: horizontal swipe, no wrap; Desktop: wrap normally
-            'flex-nowrap overflow-x-auto [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]',
-            'md:flex-wrap md:overflow-x-visible'
-          )}
-          role="tablist"
+          <HorizontalScroller
+          isTab={true}
+          showChevrons={false}
+          className={cn('reactions-modal__tabs-container', 'pb-3 text-sm')}
         >
           <button
             type="button"
@@ -306,7 +302,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
               )}
             </button>
           ))}
-        </div>
+        </HorizontalScroller>
           <div className={cn('reactions-modal__users-container', 'flex-1 min-h-0 overflow-y-auto -mx-4 -mt-2 px-4 py-4')}>
             {!isLoading && !error && displayedReactions.length > 0 ? (
               <div className={cn('reactions-modal__users-grid', 'grid grid-cols-1 md:grid-cols-2 gap-4')}>

@@ -132,14 +132,17 @@ export function UserInfoCard({
       </div>
 
       {/* User Info */}
-      <div className={cn('user-info-card__info-container', 'flex-1 min-w-0', className)}>
+      {/* make sure the info area can shrink and hide overflow so a very long
+          name won’t force the whole card to expand; the buttons live in a
+          flex-shrink-0 container so they always stay visible. */}
+      <div className={cn('user-info-card__info-container', 'flex-1 min-w-0 overflow-hidden', className)}>
         <EntityName
           type="user"
           id={userId}
           name={userName}
           avatar_url={userAvatarUrl}
           permalink={userPermalink}
-          className={cn('user-info-card__name', 'text-sm font-semibold text-foreground block truncate')}
+          className={cn('user-info-card__name', 'text-sm font-semibold text-foreground block truncate max-w-full')}
           showActions={false}
         />
         {mutualFriendsCount !== undefined && (

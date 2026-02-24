@@ -247,7 +247,7 @@ export function FriendList({
           <div className="flex flex-col border rounded-lg hover:bg-accent transition-colors overflow-hidden">
             <Link
               href={getProfileUrlFromUser(friend.friend)}
-              className="flex items-center gap-3 p-3 flex-1 min-w-0"
+              className="flex items-center gap-3 p-3 flex-1 min-w-0 overflow-hidden"
             >
               <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
                 <Avatar

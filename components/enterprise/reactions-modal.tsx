@@ -260,7 +260,13 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
     >
         <div className={cn('reactions-modal__content-container', 'flex flex-col flex-1 min-h-0')}>
           <div
-          className={cn('reactions-modal__tabs-container', 'flex flex-wrap items-center gap-1 pb-3 text-sm')}
+          className={cn(
+            'reactions-modal__tabs-container',
+            'flex items-center gap-1 pb-3 text-sm',
+            // Mobile: horizontal swipe, no wrap; Desktop: wrap normally
+            'flex-nowrap overflow-x-auto [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]',
+            'md:flex-wrap md:overflow-x-visible'
+          )}
           role="tablist"
         >
           <button
@@ -269,7 +275,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
             className={cn(
               'reactions-modal__tab-button',
               // keep inline flex and prevent wrapping so icon+text stay on one line
-              'relative inline-flex whitespace-nowrap font-medium px-6 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring overflow-visible',
+              'relative inline-flex flex-shrink-0 whitespace-nowrap font-medium px-6 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring overflow-visible',
               activeReactionFilter === 'all'
                 ? 'text-foreground'
                 : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground'
@@ -288,7 +294,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
               className={cn(
                 'reactions-modal__tab-button',
                 // inline-flex + nowrap ensures icon and count stay side by side even on mobile
-                'relative inline-flex items-center gap-1 whitespace-nowrap px-4 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring overflow-visible',
+                'relative inline-flex flex-shrink-0 items-center gap-1 whitespace-nowrap px-4 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring overflow-visible',
                 activeReactionFilter === type
                   ? 'text-foreground'
                   : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground'

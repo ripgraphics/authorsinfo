@@ -145,7 +145,7 @@ export function HorizontalScroller({
             <button
               onClick={handleScrollLeft}
               aria-label="Scroll left"
-              className={`absolute left-0 top-0 bottom-0 z-20 flex items-center justify-center w-10 bg-gradient-to-r from-white via-white to-transparent transition-opacity duration-300 ${
+              className={`absolute left-0 top-0 bottom-0 z-20 flex items-center justify-center w-10 bg-white transition-opacity duration-300 ${
                 canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
@@ -156,7 +156,7 @@ export function HorizontalScroller({
             <button
               onClick={handleScrollRight}
               aria-label="Scroll right"
-              className={`absolute right-0 top-0 bottom-0 z-20 flex items-center justify-center w-10 bg-gradient-to-l from-white via-white to-transparent transition-opacity duration-300 ${
+              className={`absolute right-0 top-0 bottom-0 z-20 flex items-center justify-center w-10 bg-white transition-opacity duration-300 ${
                 canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >

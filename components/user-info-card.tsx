@@ -55,6 +55,7 @@ export function UserInfoCard({
   showMessage = true,
   showFriend = true,
   showFollow = false,
+  showMoreOptions = true,
   onFriendChange,
   mutualFriendsCount,
   reactionType,
@@ -167,6 +168,7 @@ export function UserInfoCard({
             showMessage={showMessageButton}
             showFriend={showFriendButton}
             showFollow={showFollow}
+            showMoreOptions={showMoreOptions}
             size="sm"
             variant="outline"
             orientation="horizontal"

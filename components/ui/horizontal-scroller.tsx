@@ -212,11 +212,11 @@ export function HorizontalScroller({
     )
   }
 
-  // Desktop version: flex for children (content-sized), grid for items (full-width)
+  // Desktop grid version
   return (
     <div
-      className={`horizontal-scroller-desktop h-auto mt-0 bg-transparent overflow-x-auto ${children ? 'flex flex-wrap items-center gap-1' : 'grid'} ${className}`}
-      style={children ? undefined : { gridTemplateColumns: `repeat(auto-fit, minmax(100px, 1fr))` }}
+      className={`horizontal-scroller-desktop grid h-auto mt-0 bg-transparent overflow-x-auto ${className}`}
+      style={{ gridTemplateColumns: `repeat(auto-fit, minmax(100px, 1fr))` }}
       role={isTab ? 'tablist' : undefined}
     >
       {children

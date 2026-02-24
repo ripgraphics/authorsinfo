@@ -102,7 +102,13 @@ export function useButtonOverflow(
       }
       let shouldBeCompact = false
 
-      if (isGrid) {
+      // On wider viewports (desktop) we prefer the full buttons even if the
+      // card is narrow. Only collapse to icon‑only mode when the *window* itself
+      // is in a mobile size. This aligns the behavior with user expectations
+      // (they shouldn't suddenly see "mobile" buttons on a big screen).
+      if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+        shouldBeCompact = false
+      } else if (isGrid) {
         // For grids, find the first card's button container
         const firstCard = container.querySelector('[data-card-item]') as HTMLElement
         if (firstCard) {

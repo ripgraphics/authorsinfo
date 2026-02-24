@@ -271,7 +271,8 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
             onClick={() => setActiveReactionFilter('all')}
             className={cn(
               'reactions-modal__tab-button',
-              'relative font-medium px-6 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              // keep inline flex and prevent wrapping so icon+text stay on one line
+              'relative inline-flex whitespace-nowrap font-medium px-6 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring overflow-visible',
               activeReactionFilter === 'all'
                 ? 'text-foreground'
                 : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground'
@@ -289,7 +290,8 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
               onClick={() => setActiveReactionFilter(type)}
               className={cn(
                 'reactions-modal__tab-button',
-                'relative flex items-center gap-1 px-4 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                // inline-flex + nowrap ensures icon and count stay side by side even on mobile
+                'relative inline-flex items-center gap-1 whitespace-nowrap px-4 py-2 rounded-md cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring overflow-visible',
                 activeReactionFilter === type
                   ? 'text-foreground'
                   : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground'

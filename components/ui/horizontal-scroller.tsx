@@ -141,43 +141,43 @@ export function HorizontalScroller({
       <div className={`horizontal-scroller-mobile relative w-full ${className}`}>
         {showChevrons && (
           <>
-            {/* Left Chevron */}
+            {/* Left Gradient Fade - sits under the button */}
+            <div
+              className={`absolute left-0 top-0 h-12 w-16 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${
+                canScrollLeft ? 'opacity-100' : 'opacity-0'
+              }`}
+              aria-hidden="true"
+            />
+
+            {/* Left Chevron - on top of fade */}
             <button
               onClick={handleScrollLeft}
               aria-label="Scroll left"
-              className={`absolute -left-px top-0 z-20 flex items-center justify-center w-10 h-12 bg-white transition-opacity duration-300 ${
+              className={`absolute -left-px top-0 z-20 flex items-center justify-center w-8 h-12 bg-white border-0 outline-none appearance-none transition-opacity duration-300 ${
                 canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
               <ChevronLeft className="h-5 w-5 text-app-theme-blue flex-shrink-0" />
             </button>
 
-            {/* Right Chevron */}
+            {/* Right Gradient Fade - sits under the button */}
+            <div
+              className={`absolute right-0 top-0 h-12 w-16 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${
+                canScrollRight ? 'opacity-100' : 'opacity-0'
+              }`}
+              aria-hidden="true"
+            />
+
+            {/* Right Chevron - on top of fade */}
             <button
               onClick={handleScrollRight}
               aria-label="Scroll right"
-              className={`absolute -right-px top-0 z-20 flex items-center justify-center w-10 h-12 bg-white transition-opacity duration-300 ${
+              className={`absolute -right-px top-0 z-20 flex items-center justify-center w-8 h-12 bg-white border-0 outline-none appearance-none transition-opacity duration-300 ${
                 canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
               <ChevronRight className="h-5 w-5 text-app-theme-blue flex-shrink-0" />
             </button>
-
-            {/* Left Gradient Fade */}
-            <div
-              className={`absolute left-10 top-0 h-12 w-[30px] bg-gradient-to-r from-white to-transparent pointer-events-none transition-opacity duration-300 ${
-                canScrollLeft ? 'opacity-80' : 'opacity-0'
-              }`}
-              aria-hidden="true"
-            />
-
-            {/* Right Gradient Fade */}
-            <div
-              className={`absolute right-10 top-0 h-12 w-[30px] bg-gradient-to-l from-white to-transparent pointer-events-none transition-opacity duration-300 ${
-                canScrollRight ? 'opacity-80' : 'opacity-0'
-              }`}
-              aria-hidden="true"
-            />
           </>
         )}
 

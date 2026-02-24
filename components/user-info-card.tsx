@@ -18,6 +18,8 @@ export interface UserInfoCardProps {
   showFriend?: boolean
   showFollow?: boolean
   showMoreOptions?: boolean
+  /** controls whether the action buttons render in compact/icon-only mode */
+  compact?: boolean
   onFriendChange?: () => void
   // new props
   mutualFriendsCount?: number
@@ -60,6 +62,7 @@ export function UserInfoCard({
   mutualFriendsCount,
   reactionType,
   reactionTypes = [],
+  compact = false,
 }: UserInfoCardProps) {
   const [friendStatus, setFriendStatus] = useState<'none' | 'pending' | 'accepted' | 'rejected'>(
     'none'
@@ -175,7 +178,7 @@ export function UserInfoCard({
             size="sm"
             variant="outline"
             orientation="horizontal"
-            compact={true}
+            compact={compact}
             onFriendChange={() => {
               setFriendStatus('pending')
               onFriendChange?.()

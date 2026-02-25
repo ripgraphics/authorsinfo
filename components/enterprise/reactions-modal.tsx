@@ -66,6 +66,8 @@ const ReactionUserRow: React.FC<{ user: ReactionModalUser; activeFilter: string;
   showReactionTypes,
 }) => {
   const { userStats } = useUserStats(user.user.id, { currentUserId })
+  const isAll = activeFilter === 'all'
+  const infoReactionTypes = isAll ? user.reactionTypes : []
   return (
     <div className="reactions-modal__user-row">
       <UserInfoCard
@@ -79,9 +81,9 @@ const ReactionUserRow: React.FC<{ user: ReactionModalUser; activeFilter: string;
         showFriend={true}
         showMoreOptions={false}
         avatarSize="sm"
-        mutualFriendsCount={userStats?.mutualFriendsCount}
-        reactionType={activeFilter === 'all' ? (user.reactionTypes[0] || null) : activeFilter}
-        reactionTypes={showReactionTypes ? user.reactionTypes : []}
+        mutualFriendsCount={isAll ? undefined : userStats?.mutualFriendsCount}
+        reactionType={isAll ? null : activeFilter}
+        reactionTypes={infoReactionTypes}
       />
     </div>
   )

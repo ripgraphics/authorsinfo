@@ -184,7 +184,7 @@ export function HorizontalScroller({
         {/* Scrollable Items Container */}
         <div
           ref={containerRef}
-          className={`flex overflow-x-auto scroll-smooth gap-1 px-0 py-0 pb-1 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${containerClassName}`}
+          className={`relative z-0 flex overflow-x-auto scroll-smooth gap-1 px-0 py-0 pb-1 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${containerClassName}`}
           role={isTab ? 'tablist' : undefined}
         >
           {children

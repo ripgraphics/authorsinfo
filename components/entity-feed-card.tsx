@@ -193,19 +193,6 @@ export default function EntityFeedCard({
     return null
   }
 
-  // Debug: Log the complete post structure when component mounts
-  console.log('🔍 EntityFeedCard received post:', {
-    id: post.id,
-    user_id: post.user_id,
-    activity_type: post.activity_type,
-    entity_type: post.entity_type,
-    content_type: post.content_type,
-    hasContent: !!(post.text || post.data),
-    hasData: !!(post as any).data,
-    allKeys: Object.keys(post),
-    fullPost: post,
-  })
-
   const { toast } = useToast()
   const { user } = useAuth()
   const { getEngagement, addComment, batchUpdateEngagement } = useEngagement()
@@ -449,12 +436,6 @@ export default function EntityFeedCard({
     }
   }, [post.like_count, fetchLikes])
 
-  // Debug logging
-  console.log('Debug - User:', user)
-  console.log('Debug - Post user_id:', post.user_id)
-  console.log('Debug - Can edit:', canEdit)
-  console.log('Debug - Can delete:', canDelete)
-
   // Initialize edit content from post data, but avoid state updates when values are unchanged
   useEffect(() => {
     const nextContent = getPostText(post)
@@ -647,21 +628,12 @@ export default function EntityFeedCard({
       return `Shared a ${post.activity_type.replace('_', ' ')}`
     }
 
-    console.log('getPostText - No text found, returning default')
     return 'Shared an update'
   }
 
   const getPostImages = (post: any): string[] => {
-    // Debug: Log the actual post structure for images
-    console.log('getPostImages - Post image structure:', {
-      hasImageUrl: !!post.image_url,
-      hasContent: !!(post.text || post.data),
-      contentImageUrl: post.image_url,
-    })
-
     // PRIORITY 1: Check for direct image_url column (from current schema)
     if (post.image_url && post.image_url.trim() !== '') {
-      console.log('getPostImages - Found image_url in direct column:', post.image_url)
       return post.image_url
         .split(',')
         .map((url: string) => url.trim())
@@ -670,12 +642,10 @@ export default function EntityFeedCard({
 
     // PRIORITY 2: Check for images in data JSONB field
     if (post.data?.images) {
-      console.log('getPostImages - Found images in data.images:', post.data.images)
       return Array.isArray(post.data.images) ? post.data.images : [post.data.images]
     }
 
     if (post.data?.image_url && post.data.image_url.trim() !== '') {
-      console.log('getPostImages - Found image_url in data.image_url:', post.data.image_url)
       return post.data.image_url
         .split(',')
         .map((url: string) => url.trim())
@@ -684,7 +654,6 @@ export default function EntityFeedCard({
 
     // PRIORITY 3: Check for media_url in data
     if (post.data?.media_url && post.data.media_url.trim() !== '') {
-      console.log('getPostImages - Found media_url in data.media_url:', post.data.media_url)
       return post.data.media_url
         .split(',')
         .map((url: string) => url.trim())
@@ -693,10 +662,6 @@ export default function EntityFeedCard({
 
     // PRIORITY 4: Check for nested content structure
     if (post.data?.content?.image_url && post.data.content.image_url.trim() !== '') {
-      console.log(
-        'getPostImages - Found image_url in data.content.image_url:',
-        post.data.content.image_url
-      )
       return post.data.content.image_url
         .split(',')
         .map((url: string) => url.trim())
@@ -704,7 +669,6 @@ export default function EntityFeedCard({
     }
 
     if (post.data?.content?.images) {
-      console.log('getPostImages - Found images in data.content.images:', post.data.content.images)
       return Array.isArray(post.data.content.images)
         ? post.data.content.images
         : [post.data.content.images]
@@ -712,40 +676,24 @@ export default function EntityFeedCard({
 
     // Note: post.data.data nesting doesn't exist in current schema, removed these checks
 
-    console.log('getPostImages - No images found, returning empty array')
     return []
   }
 
   const getPostContentType = (post: any): string => {
-    // Debug: Log the actual post structure for content type
-    console.log('getPostContentType - Post content type structure:', {
-      hasContentType: !!post.content_type,
-      hasContent: !!(post.text || post.data),
-      contentType: post.content_type,
-      postId: post.id,
-      activityType: post.activity_type,
-      hasText: !!(post.text || post.data?.text),
-      hasImages: getPostImages(post).length > 0,
-    })
-
     // Handle like activities specifically
     if (post.activity_type === 'like') {
-      console.log('getPostContentType - Returning like for like activity')
       return 'like'
     }
 
     // Try to get content type from various possible locations
     if (post.content_type) {
-      console.log('getPostContentType - Found post.content_type:', post.content_type)
       return post.content_type
     }
     // Note: post.content doesn't exist in current schema, removed this check
     if (post.data?.content_type) {
-      console.log('getPostContentType - Found post.data.content_type:', post.data.content_type)
       return post.data.content_type
     }
     if (post.data?.type) {
-      console.log('getPostContentType - Found post.data.type:', post.data.type)
       return post.data.type
     }
     // Note: post.data.content doesn't exist in current schema, removed this check
@@ -755,21 +703,17 @@ export default function EntityFeedCard({
     // Infer from content
     const images = getPostImages(post)
     if (images.length > 0) {
-      console.log('getPostContentType - Inferring image from images array')
       return 'image'
     }
     if (post.link_url || post.data?.link_url || post.data?.url) {
-      console.log('getPostContentType - Inferring link from link URLs')
       return 'link'
     }
 
     // If we have text content, default to text
     if (post.text || post.data?.text) {
-      console.log('getPostContentType - Inferring text from text content')
       return 'text'
     }
 
-    console.log('getPostContentType - No content type found, defaulting to text')
     return 'text'
   }
 
@@ -779,32 +723,13 @@ export default function EntityFeedCard({
 
   const hasTextContent = (post: any): boolean => {
     const text = getPostText(post)
-    const result = typeof text === 'string' && text.trim().length > 0
-    console.log('hasTextContent function:', {
-      postId: post.id,
-      text,
-      textType: typeof text,
-      textLength: text?.length,
-      trimmedLength: text?.trim()?.length,
-      result,
-    })
-    return result
+    return typeof text === 'string' && text.trim().length > 0
   }
 
   // Get display values using helper functions
   const displayText = getPostText(post)
   const displayImageUrl = getPostImages(post).join(',')
   const displayContentType = getPostContentType(post)
-
-  // Debug: Log what we got from the helper functions
-  console.log('EntityFeedCard - Helper function results:', {
-    postId: post.id,
-    displayText,
-    displayImageUrl,
-    displayContentType,
-    hasTextContent: hasTextContent(post),
-    hasImageContent: hasImageContent(post),
-  })
 
   // Handle image click for modal
   const handleImageClick = (url: string, index: number) => {
@@ -1232,9 +1157,7 @@ export default function EntityFeedCard({
 
   // Render main content
   const renderContent = () => {
-    console.log('renderContent called, isEditing:', isEditing)
     if (isEditing) {
-      console.log('Rendering edit form with content:', editContent)
       return (
         <div className="space-y-4">
           <Textarea
@@ -1366,16 +1289,6 @@ export default function EntityFeedCard({
       )
     }
 
-    // Debug logging
-    console.log('EntityFeedCard renderContent:', {
-      postId: post.id,
-      contentType: post.content_type,
-      imageUrl: post.image_url,
-      hasText: !!post.text,
-      hasData: !!post.data,
-      contentText: post.text || post.data?.text,
-    })
-
     // Handle both old and new post structures
     // Old posts: direct text, image_url fields
     // New posts: content object with content_type
@@ -1384,13 +1297,6 @@ export default function EntityFeedCard({
     const displayContentType = getPostContentType(post)
 
     if (!hasTextContent(post) && !hasImageContent(post)) {
-      console.log('No content available for post:', {
-        postId: post.id,
-        hasText: hasTextContent(post),
-        hasImage: hasImageContent(post),
-        displayText,
-        displayImageUrl,
-      })
       return (
         <div className="enterprise-feed-card-no-content">
           <p className="text-muted-foreground">No content available</p>
@@ -1399,14 +1305,8 @@ export default function EntityFeedCard({
     }
 
     // Special check for posts that have images but wrong content_type
-    if (hasImageContent(post) && displayContentType !== 'image') {
-      console.log('Post has image but wrong content_type:', {
-        postId: post.id,
-        contentType: displayContentType,
-        hasImage: true,
-        shouldBeImage: true,
-      })
-    }
+    // Auto-correct content type if post has images but wrong content_type
+    // (no action needed, effectiveContentType handles this below)
 
     const content = { text: post.text || post.data?.text || '' } as PostContent
 
@@ -1423,21 +1323,8 @@ export default function EntityFeedCard({
     const hasLinkUrl = !!(post.link_url || content.links?.length || detectedLink)
     const effectiveContentType = hasLinkUrl && displayContentType !== 'image' ? 'link' : displayContentType
 
-    console.log('Content type switch:', {
-      contentType: effectiveContentType,
-      postId: post.id,
-      postContentType: post.content_type,
-      hasLinkUrl,
-      postContent: { text: post.text || post.data?.text || '' },
-    })
-
     switch (effectiveContentType) {
       case 'text':
-        console.log('Rendering text content case:', {
-          postId: post.id,
-          displayText,
-          hasDisplayText: !!displayText,
-        })
         return (
           <div className="enterprise-feed-card-text-content">
             <div className="enterprise-feed-card-text prose prose-sm max-w-none">
@@ -1457,12 +1344,6 @@ export default function EntityFeedCard({
         )
 
       case 'image':
-        console.log('Rendering image content:', {
-          postId: post.id,
-          imageUrl: post.image_url,
-          hasImageUrl: !!post.image_url,
-        })
-
         // Handle multiple images using the new helper function
         const imageUrls = displayImageUrl
         const isMultiImage = imageUrls.length > 1

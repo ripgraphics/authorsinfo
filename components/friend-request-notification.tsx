@@ -66,10 +66,7 @@ export function FriendRequestNotification() {
 
     try {
       setError(null)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔍 Fetching pending friend requests for user:', user.id)
-        console.log('🔍 API endpoint: /api/friends/pending')
-      }
+
 
       // Create abort controller for timeout with fallback
       const controller = new AbortController()
@@ -85,20 +82,8 @@ export function FriendRequestNotification() {
 
       clearTimeout(timeoutId)
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('📡 Response received:', {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok,
-          headers: Object.fromEntries(response.headers.entries()),
-        })
-      }
-
       if (response.ok) {
         const data = await response.json()
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ FriendRequestNotification - Received data:', data)
-        }
         setRequests(data.requests || [])
       } else {
         // Handle 401 gracefully - it's expected when user is not authenticated

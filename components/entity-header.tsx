@@ -234,13 +234,6 @@ export function EntityHeader({
   enhancedProfile,
   userStats,
 }: EntityHeaderProps) {
-  console.log('🏗️ EntityHeader component mounted with props:', {
-    entityType,
-    entityId,
-    name,
-    coverImageUrl,
-  })
-
   const { user } = useAuth()
   const router = useRouter()
   const groupPermissions = useGroupPermissions(group?.id || null, user?.id)
@@ -548,20 +541,11 @@ export function EntityHeader({
     return () => window.removeEventListener('entityPrimaryImageChanged', handler as EventListener)
   }, [entityId, entityType])
 
-  console.log('🔍 EntityHeader useEffect dependencies changed:', { entityId, entityType })
-
   const handleCropCover = async (croppedImageBlob: Blob) => {
     setIsProcessing(true)
     try {
-      console.log('handleCropCover called with blob:', croppedImageBlob)
-      console.log('Blob size:', croppedImageBlob.size)
-      console.log('Blob type:', croppedImageBlob.type)
-
       // Convert blob to file
       const file = new File([croppedImageBlob], 'cropped-cover.jpg', { type: 'image/jpeg' })
-      console.log('Created file:', file)
-      console.log('File size:', file.size)
-      console.log('File type:', file.type)
 
       // Find the original image ID from the current cover image URL
       let originalImageId: string | null = null
@@ -924,14 +908,6 @@ export function EntityHeader({
 
     switch (entityType) {
       case 'user':
-        // Debug logging
-        console.log('🔍 EntityHeader Debug:', {
-          entityId: entityId,
-          name: name,
-          userStats: userStats,
-          hasUserStats: !!userStats,
-        })
-
         return (
           <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate max-w-full min-w-0 block">
             <EntityHoverCard

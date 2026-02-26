@@ -32,7 +32,6 @@ export async function deduplicatedRequest<T>(
   // Check cache first
   const cached = cache.get(key)
   if (cached && Date.now() - cached.timestamp < cached.ttl) {
-    console.log(`📦 Cache hit for: ${key}`)
     return cached.data
   }
 
@@ -40,12 +39,10 @@ export async function deduplicatedRequest<T>(
   const active = activeRequests.get(key)
   if (active && active.promise && Date.now() - active.timestamp < 30000) {
     // 30 second request timeout
-    console.log(`🔄 Returning active request for: ${key}`)
     return active.promise
   }
 
   // Create new request
-  console.log(`🚀 Creating new request for: ${key}`)
   const promise = fetcher()
     .then((result) => {
       // Cache the result

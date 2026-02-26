@@ -22,6 +22,35 @@ export function useAuth() {
   // Debounced setUser to reduce state updates
   const debouncedSetUser = useMemo(() => debounce(setUser, 100), [])
 
+  const isLockTimeoutError = (error: unknown): boolean => {
+    const message =
+      (error as { message?: string } | null | undefined)?.message || String(error || '')
+    return (
+      message.includes('Navigator LockManager') ||
+      message.includes('timed out waiting') ||
+      message.includes('lock:sb-')
+    )
+  }
+
+  const safeGetUser = async () => {
+    try {
+      const result = await supabase.auth.getUser()
+      return result
+    } catch (error) {
+      if (isLockTimeoutError(error)) {
+        return {
+          data: { user: null },
+          error: {
+            name: 'AuthLockTimeoutError',
+            message:
+              'Supabase auth lock timed out while reading session; treating as unauthenticated for this cycle.',
+          },
+        }
+      }
+      throw error
+    }
+  }
+
   // Centralized user data fetching with deduplication, caching, and retry logic
   const fetchUserData = async (): Promise<UserWithRole | null> => {
     const MAX_RETRIES = 3
@@ -114,7 +143,7 @@ export function useAuth() {
       const {
         data: { user },
         error,
-      } = await supabase.auth.getUser()
+      } = await safeGetUser()
 
       // Handle AuthSessionMissingError gracefully - this is normal for public users
       if (error) {
@@ -123,8 +152,10 @@ export function useAuth() {
         const errorMessage = error?.message || String(error) || ''
         const isSessionError =
           errorName === 'AuthSessionMissingError' ||
+          errorName === 'AuthLockTimeoutError' ||
           errorMessage.includes('session') ||
-          errorMessage.includes('Auth session missing')
+          errorMessage.includes('Auth session missing') ||
+          isLockTimeoutError(error)
 
         if (isSessionError) {
           // This is normal for public users - don't log as error, just set user to null
@@ -161,8 +192,10 @@ export function useAuth() {
       const errorMessage = err?.message || String(err) || ''
       const isSessionError =
         errorName === 'AuthSessionMissingError' ||
+        errorName === 'AuthLockTimeoutError' ||
         errorMessage.includes('session') ||
-        errorMessage.includes('Auth session missing')
+        errorMessage.includes('Auth session missing') ||
+        isLockTimeoutError(err)
 
       // Only log non-session errors
       if (!isSessionError) {
@@ -216,7 +249,7 @@ export function useAuth() {
         // Get current user ID from auth session to avoid dependency issues
         const {
           data: { user: authUser },
-        } = await supabase.auth.getUser()
+        } = await safeGetUser()
 
         // Only refresh if this is the current user's avatar
         if (authUser && entityId === authUser.id) {

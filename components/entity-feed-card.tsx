@@ -2555,26 +2555,23 @@ export default function EntityFeedCard({
         }
       >
         <div className="flex flex-col gap-4">
-          {/* Detailed Post Section (Original Card Style) */}
-          <div className="enterprise-feed-card-header-content flex items-start gap-3 border-b border-gray-100 pb-4">
-            <EntityHoverCard
-              type="user"
-              entity={{
-                id: post.user_id,
-                name: postOwnerName,
-                avatar_url: postOwnerAvatar,
-              }}
-              userStats={
-                profileOwnerId && post.user_id === profileOwnerId
-                  ? profileOwnerUserStats
-                  : undefined
-              }
-            >
-              <span
-                className="hover:underline cursor-pointer text-muted-foreground"
-                data-state="closed"
+          <div className="flex flex-col space-y-1.5 p-2 enterprise-feed-card-header">
+            <div className="enterprise-feed-card-header-content flex items-start gap-3">
+              {/* User Avatar */}
+              <EntityHoverCard
+                type="user"
+                entity={{
+                  id: post.user_id,
+                  name: postOwnerName,
+                  avatar_url: postOwnerAvatar,
+                }}
+                userStats={
+                  profileOwnerId && post.user_id === profileOwnerId
+                    ? profileOwnerUserStats
+                    : undefined
+                }
               >
-                <div className="avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md cursor-pointer">
+                <div className="avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md enterprise-feed-card-user-avatar cursor-pointer transition-transform hover:scale-105">
                   <Avatar
                     src={postOwnerAvatar}
                     alt={postOwnerName || 'User'}
@@ -2583,33 +2580,287 @@ export default function EntityFeedCard({
                     className="object-cover rounded-full"
                   />
                 </div>
-              </span>
-            </EntityHoverCard>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <EntityName
-                  type="user"
-                  id={post.user_id}
-                  name={postOwnerName}
-                  avatar_url={postOwnerAvatar}
-                  className="font-semibold text-sm hover:underline cursor-pointer"
-                />
+              </EntityHoverCard>
+
+              {/* Post Header Info */}
+              <div className="enterprise-feed-card-header-info flex-1">
+                <div className="enterprise-feed-card-header-top flex items-center gap-2 mb-1">
+                  <EntityName
+                    type="user"
+                    id={post.user_id}
+                    name={postOwnerName}
+                    avatar_url={postOwnerAvatar}
+                    className="enterprise-feed-card-user-name font-semibold text-sm"
+                    userStats={
+                      profileOwnerId && post.user_id === profileOwnerId
+                        ? profileOwnerUserStats
+                        : undefined
+                    }
+                  />
+
+                  {/* Entity Type Badge */}
+                  {currentEntityConfig && (
+                    <Badge variant="outline" className="enterprise-feed-card-entity-type">
+                      <currentEntityConfig.icon className="h-3 w-3 mr-1" />
+                      {currentEntityConfig.label}
+                    </Badge>
+                  )}
+
+                  {/* Content Safety Badge */}
+                  {post.content_safety_score && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'enterprise-feed-card-safety',
+                        currentSafetyConfig.bgColor,
+                        currentSafetyConfig.color
+                      )}
+                    >
+                      <currentSafetyConfig.icon className="h-3.5 w-3.5 mr-1.5" />
+                      {currentSafetyConfig.label}
+                    </Badge>
+                  )}
+
+                  {/* Cross-post Badge */}
+                  {post.metadata?.cross_post && (
+                    <Badge variant="secondary" className="enterprise-feed-card-cross-post">
+                      <Share2 className="h-3.5 w-3.5 mr-1.5" />
+                      Cross-posted from{' '}
+                      {post.metadata.cross_post.origin_entity_type
+                        ? post.metadata.cross_post.origin_entity_type.charAt(0).toUpperCase() +
+                          post.metadata.cross_post.origin_entity_type.slice(1)
+                        : 'another timeline'}
+                    </Badge>
+                  )}
+
+                  {/* Visibility Badge / Control */}
+                  {currentVisibilityConfig &&
+                    (canEdit ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title={currentVisibilityConfig.label}
+                            className="h-8 w-8 p-0 enterprise-feed-card-visibility rounded-full hover:bg-gray-100 transition-colors"
+                            disabled={isUpdatingVisibility}
+                          >
+                            <currentVisibilityConfig.icon className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem onClick={() => handleVisibilityChange('public')}>
+                            <Globe className="h-3.5 w-3.5 mr-2" />
+                            Public
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleVisibilityChange('friends')}>
+                            <Users className="h-3.5 w-3.5 mr-2" />
+                            Friends
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleVisibilityChange('followers')}>
+                            <Users2 className="h-3.5 w-3.5 mr-2" />
+                            Followers
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleVisibilityChange('private')}>
+                            <Lock className="h-3.5 w-3.5 mr-2" />
+                            Only me
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <div
+                        title={currentVisibilityConfig.label}
+                        className="h-8 w-8 flex items-center justify-center enterprise-feed-card-visibility text-muted-foreground"
+                      >
+                        <currentVisibilityConfig.icon className="h-3.5 w-3.5" />
+                      </div>
+                    ))}
+
+                  {/* Age Restriction */}
+                  {post.age_restriction && (
+                    <Badge variant="destructive" className="enterprise-feed-card-age-restriction">
+                      {post.age_restriction}
+                    </Badge>
+                  )}
+
+                  {/* Sensitive Content */}
+                  {post.sensitive_content && (
+                    <Badge variant="destructive" className="enterprise-feed-card-sensitive-content">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Sensitive
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="enterprise-feed-card-header-bottom flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="enterprise-feed-card-timestamp">
+                    {new Date(post.created_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: 'numeric',
+                    })}
+                  </span>
+
+                  {/* Scheduled Post */}
+                  {post.scheduled_at && (
+                    <span className="enterprise-feed-card-scheduled flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      Scheduled for{' '}
+                      {new Date(post.scheduled_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                      })}
+                    </span>
+                  )}
+
+                  {/* Featured Post */}
+                  {post.is_featured && (
+                    <span className="enterprise-feed-card-featured flex items-center gap-1.5 text-amber-600 font-medium">
+                      <StarIcon className="h-3.5 w-3.5 fill-amber-600" />
+                      Featured
+                    </span>
+                  )}
+
+                  {/* Pinned Post */}
+                  {post.is_pinned && (
+                    <span className="enterprise-feed-card-pinned flex items-center gap-1.5 text-app-theme-blue font-medium">
+                      <Bookmark className="h-3.5 w-3.5 fill-blue-600" />
+                      Pinned
+                    </span>
+                  )}
+
+                  {/* Verified Post */}
+                  {post.is_verified && (
+                    <span className="enterprise-feed-card-verified flex items-center gap-1.5 text-emerald-600 font-medium">
+                      <CheckCircle className="h-3.5 w-3.5 fill-emerald-600" />
+                      Verified
+                    </span>
+                  )}
+
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>
-                  {new Date(post.created_at).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: 'numeric',
-                  })}
-                </span>
+
+              {/* Post Actions Menu */}
+              <div className="enterprise-feed-card-actions">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 transition-all duration-200"
+                    >
+                      <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                      <span className="sr-only">Open actions</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 p-1.5">
+                    {canEdit && (
+                      <DropdownMenuItem
+                        onClick={handleEditToggle}
+                        className="flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors focus:bg-gray-100 rounded-md"
+                      >
+                        <Edit className="h-4 w-4 text-app-theme-blue" />
+                        <span className="font-medium">Edit Post</span>
+                      </DropdownMenuItem>
+                    )}
+                    {canDelete && (
+                      <DropdownMenuItem
+                        onClick={() => setShowDeleteDialog(true)}
+                        className="flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors focus:bg-red-50 text-red-600 rounded-md mt-0.5"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="font-medium">Delete Post</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator className="my-1.5" />
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 px-3 py-2 cursor-default text-gray-500 rounded-md"
+                    >
+                      <X className="h-4 w-4" />
+                      <span>Cancel</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
 
-          {/* Post Content */}
-          <div className="py-2">{renderContent()}</div>
+          <div className="p-2 pt-0 enterprise-feed-card-content">
+            {/* Content Warnings */}
+            {renderContentWarnings()}
+
+            {/* Main Content */}
+            <div className="enterprise-feed-card-main-content px-2 py-2">{renderContent()}</div>
+
+            {/* Tags */}
+            {renderTags()}
+
+            {/* Engagement Stats */}
+            {renderEngagementStats()}
+
+            {/* Engagement Actions - Keep only the action buttons, remove duplicate stats */}
+            {showActions && (
+              <div className="enterprise-feed-card-engagement-actions px-2 pb-2">
+                <EnterpriseEngagementActions
+                  entityId={post.id}
+                  entityType={engagementEntityType}
+                  initialEngagementCount={
+                    post.like_count + post.comment_count + (post.share_count || 0)
+                  }
+                  commentCount={post.comment_count || 0}
+                  shareCount={post.share_count || 0}
+                  bookmarkCount={post.bookmark_count || 0}
+                  viewCount={post.view_count || 0}
+                  isLiked={post.is_liked}
+                  isCommented={post.user_has_commented}
+                  isShared={post.user_has_shared}
+                  isBookmarked={post.user_has_bookmarked}
+                  isViewed={post.user_has_viewed}
+                  currentReaction={(post.user_reaction_type as ReactionType | null) || null}
+                  showReactionSummary={false}
+                  onEngagement={async (
+                    action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view',
+                    entityId: string,
+                    entityType: string,
+                    reactionType?: any
+                  ) => {
+                    // Handle engagement
+                    console.log('Engagement action:', action, entityId, entityType, reactionType)
+                    // Update local state if needed
+                    if (onPostUpdated) {
+                      const updatedPost = { ...post }
+                      onPostUpdated(updatedPost)
+                    }
+                  }}
+                  onCommentAdded={async (newComment: any) => {
+                    // Add the new comment to the local state
+                    setEngagementData((prev: any) => ({
+                      ...prev,
+                      comments: [newComment, ...prev.comments],
+                    }))
+
+                    // Update the post's comment count
+                    if (onPostUpdated) {
+                      const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
+                      onPostUpdated(updatedPost)
+                    }
+                  }}
+                  onShare={async (entityId: string, entityType: string) => {
+                    console.log('Share action:', entityId, entityType)
+                    // Handle share logic
+                  }}
+                  onBookmark={async (entityId: string, entityType: string) => {
+                    console.log('Bookmark action:', entityId, entityType)
+                    // Handle bookmark logic
+                  }}
+                  onCommentClick={() => {}}
+                />
+              </div>
+            )}
+          </div>
 
           {/* Comment Filter Bar */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-4 mt-2">

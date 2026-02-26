@@ -132,6 +132,8 @@ export function EnterpriseReactionPopup({
     {} as Record<ReactionType, number>
   )
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [isMobileCentered, setIsMobileCentered] = useState(false)
+  const [mobileTop, setMobileTop] = useState<number | null>(null)
 
   // Refs
   const popupRef = useRef<HTMLDivElement>(null)
@@ -156,6 +158,54 @@ export function EnterpriseReactionPopup({
       calculateOptimalPosition()
     }
   }, [isVisible, autoPosition, triggerRef])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const mediaQuery = window.matchMedia('(max-width: 640px), (hover: none), (pointer: coarse)')
+    const updateMobileState = () => setIsMobileCentered(mediaQuery.matches)
+
+    updateMobileState()
+    mediaQuery.addEventListener('change', updateMobileState)
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateMobileState)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isVisible || !isMobileCentered || !triggerRef?.current || !popupRef.current) return
+
+    const updateMobileTop = () => {
+      if (!triggerRef?.current || !popupRef.current) return
+
+      const triggerRect = triggerRef.current.getBoundingClientRect()
+      const popupRect = popupRef.current.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const margin = 8
+
+      const preferredTop =
+        popupPosition === 'bottom'
+          ? triggerRect.bottom + margin
+          : triggerRect.top - popupRect.height - margin
+
+      const clampedTop = Math.max(
+        margin,
+        Math.min(preferredTop, viewportHeight - popupRect.height - margin)
+      )
+
+      setMobileTop(clampedTop)
+    }
+
+    updateMobileTop()
+    window.addEventListener('resize', updateMobileTop)
+    window.addEventListener('scroll', updateMobileTop, { passive: true })
+
+    return () => {
+      window.removeEventListener('resize', updateMobileTop)
+      window.removeEventListener('scroll', updateMobileTop)
+    }
+  }, [isVisible, isMobileCentered, popupPosition, triggerRef])
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -208,6 +258,10 @@ export function EnterpriseReactionPopup({
   }, [position, triggerRef])
 
   const getPositionClasses = useCallback(() => {
+    if (isMobileCentered) {
+      return 'fixed z-[120] left-1/2 -translate-x-1/2'
+    }
+
     if (!autoPosition) {
       return 'relative z-[100]'
     }
@@ -226,7 +280,7 @@ export function EnterpriseReactionPopup({
       default:
         return `${baseClasses} top-full mt-2 left-1/2 transform -translate-x-1/2`
     }
-  }, [popupPosition, autoPosition])
+  }, [popupPosition, autoPosition, isMobileCentered])
 
   const getSizeClasses = useCallback(() => {
     if (variant === 'compact') {
@@ -524,10 +578,12 @@ export function EnterpriseReactionPopup({
           'absolute z-[100] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-gray-100',
           'backdrop-blur-md bg-white/98',
           variant === 'compact' ? 'rounded-full px-1 py-1' : 'rounded-2xl p-4',
+          isMobileCentered && variant !== 'compact' && 'w-[calc(100vw-24px)] max-w-sm',
           getPositionClasses(),
           getAnimationClasses(),
           className
         )}
+        style={isMobileCentered && mobileTop !== null ? { top: `${mobileTop}px` } : undefined}
         data-reaction-popup
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}

@@ -646,6 +646,8 @@ export function EnterpriseEngagementActions({
     handleReactionButtonLeave,
     handlePopupMouseEnter,
     handlePopupMouseLeave,
+    requireAuth,
+    user,
     engagement?.isLoading,
   ])
 
@@ -672,7 +674,7 @@ export function EnterpriseEngagementActions({
         <span className="engagement-action-label hidden md:inline">Comment</span>
       </Button>
     )
-  }, [showCommentInput, isCommentInputVisible, onCommentClick, engagement?.isLoading])
+  }, [showCommentInput, isCommentInputVisible, onCommentClick, requireAuth, engagement?.isLoading])
 
   const renderShareButton = useCallback(() => {
     if (!showShareOptions) return null

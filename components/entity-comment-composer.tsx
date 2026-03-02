@@ -7,6 +7,7 @@ import { Image as ImageIcon, Smile } from 'lucide-react'
 import EntityAvatar from '@/components/entity-avatar'
 import PostButton from '@/components/ui/post-button'
 import { useToast } from '@/hooks/use-toast'
+import { CommentComposerToolbar } from '@/components/ui/comment-composer-toolbar'
 
 interface EntityCommentComposerProps {
   entityId: string
@@ -202,25 +203,18 @@ export default function EntityCommentComposer({
                   onInput={resize}
                 />
                 <div className={actionsClassName || 'flex items-center justify-between mt-2'}>
-                  <div className={quickActionsClassName || 'flex items-center gap-2 text-gray-500'}>
-                    <button
-                      className={
-                        iconButtonClassName ||
-                        'p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100'
-                      }
-                    >
-                      <ImageIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      className={
-                        iconButtonClassName ||
-                        'p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100'
-                      }
-                    >
-                      <Smile className="h-4 w-4" />
-                    </button>
-                    <span className="text-[10px] font-semibold ml-1">GIF</span>
-                  </div>
+                  <CommentComposerToolbar
+                    value={text}
+                    onChange={setText}
+                    disabled={isSubmitting}
+                    className={quickActionsClassName || 'flex items-center gap-2 text-gray-500'}
+                    buttonClassName={
+                      iconButtonClassName ||
+                      'p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100'
+                    }
+                    uploadFolder={`${entityType || 'entity'}_comments`}
+                    showGif={true}
+                  />
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"

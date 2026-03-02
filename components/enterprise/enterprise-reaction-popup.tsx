@@ -731,16 +731,14 @@ export function ReactionSummary({
   maxReactions?: number
   refreshToken?: number
 }) {
-  const { getEngagement } = useEngagement()
-  const engagement = getEngagement(entityId, entityType)
-  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>(
-    {} as Record<ReactionType, number>
-  )
-  const [reactionUsersByType, setReactionUsersByType] = useState<
-    Record<ReactionType, Array<{ user?: { name?: string } }>>
-  >({} as Record<ReactionType, Array<{ user?: { name?: string } }>>)
-  const [activeFilter, setActiveFilter] = useState<ReactionType | null>(null)
-  const [isHoveringTotalCount, setIsHoveringTotalCount] = useState(false)
+  const { getEngagement } = useEngagement();
+  const engagement = getEngagement(entityId, entityType);
+  // All hooks must be called unconditionally at the top
+  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>({} as Record<ReactionType, number>);
+  const [reactionUsersByType, setReactionUsersByType] = useState<Record<ReactionType, Array<{ user?: { name?: string } }>>>({} as Record<ReactionType, Array<{ user?: { name?: string } }>>);
+  const [activeFilter, setActiveFilter] = useState<ReactionType | null>(null);
+  const [isHoveringTotalCount, setIsHoveringTotalCount] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -748,121 +746,128 @@ export function ReactionSummary({
         const response = await fetch(
           `/api/engagement/reactions/counts?entity_id=${entityId}&entity_type=${entityType}`,
           { cache: 'no-store' }
-        )
+        );
         if (response.ok) {
-          const data = await response.json()
-          setReactionCounts(data.counts || {})
-          setReactionUsersByType(data.users_by_type || {})
+          const data = await response.json();
+          setReactionCounts(data.counts || {});
+          setReactionUsersByType(data.users_by_type || {});
         }
       } catch (error) {
-        console.error('Error fetching reaction counts:', error)
+        console.error('Error fetching reaction counts:', error);
       }
-    }
-    fetchCounts()
-  }, [entityId, entityType, engagement?.reactionCount, engagement?.userReaction, refreshToken])
+    };
+    fetchCounts();
+  }, [entityId, entityType, engagement?.reactionCount, engagement?.userReaction, refreshToken]);
 
   // Check if we have any reactions at all from the fetched counts
-  const totalReactionCount = Object.values(reactionCounts || {}).reduce((a, b) => a + b, 0)
+  const totalReactionCount = Object.values(reactionCounts || {}).reduce((a, b) => a + b, 0);
 
   // Use global count from context if available, otherwise fallback to fetched total
-  const displayTotalCount = engagement?.reactionCount ?? totalReactionCount
+  const displayTotalCount = engagement?.reactionCount ?? totalReactionCount;
 
-  if (displayTotalCount === 0) return null
+  if (displayTotalCount === 0) return null;
 
   // Ensure user's reaction is represented in the list if we're in an optimistic state
-  const effectiveCounts = { ...(reactionCounts || {}) } as Record<string, number>
-  const userReaction = engagement?.userReaction
+  const effectiveCounts = { ...(reactionCounts || {}) } as Record<string, number>;
+  const userReaction = engagement?.userReaction;
   if (userReaction && (effectiveCounts[userReaction] || 0) === 0) {
-    effectiveCounts[userReaction] = 1
+    effectiveCounts[userReaction] = 1;
   }
 
   const topReactions = Object.entries(effectiveCounts)
     .filter(([_, count]) => count > 0)
     .sort(([_, a], [__, b]) => (b as number) - (a as number))
-    .slice(0, maxReactions)
+    .slice(0, maxReactions);
 
   const popupUsers = activeFilter
     ? (reactionUsersByType[activeFilter] || [])
-    : Object.values(reactionUsersByType).flat()
+    : Object.values(reactionUsersByType).flat();
 
   const popupTitle = isHoveringTotalCount
     ? 'Reactions'
     : activeFilter
       ? activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1)
-      : 'Reactions'
+      : 'Reactions';
 
   const popupCount = isHoveringTotalCount
     ? displayTotalCount
     : activeFilter
       ? reactionCounts[activeFilter] || popupUsers.length
-      : displayTotalCount
+      : displayTotalCount;
+
+  // Handlers for icon and count
+  const handleIconEnter = (reactionType: ReactionType) => {
+    setIsHoveringTotalCount(false);
+    setActiveFilter(reactionType);
+    setShowPopup(true);
+  };
+  const handleCountEnter = () => {
+    setActiveFilter(null);
+    setIsHoveringTotalCount(true);
+    setShowPopup(true);
+  };
+  const handlePopupLeave = () => {
+    setActiveFilter(null);
+    setIsHoveringTotalCount(false);
+    setShowPopup(false);
+  };
 
   return (
-    <div
-      className={cn('engagement-reactions flex items-center gap-1 relative group', className)}
-      onMouseLeave={() => {
-        setActiveFilter(null)
-        setIsHoveringTotalCount(false)
-      }}
-    >
+    <div className={cn('engagement-reactions flex items-center gap-1 relative', className)}>
       <div className="flex items-center -space-x-1 mr-1">
         {topReactions.map(([reactionType], index) => {
-          const reaction = REACTION_OPTIONS.find((r) => r.type === (reactionType as ReactionType))
-          if (!reaction) return null
-
+          const reaction = REACTION_OPTIONS.find((r) => r.type === (reactionType as ReactionType));
+          if (!reaction) return null;
           return (
             <div
               key={reactionType}
               className="engagement-reaction-icon rounded-full flex items-center justify-center p-0.5 cursor-pointer transition-transform hover:scale-110"
               style={{ zIndex: 10 + index }}
-              onMouseEnter={() => {
-                setIsHoveringTotalCount(false)
-                setActiveFilter(reactionType as ReactionType)
-              }}
+              onMouseEnter={() => handleIconEnter(reactionType as ReactionType)}
+              onMouseLeave={handlePopupLeave}
             >
               <span className="text-[10px]" title={reaction.label}>{reaction.emoji}</span>
             </div>
-          )
+          );
         })}
       </div>
-
       <span
         className="engagement-reaction-count text-xs font-semibold text-gray-700 cursor-pointer"
-        onMouseEnter={() => {
-          setActiveFilter(null)
-          setIsHoveringTotalCount(true)
-        }}
-        onMouseLeave={() => setIsHoveringTotalCount(false)}
+        onMouseEnter={handleCountEnter}
+        onMouseLeave={handlePopupLeave}
       >
         {displayTotalCount}
       </span>
-
-      <div
-        style={{ backgroundColor: 'var(--color-app-theme-blue)' }}
-        className="absolute bottom-full left-0 mb-2 px-3 py-2 border-none rounded-xl shadow-2xl transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-[100] min-w-40 max-h-64 overflow-y-auto opacity-0 group-hover:opacity-100"
-      >
-        <div className="text-xs font-bold text-white mb-2 pb-1 border-b border-white/20">
-          {popupTitle}
+      {showPopup && (
+        <div
+          style={{ backgroundColor: 'var(--color-app-theme-blue)' }}
+          className="absolute bottom-full left-0 mb-2 px-3 py-2 border-none rounded-xl shadow-2xl transition-all duration-200 z-[100] min-w-40 max-h-64 overflow-y-auto opacity-100"
+          onMouseEnter={() => setShowPopup(true)}
+          onMouseLeave={handlePopupLeave}
+        >
+          <div className="text-xs font-bold text-white mb-2 pb-1 border-b border-white/20">
+            {popupTitle}
+          </div>
+          {popupUsers.length > 0 ? (
+            <div className="space-y-0">
+              {popupUsers.slice(0, 15).map((item, idx) => (
+                <div key={`${item.user?.name || 'Unknown User'}-${idx}`} className="text-xs text-white truncate leading-tight py-0.5">
+                  {item.user?.name || 'Unknown User'}
+                </div>
+              ))}
+              {popupCount > 15 && (
+                <div className="text-xs text-white font-normal pt-1 mt-1">
+                  and {popupCount - 15} more...
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-white/80 font-normal py-1 italic text-center">
+              {activeFilter ? `No ${activeFilter} reactions` : 'No recent reactions'}
+            </div>
+          )}
         </div>
-        {popupUsers.length > 0 ? (
-          <div className="space-y-0">
-            {popupUsers.slice(0, 15).map((item, idx) => (
-              <div key={`${item.user?.name || 'Unknown User'}-${idx}`} className="text-xs text-white truncate leading-tight py-0.5">
-                {item.user?.name || 'Unknown User'}
-              </div>
-            ))}
-            {popupCount > 15 && (
-              <div className="text-xs text-white font-normal pt-1 mt-1">
-                and {popupCount - 15} more...
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-xs text-white/80 font-normal py-1 italic text-center">
-            {activeFilter ? `No ${activeFilter} reactions` : 'No recent reactions'}
-          </div>
-        )}
-      </div>
+      )}
     </div>
-  )
+  );
 }

@@ -2103,8 +2103,8 @@ export default function EntityFeedCard({
                           entityType="comment"
                           timestamp={formatTimeAgo(first.created_at)}
                           className="gap-4"
-                          showLike={!!user}
-                          showReply={!!user}
+                          showLike={false}
+                          showReply={false}
                         />
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -2259,8 +2259,8 @@ export default function EntityFeedCard({
                           onReplyClick={() =>
                             setExpandedReplies((prev) => ({ ...prev, [first.id]: true }))
                           }
-                          showLike={!!user}
-                          showReply={!!user}
+                          showLike={false}
+                          showReply={false}
                         />
                         {expandedReplies[first.id] && (
                           <div className="mt-2">

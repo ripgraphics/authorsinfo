@@ -71,12 +71,14 @@ export function CommentActionButtons({
       )}
 
       {showReactionSummary && (
-        <ReactionSummary 
-          entityId={entityId} 
-          entityType={entityType} 
-          maxReactions={4}
-          refreshToken={reactionRefreshToken}
-        />
+        <div className="reaction-summary-trigger" style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <ReactionSummary 
+            entityId={entityId} 
+            entityType={entityType} 
+            maxReactions={4}
+            refreshToken={reactionRefreshToken}
+          />
+        </div>
       )}
     </div>
   )

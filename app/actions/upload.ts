@@ -445,6 +445,47 @@ export async function finalizeImageUpload(imageId: string) {
   }
 }
 
+export async function cacheRemoteImage(
+  remoteUrl: string,
+  folder = 'external_media',
+  altText = '',
+  options: UploadImageOptions = {}
+) {
+  try {
+    if (!remoteUrl || !/^https?:\/\//i.test(remoteUrl)) {
+      throw new Error('A valid remote image URL is required')
+    }
+
+    const response = await fetch(remoteUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch remote image: ${response.status}`)
+    }
+
+    const contentType = response.headers.get('content-type') || ''
+    if (!contentType.includes('image/')) {
+      throw new Error('Remote URL did not return an image')
+    }
+
+    const imageBuffer = await response.arrayBuffer()
+    const base64Image = Buffer.from(imageBuffer).toString('base64')
+
+    return await uploadImage(
+      base64Image,
+      folder,
+      altText,
+      undefined,
+      undefined,
+      undefined,
+      options
+    )
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error(`Failed to cache remote image: ${String(error)}`)
+  }
+}
+
 export async function replaceImage(
   oldImageUrl: string | null,
   newBase64Image: string,

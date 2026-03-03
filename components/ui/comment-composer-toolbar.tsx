@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Image as ImageIcon, Loader2, Smile } from 'lucide-react'
-import { uploadImage } from '@/app/actions/upload'
+import { cacheRemoteImage, uploadImage } from '@/app/actions/upload'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { Grid } from '@giphy/react-components'
@@ -24,6 +24,7 @@ import type { IGif } from '@giphy/js-types'
 import type { EmojiClickData } from 'emoji-picker-react'
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
+const GIPHY_SDK_FALLBACK_KEY = 'dc6zaTOxFJmzC'
 
 const appendWithSpacing = (currentValue: string, token: string) => {
   if (!currentValue.trim()) return token
@@ -59,15 +60,13 @@ export function CommentComposerToolbar({
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [isCachingGif, setIsCachingGif] = useState(false)
   const [isGifDialogOpen, setIsGifDialogOpen] = useState(false)
   const [gifQuery, setGifQuery] = useState('trending')
 
   const maxImageSizeBytes = useMemo(() => maxImageSizeMb * 1024 * 1024, [maxImageSizeMb])
-  const giphyApiKey = process.env.NEXT_PUBLIC_GIPHY_API_KEY
-  const giphyFetch = useMemo(
-    () => (giphyApiKey ? new GiphyFetch(giphyApiKey) : null),
-    [giphyApiKey]
-  )
+  const giphySdkKey = process.env.NEXT_PUBLIC_GIPHY_API_KEY || GIPHY_SDK_FALLBACK_KEY
+  const giphyFetch = useMemo(() => new GiphyFetch(giphySdkKey), [giphySdkKey])
 
   const insertToken = (token: string) => {
     onChange(appendWithSpacing(value, token))
@@ -169,9 +168,13 @@ export function CommentComposerToolbar({
     insertToken(emojiData.emoji)
   }
 
-  const handleGifSelect = (gif: IGif, event: React.SyntheticEvent<HTMLElement, Event>) => {
+  const handleGifSelect = async (gif: IGif, event: React.SyntheticEvent<HTMLElement, Event>) => {
     event.preventDefault()
-    const gifUrl = gif.images.fixed_height?.url || gif.images.original?.url
+    const gifUrl =
+      gif.images.fixed_width_downsampled?.url ||
+      gif.images.fixed_height?.url ||
+      gif.images.original?.url
+
     if (!gifUrl) {
       toast({
         title: 'GIF unavailable',
@@ -181,15 +184,50 @@ export function CommentComposerToolbar({
       return
     }
 
-    insertToken(gifUrl)
+    let selectedUrl = gifUrl
+    let uploadedAsset: { url: string; imageId?: string; publicId?: string } | null = null
+
+    setIsCachingGif(true)
+    try {
+      const cachedGif = await cacheRemoteImage(
+        gifUrl,
+        uploadFolder,
+        gif.title ? `GIF: ${gif.title}` : 'Comment GIF',
+        {
+          lifecycle: 'temporary',
+          usage: 'comment_gif_attachment',
+        }
+      )
+
+      if (cachedGif?.url) {
+        selectedUrl = cachedGif.url
+        uploadedAsset = {
+          url: cachedGif.url,
+          imageId: cachedGif.imageId,
+          publicId: cachedGif.publicId,
+        }
+      }
+    } catch {
+      toast({
+        title: 'Using provider GIF',
+        description: 'Could not cache GIF in media pipeline. Using source URL instead.',
+      })
+    } finally {
+      setIsCachingGif(false)
+    }
+
+    if (insertImageUrlIntoText) {
+      insertToken(selectedUrl)
+    }
+
+    if (onImageUploaded) {
+      onImageUploaded(uploadedAsset || { url: selectedUrl })
+    }
+
     setIsGifDialogOpen(false)
   }
 
   const fetchGifs = (offset: number) => {
-    if (!giphyFetch) {
-      return Promise.resolve({ data: [], pagination: { count: 0, offset, total_count: 0 }, meta: { status: 200, msg: 'no_api_key', response_id: '' } })
-    }
-
     const query = gifQuery.trim()
     if (!query || query.toLowerCase() === 'trending') {
       return giphyFetch.trending({ offset, limit: 24, rating: 'pg-13' })
@@ -258,43 +296,39 @@ export function CommentComposerToolbar({
               variant="ghost"
               size="sm"
               className={cn('h-9 px-2 text-[11px] font-semibold', buttonClassName)}
-              disabled={disabled}
+              disabled={disabled || isCachingGif}
             >
-              GIF
+              {isCachingGif ? 'Saving...' : 'GIF'}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Choose a GIF</DialogTitle>
               <DialogDescription>
-                Search and insert a GIF directly into your comment.
+                Search and insert a GIF directly into your comment with GIPHY SDK.
               </DialogDescription>
             </DialogHeader>
-            {!giphyApiKey ? (
-              <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-                Set NEXT_PUBLIC_GIPHY_API_KEY in your environment to enable GIF search.
-              </div>
-            ) : (
-              <>
-                <Input
-                  value={gifQuery}
-                  onChange={(event) => setGifQuery(event.target.value)}
-                  placeholder="Search GIFs (or use trending)"
+            <>
+              <Input
+                value={gifQuery}
+                onChange={(event) => setGifQuery(event.target.value)}
+                placeholder="Search GIFs (or use trending)"
+              />
+              <div className="max-h-[420px] overflow-y-auto rounded-md border">
+                <Grid
+                  key={gifQuery || 'trending'}
+                  width={460}
+                  columns={3}
+                  gutter={6}
+                  fetchGifs={fetchGifs}
+                  onGifClick={(gif, event) => {
+                    void handleGifSelect(gif, event)
+                  }}
+                  noLink={true}
+                  hideAttribution={false}
                 />
-                <div className="max-h-[420px] overflow-y-auto rounded-md border">
-                  <Grid
-                    key={gifQuery || 'trending'}
-                    width={460}
-                    columns={3}
-                    gutter={6}
-                    fetchGifs={fetchGifs}
-                    onGifClick={handleGifSelect}
-                    noLink={true}
-                    hideAttribution={false}
-                  />
-                </div>
-              </>
-            )}
+              </div>
+            </>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsGifDialogOpen(false)}>
                 Close

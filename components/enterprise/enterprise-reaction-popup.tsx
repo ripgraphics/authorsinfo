@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
@@ -739,6 +740,9 @@ export function ReactionSummary({
   const [activeFilter, setActiveFilter] = useState<ReactionType | null>(null);
   const [isHoveringTotalCount, setIsHoveringTotalCount] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [canUsePortal, setCanUsePortal] = useState(false);
+  const triggerContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -758,6 +762,43 @@ export function ReactionSummary({
     };
     fetchCounts();
   }, [entityId, entityType, engagement?.reactionCount, engagement?.userReaction, refreshToken]);
+
+  useEffect(() => {
+    setCanUsePortal(typeof window !== 'undefined' && typeof document !== 'undefined');
+  }, []);
+
+  useEffect(() => {
+    if (!showPopup || !triggerContainerRef.current || !canUsePortal) return;
+
+    const updatePopupPosition = () => {
+      if (!triggerContainerRef.current) return;
+
+      const rect = triggerContainerRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const estimatedPopupWidth = 220;
+      const margin = 8;
+
+      const preferredLeft = rect.left;
+      const clampedLeft = Math.max(
+        margin,
+        Math.min(preferredLeft, viewportWidth - estimatedPopupWidth - margin)
+      );
+
+      setPopupPosition({
+        top: rect.top - margin,
+        left: clampedLeft,
+      });
+    };
+
+    updatePopupPosition();
+    window.addEventListener('resize', updatePopupPosition);
+    window.addEventListener('scroll', updatePopupPosition, { passive: true });
+
+    return () => {
+      window.removeEventListener('resize', updatePopupPosition);
+      window.removeEventListener('scroll', updatePopupPosition);
+    };
+  }, [showPopup, canUsePortal]);
 
   // Check if we have any reactions at all from the fetched counts
   const totalReactionCount = Object.values(reactionCounts || {}).reduce((a, b) => a + b, 0);
@@ -812,8 +853,45 @@ export function ReactionSummary({
     setShowPopup(false);
   };
 
+  const popupElement = showPopup ? (
+    <div
+      style={{
+        backgroundColor: 'var(--color-app-theme-blue)',
+        position: 'fixed',
+        top: popupPosition.top,
+        left: popupPosition.left,
+        transform: 'translateY(-100%)',
+      }}
+      className="px-3 py-2 border-none rounded-xl shadow-2xl transition-all duration-200 z-[250] min-w-40 max-w-56 max-h-64 overflow-y-auto opacity-100"
+      onMouseEnter={() => setShowPopup(true)}
+      onMouseLeave={handlePopupLeave}
+    >
+      <div className="text-xs font-bold text-white mb-2 pb-1 border-b border-white/20">
+        {popupTitle}
+      </div>
+      {popupUsers.length > 0 ? (
+        <div className="space-y-0">
+          {popupUsers.slice(0, 15).map((item, idx) => (
+            <div key={`${item.user?.name || 'Unknown User'}-${idx}`} className="text-xs text-white truncate leading-tight py-0.5">
+              {item.user?.name || 'Unknown User'}
+            </div>
+          ))}
+          {popupCount > 15 && (
+            <div className="text-xs text-white font-normal pt-1 mt-1">
+              and {popupCount - 15} more...
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="text-xs text-white/80 font-normal py-1 italic text-center">
+          {activeFilter ? `No ${activeFilter} reactions` : 'No recent reactions'}
+        </div>
+      )}
+    </div>
+  ) : null;
+
   return (
-    <div className={cn('engagement-reactions flex items-center gap-1 relative', className)}>
+    <div ref={triggerContainerRef} className={cn('engagement-reactions flex items-center gap-1 relative', className)}>
       <div className="flex items-center -space-x-1 mr-1">
         {topReactions.map(([reactionType], index) => {
           const reaction = REACTION_OPTIONS.find((r) => r.type === (reactionType as ReactionType));
@@ -838,36 +916,7 @@ export function ReactionSummary({
       >
         {displayTotalCount}
       </span>
-      {showPopup && (
-        <div
-          style={{ backgroundColor: 'var(--color-app-theme-blue)' }}
-          className="absolute bottom-full left-0 mb-2 px-3 py-2 border-none rounded-xl shadow-2xl transition-all duration-200 z-[100] min-w-40 max-h-64 overflow-y-auto opacity-100"
-          onMouseEnter={() => setShowPopup(true)}
-          onMouseLeave={handlePopupLeave}
-        >
-          <div className="text-xs font-bold text-white mb-2 pb-1 border-b border-white/20">
-            {popupTitle}
-          </div>
-          {popupUsers.length > 0 ? (
-            <div className="space-y-0">
-              {popupUsers.slice(0, 15).map((item, idx) => (
-                <div key={`${item.user?.name || 'Unknown User'}-${idx}`} className="text-xs text-white truncate leading-tight py-0.5">
-                  {item.user?.name || 'Unknown User'}
-                </div>
-              ))}
-              {popupCount > 15 && (
-                <div className="text-xs text-white font-normal pt-1 mt-1">
-                  and {popupCount - 15} more...
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-xs text-white/80 font-normal py-1 italic text-center">
-              {activeFilter ? `No ${activeFilter} reactions` : 'No recent reactions'}
-            </div>
-          )}
-        </div>
-      )}
+      {canUsePortal && popupElement ? createPortal(popupElement, document.body) : popupElement}
     </div>
   );
 }

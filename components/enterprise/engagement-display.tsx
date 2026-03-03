@@ -335,21 +335,21 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   const getReactionIcon = (reactionType?: string | null) => {
     switch (reactionType?.toLowerCase()) {
       case 'love':
-        return <span className="text-[12px] leading-none">❤️</span>
+        return <span className="text-[18px] leading-none block w-full h-full text-center">❤️</span>
       case 'like':
-        return <span className="text-[12px] leading-none">👍</span>
+        return <span className="text-[18px] leading-none block w-full h-full text-center">👍</span>
       case 'care':
-        return <span className="text-[12px] leading-none">🤗</span>
+        return <span className="text-[18px] leading-none block w-full h-full text-center">🤗</span>
       case 'haha':
-        return <span className="text-[12px] leading-none">😂</span>
+        return <span className="text-[18px] leading-none block w-full h-full text-center">😂</span>
       case 'wow':
-        return <span className="text-[12px] leading-none">😮</span>
+        return <span className="text-[18px] leading-none block w-full h-full text-center">😮</span>
       case 'sad':
-        return <span className="text-[12px] leading-none">😢</span>
+        return <span className="text-[18px] leading-none block w-full h-full text-center">😢</span>
       case 'angry':
-        return <span className="text-[12px] leading-none">😠</span>
+        return <span className="text-[18px] leading-none block w-full h-full text-center">😠</span>
       default:
-        return <span className="text-[12px] leading-none">👍</span>
+        return <span className="text-[18px] leading-none block w-full h-full text-center">👍</span>
     }
   }
 
@@ -421,11 +421,11 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                       setActiveFilter(type)
                     }}
                     className={cn(
-                      'engagement-reaction-icon rounded-full p-0.5 z-[3] transition-transform hover:scale-110 cursor-pointer'
+                      'engagement-reaction-icon bg-transparent w-6 h-6 flex items-center justify-center p-0 z-[3] transition-transform hover:scale-110 cursor-pointer'
                     )}
                     style={{ zIndex: 10 + idx }}
                   >
-                    <div>
+                    <div className="w-full h-full flex items-center justify-center bg-transparent">
                       {getReactionIcon(type)}
                     </div>
                   </div>

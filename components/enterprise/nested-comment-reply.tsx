@@ -213,6 +213,7 @@ export function NestedCommentReply({
               <TaggedTextRenderer
                 text={parentComment.content}
                 showPreviews={false}
+                renderMediaUrls={true}
               />
             </div>
           </div>

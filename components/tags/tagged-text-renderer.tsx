@@ -14,8 +14,14 @@ import { cn } from '@/lib/utils'
 export interface TaggedTextRendererProps {
   text: string
   className?: string
+  /** Optional class name for text portion when media rendering is enabled */
+  textClassName?: string
   /** Show preview cards on hover. Default true. */
   showPreviews?: boolean
+  /** Parse image/GIF URLs and render them as media previews below text. Default false. */
+  renderMediaUrls?: boolean
+  /** Optional class name for rendered media elements */
+  mediaClassName?: string
   /** Additional tagging data if available (from database) */
   taggings?: Array<{
     id: string
@@ -37,6 +43,18 @@ interface ParsedSegment {
   content: string
   slug?: string
   entityType?: 'user' | 'entity'
+}
+
+const MEDIA_URL_REGEX = /https?:\/\/[^\s]+\.(?:gif|png|jpe?g|webp|avif)(?:\?[^\s]*)?/gi
+
+function extractMediaUrls(text: string): string[] {
+  if (!text) return []
+  return Array.from(new Set(text.match(MEDIA_URL_REGEX) || []))
+}
+
+function stripMediaUrls(text: string): string {
+  if (!text) return ''
+  return text.replace(MEDIA_URL_REGEX, '').replace(/\n{3,}/g, '\n\n').trim()
 }
 
 /**
@@ -93,7 +111,10 @@ function parseTextWithTags(text: string): ParsedSegment[] {
 export function TaggedTextRenderer({
   text,
   className,
+  textClassName,
   showPreviews = true,
+  renderMediaUrls = false,
+  mediaClassName,
   taggings = [],
   onTagClick,
 }: TaggedTextRendererProps) {
@@ -108,15 +129,21 @@ export function TaggedTextRenderer({
     return map
   }, [taggings])
 
-  // Parse text into segments
-  const segments = useMemo(() => parseTextWithTags(text), [text])
+  const mediaUrls = useMemo(() => (renderMediaUrls ? extractMediaUrls(text) : []), [renderMediaUrls, text])
+  const textWithoutMedia = useMemo(
+    () => (renderMediaUrls ? stripMediaUrls(text) : text),
+    [renderMediaUrls, text]
+  )
 
-  if (segments.length === 0) {
+  // Parse text into segments
+  const segments = useMemo(() => parseTextWithTags(textWithoutMedia), [textWithoutMedia])
+
+  if (segments.length === 0 && mediaUrls.length === 0) {
     return null
   }
 
-  return (
-    <span className={cn('whitespace-pre-wrap break-words', className)}>
+  const textContent = (
+    <span className={cn('whitespace-pre-wrap break-words', textClassName)}>
       {segments.map((segment, index) => {
         if (segment.type === 'text') {
           return <span key={index}>{segment.content}</span>
@@ -164,6 +191,32 @@ export function TaggedTextRenderer({
         )
       })}
     </span>
+  )
+
+  if (!renderMediaUrls) {
+    return <span className={className}>{textContent}</span>
+  }
+
+  return (
+    <div className={cn('space-y-2', className)}>
+      {segments.length > 0 ? textContent : null}
+      {mediaUrls.length > 0 ? (
+        <div className="space-y-2">
+          {mediaUrls.map((mediaUrl) => (
+            <img
+              key={mediaUrl}
+              src={mediaUrl}
+              alt="Comment media"
+              className={cn(
+                'rounded-xl border border-gray-200 max-h-[320px] w-auto max-w-full object-cover',
+                mediaClassName
+              )}
+              loading="lazy"
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   )
 }
 

@@ -165,6 +165,7 @@ export function NestedCommentThread({
                 <TaggedTextRenderer
                   text={comment.content}
                   showPreviews={true}
+                  renderMediaUrls={true}
                 />
               </div>
             </div>

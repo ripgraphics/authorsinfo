@@ -216,6 +216,7 @@ export default function EntityFeedCard({
   const [showCommentsModal, setShowCommentsModal] = useState(false)
   const [commentFilter, setCommentFilter] = useState<'relevant' | 'all'>('relevant')
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({})
+  const [replyComposerFocusTicks, setReplyComposerFocusTicks] = useState<Record<string, number>>({})
   const [canCommentModal, setCanCommentModal] = useState<boolean>(false)
 
   // Inline editing state
@@ -286,6 +287,11 @@ export default function EntityFeedCard({
     setModalComposerFocusTick((t) => t + 1)
   }, [])
 
+  const focusReplyComposer = useCallback((commentId: string) => {
+    setExpandedReplies((prev) => ({ ...prev, [commentId]: true }))
+    setReplyComposerFocusTicks((prev) => ({ ...prev, [commentId]: (prev[commentId] || 0) + 1 }))
+  }, [])
+
   const resizeBottomComposer = useCallback(() => {
     const el = bottomComposerRef.current
     if (!el) return
@@ -343,6 +349,16 @@ export default function EntityFeedCard({
       setIsLoadingComments(false)
     }
   }, [post.id, engagementEntityType])
+
+  const handleCommentSubmitted = useCallback(() => {
+    if (onPostUpdated) {
+      onPostUpdated({
+        ...post,
+        comment_count: (post.comment_count || 0) + 1,
+      })
+    }
+    fetchComments()
+  }, [fetchComments, onPostUpdated, post])
 
   const submitBottomComment = useCallback(async () => {
     const text = bottomComment.trim()
@@ -2087,11 +2103,13 @@ export default function EntityFeedCard({
                             className="text-sm font-semibold text-gray-900"
                           />
                         </div>
-                        <div
-                          ref={firstCommentTextRef}
-                          className="text-sm text-gray-800 leading-relaxed line-clamp-5"
-                        >
-                          {first.comment_text}
+                        <div ref={firstCommentTextRef}>
+                          <TaggedTextRenderer
+                            text={first.comment_text || ''}
+                            showPreviews={true}
+                            renderMediaUrls={true}
+                            textClassName="text-sm text-gray-800 leading-relaxed line-clamp-5"
+                          />
                         </div>
                         {isFirstCommentClamped && (
                           <button
@@ -2253,7 +2271,12 @@ export default function EntityFeedCard({
                             />
                           </div>
                           <div className="text-xs text-gray-800 leading-relaxed">
-                            {firstReply.comment_text}
+                            <TaggedTextRenderer
+                              text={firstReply.comment_text || ''}
+                              showPreviews={true}
+                              renderMediaUrls={true}
+                              textClassName="text-xs text-gray-800 leading-relaxed"
+                            />
                           </div>
                         </div>
                         <CommentActionButtons
@@ -2261,9 +2284,7 @@ export default function EntityFeedCard({
                           entityType="comment"
                           timestamp={formatTimeAgo(firstReply.created_at)}
                           textSize="text-[11px]"
-                          onReplyClick={() =>
-                            setExpandedReplies((prev) => ({ ...prev, [first.id]: true }))
-                          }
+                          onReplyClick={() => focusReplyComposer(first.id)}
                           showLike={false}
                           showReply={false}
                         />
@@ -2274,11 +2295,10 @@ export default function EntityFeedCard({
                               entityType={engagementEntityType}
                               currentUserId={user?.id}
                               currentUserName={currentUserDisplayName}
+                              focusControl={replyComposerFocusTicks[first.id] || 0}
                               parentCommentId={firstReply.id}
                               placeholder={`Reply to ${firstReply.user?.name || 'reply'}`}
-                              onSubmitted={() => {
-                                fetchComments()
-                              }}
+                              onSubmitted={handleCommentSubmitted}
                             />
                           </div>
                         )}
@@ -2313,13 +2333,7 @@ export default function EntityFeedCard({
             iconButtonClassName="enterprise-comment-composer-icon p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
             cancelButtonClassName="enterprise-comment-composer-cancel h-8 px-3 text-xs"
             submitButtonClassName="enterprise-comment-composer-submit h-8 px-4 text-xs"
-            onSubmitted={() => {
-              if (onPostUpdated) {
-                const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
-                onPostUpdated(updatedPost)
-              }
-              fetchComments()
-            }}
+            onSubmitted={handleCommentSubmitted}
           />
         </div>
         )}
@@ -2423,15 +2437,7 @@ export default function EntityFeedCard({
                 iconButtonClassName="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
                 cancelButtonClassName="h-8 px-3 text-xs"
                 submitButtonClassName="h-8 px-4 text-xs"
-                onSubmitted={() => {
-                  if (onPostUpdated) {
-                    onPostUpdated({
-                      ...post,
-                      comment_count: (post.comment_count || 0) + 1,
-                    })
-                  }
-                  fetchComments()
-                }}
+                onSubmitted={handleCommentSubmitted}
               />
             </div>
           ) : (
@@ -2821,7 +2827,12 @@ export default function EntityFeedCard({
                             </span>
                           </div>
                           <div className="text-sm text-gray-800 leading-relaxed">
-                            {comment.comment_text}
+                            <TaggedTextRenderer
+                              text={comment.comment_text || ''}
+                              showPreviews={true}
+                              renderMediaUrls={true}
+                              textClassName="text-sm text-gray-800 leading-relaxed"
+                            />
                           </div>
                         </div>
 
@@ -2831,12 +2842,7 @@ export default function EntityFeedCard({
                             <CommentActionButtons
                               entityId={comment.id}
                               entityType="comment"
-                              onReplyClick={() =>
-                                setExpandedReplies((prev) => ({
-                                  ...prev,
-                                  [comment.id]: !prev[comment.id],
-                                }))
-                              }
+                              onReplyClick={() => focusReplyComposer(comment.id)}
                               showLike={!!user}
                               showReply={!!user}
                               showTimestamp={false}
@@ -2888,7 +2894,12 @@ export default function EntityFeedCard({
                                       </span>
                                     </div>
                                     <div className="text-xs text-gray-800">
-                                      {reply.comment_text}
+                                      <TaggedTextRenderer
+                                        text={reply.comment_text || ''}
+                                        showPreviews={true}
+                                        renderMediaUrls={true}
+                                        textClassName="text-xs text-gray-800"
+                                      />
                                     </div>
                                   </div>
 
@@ -2898,12 +2909,7 @@ export default function EntityFeedCard({
                                       entityId={reply.id}
                                       entityType="comment"
                                       textSize="text-[11px]"
-                                      onReplyClick={() =>
-                                        setExpandedReplies((prev) => ({
-                                          ...prev,
-                                          [comment.id]: true,
-                                        }))
-                                      }
+                                      onReplyClick={() => focusReplyComposer(comment.id)}
                                       showLike={!!user}
                                       showReply={!!user}
                                       showTimestamp={false}
@@ -2920,9 +2926,10 @@ export default function EntityFeedCard({
                                   entityType={engagementEntityType}
                                   currentUserId={user?.id}
                                   currentUserName={currentUserDisplayName}
+                                  focusControl={replyComposerFocusTicks[comment.id] || 0}
                                   parentCommentId={comment.id}
                                   placeholder={`Reply to ${comment.user?.name || 'comment'}...`}
-                                  onSubmitted={() => fetchComments()}
+                                  onSubmitted={handleCommentSubmitted}
                                   cancelButtonClassName="h-7 px-2 text-[10px]"
                                   submitButtonClassName="h-7 px-3 text-[10px]"
                                   textareaClassName="min-h-[32px] text-xs"

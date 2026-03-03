@@ -30,7 +30,7 @@
 
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useRef, useId } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
@@ -222,6 +222,9 @@ export function EnterpriseEngagementActions({
   const containerRef = useRef<HTMLDivElement>(null)
   const hasTrackedViewRef = useRef<boolean>(false)
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isReactionButtonHoveredRef = useRef(false)
+  const isReactionPopupHoveredRef = useRef(false)
+  const reactionPopupId = useId()
 
   // ============================================================================
   // EFFECTS AND INITIALIZATION
@@ -309,6 +312,8 @@ export function EnterpriseEngagementActions({
   // ============================================================================
 
   const handleReactionButtonHover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    isReactionButtonHoveredRef.current = true
+
     // Clear any pending close timeout
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
@@ -332,19 +337,25 @@ export function EnterpriseEngagementActions({
     setShowReactionPopup(true)
   }, [])
 
-  const handleReactionButtonLeave = useCallback(() => {
-    // Start a 1-second timeout to close the popup
+  const scheduleReactionPopupClose = useCallback(() => {
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
     closeTimeoutRef.current = setTimeout(() => {
-      // Small verification check: if still hovering the popup, don't close
-      const popup = document.querySelector('[data-reaction-popup]')
-      if (popup && popup.matches(':hover')) return
+      if (isReactionButtonHoveredRef.current || isReactionPopupHoveredRef.current) {
+        return
+      }
 
       setShowReactionPopup(false)
     }, 1000)
   }, [])
 
+  const handleReactionButtonLeave = useCallback(() => {
+    isReactionButtonHoveredRef.current = false
+    scheduleReactionPopupClose()
+  }, [scheduleReactionPopupClose])
+
   const handlePopupMouseEnter = useCallback(() => {
+    isReactionPopupHoveredRef.current = true
+
     // Clear close timeout when entering popup
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
@@ -353,15 +364,9 @@ export function EnterpriseEngagementActions({
   }, [])
 
   const handlePopupMouseLeave = useCallback(() => {
-    // Start 1-second close timeout when leaving popup
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-    closeTimeoutRef.current = setTimeout(() => {
-      // Check if mouse moved back to the button
-      if (reactionButtonRef.current?.matches(':hover')) return
-
-      setShowReactionPopup(false)
-    }, 1000)
-  }, [])
+    isReactionPopupHoveredRef.current = false
+    scheduleReactionPopupClose()
+  }, [scheduleReactionPopupClose])
 
   const handleReactionSelect = useCallback(
     async (reactionType: ReactionType) => {
@@ -625,6 +630,7 @@ export function EnterpriseEngagementActions({
             autoPosition={true}
             size="md"
             animation="scale"
+            popupId={reactionPopupId}
             onMouseEnter={handlePopupMouseEnter}
             onMouseLeave={handlePopupMouseLeave}
           />

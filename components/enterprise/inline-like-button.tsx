@@ -62,6 +62,8 @@ export function InlineLikeButton({
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const popupId = useId()
+  const isButtonHoveredRef = useRef(false)
+  const isPopupHoveredRef = useRef(false)
   const [showPopup, setShowPopup] = useState(false)
 
   // Cleanup timeout on unmount
@@ -74,6 +76,7 @@ export function InlineLikeButton({
   const openReactionPopup = useCallback((e?: React.SyntheticEvent) => {
     e?.preventDefault?.()
     e?.stopPropagation?.()
+    isButtonHoveredRef.current = true
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
@@ -84,18 +87,20 @@ export function InlineLikeButton({
   const schedulePopupClose = useCallback(() => {
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
     closeTimeoutRef.current = setTimeout(() => {
-      const popup = document.querySelector(`[data-reaction-popup-id="${popupId}"]`)
-      if (popup && popup.matches(':hover')) return
-      if (buttonRef.current?.matches(':hover')) return
+      if (isButtonHoveredRef.current || isPopupHoveredRef.current) {
+        return
+      }
       setShowPopup(false)
     }, closeDelayMs)
-  }, [popupId, closeDelayMs])
+  }, [closeDelayMs])
 
   const handleMouseLeave = useCallback(() => {
+    isButtonHoveredRef.current = false
     schedulePopupClose()
   }, [schedulePopupClose])
 
   const handlePopupMouseEnter = useCallback(() => {
+    isPopupHoveredRef.current = true
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
@@ -103,6 +108,7 @@ export function InlineLikeButton({
   }, [])
 
   const handlePopupMouseLeave = useCallback(() => {
+    isPopupHoveredRef.current = false
     schedulePopupClose()
   }, [schedulePopupClose])
 

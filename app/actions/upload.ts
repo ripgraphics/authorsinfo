@@ -2,15 +2,26 @@
 import { supabaseAdmin } from '@/lib/supabase/server'
 import crypto from 'crypto'
 
+export type UploadLifecycle = 'temporary' | 'persistent'
+
+export interface UploadImageOptions {
+  lifecycle?: UploadLifecycle
+  usage?: string
+}
+
 export async function uploadImage(
   base64Image: string,
   folder = 'general',
   alt_text = '',
   maxWidth?: number,
   maxHeight?: number,
-  img_type_id?: string
+  img_type_id?: string,
+  options: UploadImageOptions = {}
 ) {
   try {
+    const lifecycle: UploadLifecycle = options.lifecycle || 'persistent'
+    const uploadedAtIso = new Date().toISOString()
+
     // Get Cloudinary credentials from environment variables
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME
     const apiKey = process.env.CLOUDINARY_API_KEY
@@ -136,6 +147,14 @@ export async function uploadImage(
         tableError?.message
       )
       // Fallback to minimal insert with only required fields
+      const fallbackMetadata = {
+        cloudinary_public_id: data.public_id,
+        upload_lifecycle: lifecycle,
+        upload_usage: options.usage || 'general',
+        uploaded_at: uploadedAtIso,
+        finalized_at: lifecycle === 'persistent' ? uploadedAtIso : null,
+      }
+
       const { data: imageData, error } = await supabaseAdmin
         .from('images')
         .insert([
@@ -145,7 +164,7 @@ export async function uploadImage(
             storage_provider: 'cloudinary',
             storage_path: folder,
             ...(availableColumns.has('metadata')
-              ? { metadata: { cloudinary_public_id: data.public_id } }
+              ? { metadata: fallbackMetadata }
               : {}),
           },
         ])
@@ -182,7 +201,13 @@ export async function uploadImage(
 
     // Only include columns that exist in the schema
     if (availableColumns.has('metadata')) {
-      insertObject.metadata = { cloudinary_public_id: data.public_id }
+      insertObject.metadata = {
+        cloudinary_public_id: data.public_id,
+        upload_lifecycle: lifecycle,
+        upload_usage: options.usage || 'general',
+        uploaded_at: uploadedAtIso,
+        finalized_at: lifecycle === 'persistent' ? uploadedAtIso : null,
+      }
     }
 
     // Add img_type_id only if the column exists in the schema
@@ -368,6 +393,55 @@ export async function getPublicIdFromUrl(url: string): Promise<string | null> {
   } catch (error) {
     console.error('Error getting public ID from URL:', error)
     return null
+  }
+}
+
+export async function finalizeImageUpload(imageId: string) {
+  try {
+    if (!imageId) {
+      return { success: false as const, error: 'imageId is required' }
+    }
+
+    const { data: imageRow, error: fetchError } = await supabaseAdmin
+      .from('images')
+      .select('id, metadata')
+      .eq('id', imageId)
+      .single()
+
+    if (fetchError || !imageRow) {
+      return {
+        success: false as const,
+        error: fetchError?.message || 'Image not found',
+      }
+    }
+
+    const existingMetadata =
+      imageRow.metadata && typeof imageRow.metadata === 'object' ? imageRow.metadata : {}
+
+    const nextMetadata = {
+      ...existingMetadata,
+      upload_lifecycle: 'persistent',
+      finalized_at: new Date().toISOString(),
+    }
+
+    const { error: updateError } = await supabaseAdmin
+      .from('images')
+      .update({ metadata: nextMetadata })
+      .eq('id', imageId)
+
+    if (updateError) {
+      return {
+        success: false as const,
+        error: updateError.message,
+      }
+    }
+
+    return { success: true as const }
+  } catch (error) {
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : 'Failed to finalize image upload',
+    }
   }
 }
 

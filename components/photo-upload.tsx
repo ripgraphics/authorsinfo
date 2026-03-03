@@ -56,7 +56,12 @@ export function PhotoUpload({ entityId, entityType, onUploadComplete }: PhotoUpl
           `${entityType}gallery`,
           `Photo for ${entityType} ${entityId}`,
           1200, // maxWidth
-          1200 // maxHeight
+          1200, // maxHeight
+          undefined,
+          {
+            lifecycle: 'persistent',
+            usage: `${entityType}_gallery`,
+          }
         )
 
         if (result) {

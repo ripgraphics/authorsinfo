@@ -176,7 +176,12 @@ export function EnterpriseImageUpload({
                 folder,
                 altText,
                 finalConfig.targetWidth,
-                finalConfig.targetHeight
+                finalConfig.targetHeight,
+                undefined,
+                {
+                  lifecycle: 'persistent',
+                  usage: `enterprise_${context}`,
+                }
               )
 
               if (result && result.imageId) {

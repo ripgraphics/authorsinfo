@@ -242,6 +242,7 @@ export default function EntityFeedCard({
   const [bottomComment, setBottomComment] = useState('')
   const [isBottomComposerActive, setIsBottomComposerActive] = useState(false)
   const [composerFocusTick, setComposerFocusTick] = useState(0)
+  const [modalComposerFocusTick, setModalComposerFocusTick] = useState(0)
   const bottomComposerRef = useRef<HTMLTextAreaElement>(null)
   const toastRef = useRef(toast)
   const MAX_COMMENT_CHARS = 25000
@@ -279,6 +280,10 @@ export default function EntityFeedCard({
     setIsBottomComposerActive(true)
     setComposerFocusTick((t) => t + 1)
     setTimeout(() => bottomComposerRef.current?.focus(), 0)
+  }, [])
+
+  const focusModalComposer = useCallback(() => {
+    setModalComposerFocusTick((t) => t + 1)
   }, [])
 
   const resizeBottomComposer = useCallback(() => {
@@ -2405,6 +2410,7 @@ export default function EntityFeedCard({
                 entityType={engagementEntityType}
                 currentUserId={user?.id}
                 currentUserName={currentUserDisplayName}
+                focusControl={modalComposerFocusTick}
                 containerClassName=""
                 rowClassName="flex items-center gap-3"
                 avatarClassName="w-8 h-8 flex-shrink-0"
@@ -2737,7 +2743,7 @@ export default function EntityFeedCard({
                     console.log('Bookmark action:', entityId, entityType)
                     // Handle bookmark logic
                   }}
-                  onCommentClick={() => {}}
+                  onCommentClick={focusModalComposer}
                 />
               </div>
             )}

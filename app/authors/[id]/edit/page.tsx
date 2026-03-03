@@ -156,7 +156,14 @@ export default function EditAuthorPage() {
           const uploadResult = await uploadImage(
             base64Image,
             'authorimage',
-            `Photo of ${authorName}`
+            `Photo of ${authorName}`,
+            undefined,
+            undefined,
+            undefined,
+            {
+              lifecycle: 'persistent',
+              usage: 'author_edit_photo',
+            }
           )
 
           if (uploadResult) {

@@ -183,7 +183,14 @@ export default function PublisherEditPage() {
           const logoResult = await uploadImage(
             base64Image,
             'authorsinfo/publisher_image',
-            `Logo for ${publisher.name}`
+            `Logo for ${publisher.name}`,
+            undefined,
+            undefined,
+            undefined,
+            {
+              lifecycle: 'persistent',
+              usage: 'publisher_edit_logo',
+            }
           )
 
           if (logoResult) {
@@ -214,7 +221,14 @@ export default function PublisherEditPage() {
           const coverResult = await uploadImage(
             base64Image,
             'authorsinfo/page_cover',
-            `Cover for ${publisher.name}`
+            `Cover for ${publisher.name}`,
+            undefined,
+            undefined,
+            undefined,
+            {
+              lifecycle: 'persistent',
+              usage: 'publisher_edit_cover',
+            }
           )
 
           if (coverResult) {

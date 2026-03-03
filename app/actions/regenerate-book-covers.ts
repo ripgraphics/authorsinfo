@@ -269,7 +269,12 @@ export async function regenerateBookCovers(
               'authorsinfo/book_cover',
               `Book cover for: ${book.title}`,
               maxWidth,
-              maxHeight
+              maxHeight,
+              undefined,
+              {
+                lifecycle: 'persistent',
+                usage: 'book_cover_regeneration',
+              }
             )
           } catch (error) {
             retries++

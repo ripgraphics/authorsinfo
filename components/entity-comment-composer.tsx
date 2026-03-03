@@ -3,11 +3,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { Image as ImageIcon, Smile } from 'lucide-react'
 import EntityAvatar from '@/components/entity-avatar'
 import PostButton from '@/components/ui/post-button'
 import { useToast } from '@/hooks/use-toast'
 import { CommentComposerToolbar } from '@/components/ui/comment-composer-toolbar'
+import { useUploadLifecycleManager, type ManagedUploadAsset } from '@/hooks/use-upload-lifecycle-manager'
 
 interface EntityCommentComposerProps {
   entityId: string
@@ -63,9 +65,17 @@ export default function EntityCommentComposer({
 }: EntityCommentComposerProps) {
   const [isActive, setIsActive] = useState(false)
   const [text, setText] = useState('')
+  const [attachedImages, setAttachedImages] = useState<ManagedUploadAsset[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { toast } = useToast()
+  const {
+    trackTemporaryUpload,
+    markUploadsPersisted,
+    cleanupAsset,
+    cleanupAssets,
+    cleanupPendingUploads,
+  } = useUploadLifecycleManager()
 
   const focusComposer = useCallback(() => {
     setIsActive(true)
@@ -102,10 +112,15 @@ export default function EntityCommentComposer({
 
   const submit = async () => {
     const content = text.trim()
-    if (!content) {
+    const allContentParts = [content, ...attachedImages.map((asset) => asset.url)]
+      .map((part) => part.trim())
+      .filter(Boolean)
+    const composedContent = allContentParts.join('\n')
+
+    if (!composedContent) {
       return
     }
-    if (content.length > maxChars) {
+    if (composedContent.length > maxChars) {
       toast({
         title: 'Too long',
         description: `Max ${maxChars} characters`,
@@ -122,7 +137,7 @@ export default function EntityCommentComposer({
           entity_id: entityId,
           entity_type: entityType || 'post',
           engagement_type: 'comment',
-          content,
+          content: composedContent,
           parent_id: parentCommentId || undefined,
         }),
       })
@@ -135,7 +150,11 @@ export default function EntityCommentComposer({
         toast({ title: 'Error', description: message, variant: 'destructive' })
         return
       }
+
+      await markUploadsPersisted(attachedImages)
+
       setText('')
+      setAttachedImages([])
       setIsActive(false)
       toast({
         title: 'Comment posted',
@@ -202,10 +221,46 @@ export default function EntityCommentComposer({
                   rows={2}
                   onInput={resize}
                 />
+                {attachedImages.length > 0 && (
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {attachedImages.map((asset, imageIndex) => (
+                      <div
+                        key={`${asset.url}-${imageIndex}`}
+                        className="relative h-20 w-full overflow-hidden rounded-md border border-gray-200 bg-white"
+                      >
+                        <Image
+                          src={asset.url}
+                          alt={`Attached image ${imageIndex + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="120px"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="absolute right-1 top-1 h-6 w-6 rounded-full p-0 text-xs"
+                          onClick={() => {
+                            setAttachedImages((previous) =>
+                              previous.filter((_, currentIndex) => currentIndex !== imageIndex)
+                            )
+                            void cleanupAsset(asset)
+                          }}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className={actionsClassName || 'flex items-center justify-between mt-2'}>
                   <CommentComposerToolbar
                     value={text}
                     onChange={setText}
+                    onImageUploaded={(asset) => {
+                      trackTemporaryUpload(asset)
+                      setAttachedImages((previous) => [...previous, asset])
+                    }}
                     disabled={isSubmitting}
                     className={quickActionsClassName || 'flex items-center gap-2 text-gray-500'}
                     buttonClassName={
@@ -214,6 +269,7 @@ export default function EntityCommentComposer({
                     }
                     uploadFolder={`${entityType || 'entity'}_comments`}
                     showGif={true}
+                    insertImageUrlIntoText={false}
                   />
                   <div className="flex items-center gap-2">
                     <Button
@@ -221,8 +277,12 @@ export default function EntityCommentComposer({
                       size="sm"
                       className={cancelButtonClassName || 'h-8 px-3 text-xs'}
                       onClick={() => {
+                        void cleanupAssets(attachedImages)
+                        void cleanupPendingUploads()
+
                         setIsActive(false)
                         setText('')
+                        setAttachedImages([])
                       }}
                       disabled={isSubmitting}
                     >
@@ -230,7 +290,7 @@ export default function EntityCommentComposer({
                     </Button>
                     <PostButton
                       onClick={submit}
-                      disabled={!text.trim() || isSubmitting}
+                      disabled={(!text.trim() && attachedImages.length === 0) || isSubmitting}
                       loading={isSubmitting}
                       className={submitButtonClassName || ''}
                       sizeClassName="h-8 px-4 text-xs"

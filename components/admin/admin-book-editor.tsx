@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
+import { uploadImage as uploadImageAction } from '@/app/actions/upload'
 import {
   BookOpen,
   User,
@@ -275,24 +276,6 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
     }
   }
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('folder', 'book_covers')
-
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to upload image')
-    }
-
-    const data = await response.json()
-    return data.url
-  }
-
   const handleSave = async () => {
     setSaving(true)
     try {
@@ -300,7 +283,39 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
 
       // Upload new image if selected
       if (imageFile) {
-        coverImageUrl = await uploadImage(imageFile)
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => {
+            const result = reader.result
+            if (typeof result !== 'string') {
+              reject(new Error('Failed to read image file'))
+              return
+            }
+
+            resolve(result)
+          }
+          reader.onerror = () => reject(new Error('Failed to read image file'))
+          reader.readAsDataURL(imageFile)
+        })
+
+        const uploadResult = await uploadImageAction(
+          base64Data,
+          'book_covers',
+          `Book cover ${formData.title || 'Untitled'}`,
+          undefined,
+          undefined,
+          undefined,
+          {
+            lifecycle: 'persistent',
+            usage: 'admin_book_cover',
+          }
+        )
+
+        if (!uploadResult?.url) {
+          throw new Error('Failed to upload image')
+        }
+
+        coverImageUrl = uploadResult.url
       }
 
       const bookData = {

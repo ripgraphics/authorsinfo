@@ -291,7 +291,11 @@ export default function EditBookPage() {
             `Cover of ${bookTitle}`,
             undefined,
             undefined,
-            bookCoverEntityTypeId
+            bookCoverEntityTypeId,
+            {
+              lifecycle: 'persistent',
+              usage: 'book_edit_cover',
+            }
           )
 
           if (!uploadResult) {

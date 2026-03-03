@@ -34,23 +34,27 @@ const appendWithSpacing = (currentValue: string, token: string) => {
 interface CommentComposerToolbarProps {
   value: string
   onChange: (nextValue: string) => void
+  onImageUploaded?: (asset: { url: string; imageId?: string; publicId?: string }) => void
   disabled?: boolean
   className?: string
   buttonClassName?: string
   showGif?: boolean
   uploadFolder?: string
   maxImageSizeMb?: number
+  insertImageUrlIntoText?: boolean
 }
 
 export function CommentComposerToolbar({
   value,
   onChange,
+  onImageUploaded,
   disabled = false,
   className,
   buttonClassName,
   showGif = true,
   uploadFolder = 'comments',
   maxImageSizeMb = 8,
+  insertImageUrlIntoText = true,
 }: CommentComposerToolbarProps) {
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -117,17 +121,35 @@ export function CommentComposerToolbar({
         uploadFolder,
         `Comment image ${file.name}`,
         1600,
-        1600
+        1600,
+        undefined,
+        {
+          lifecycle: 'temporary',
+          usage: 'comment_attachment',
+        }
       )
 
       if (!uploaded?.url) {
         throw new Error('Upload did not return a URL')
       }
 
-      insertToken(uploaded.url)
+      if (onImageUploaded) {
+        onImageUploaded({
+          url: uploaded.url,
+          imageId: uploaded.imageId,
+          publicId: uploaded.publicId,
+        })
+      }
+
+      if (insertImageUrlIntoText) {
+        insertToken(uploaded.url)
+      }
+
       toast({
         title: 'Image added',
-        description: 'Image URL inserted into your comment.',
+        description: insertImageUrlIntoText
+          ? 'Image URL inserted into your comment.'
+          : 'Image attached to your comment.',
       })
     } catch (error) {
       toast({

@@ -138,7 +138,14 @@ export default function GroupEditPage() {
           const uploadResult = await uploadImage(
             base64Image,
             'authorsinfo/group_avatar',
-            `Avatar for ${groupName}`
+            `Avatar for ${groupName}`,
+            undefined,
+            undefined,
+            undefined,
+            {
+              lifecycle: 'persistent',
+              usage: 'group_edit_avatar',
+            }
           )
 
           if (uploadResult) {
@@ -206,7 +213,14 @@ export default function GroupEditPage() {
           const uploadResult = await uploadImage(
             base64Image,
             'authorsinfo/group_cover',
-            `Cover for ${groupName}`
+            `Cover for ${groupName}`,
+            undefined,
+            undefined,
+            undefined,
+            {
+              lifecycle: 'persistent',
+              usage: 'group_edit_cover',
+            }
           )
 
           if (uploadResult) {

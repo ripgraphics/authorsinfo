@@ -62,6 +62,7 @@ export interface ReactionPopupProps {
   variant?: 'default' | 'compact'
   onMouseEnter?: () => void
   onMouseLeave?: () => void
+  popupId?: string
 }
 
 // ============================================================================
@@ -119,6 +120,7 @@ export function EnterpriseReactionPopup({
   variant = 'compact',
   onMouseEnter,
   onMouseLeave,
+  popupId,
 }: ReactionPopupProps) {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -135,6 +137,10 @@ export function EnterpriseReactionPopup({
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [isMobileCentered, setIsMobileCentered] = useState(false)
   const [mobileTop, setMobileTop] = useState<number | null>(null)
+  const [popupCoordinates, setPopupCoordinates] = useState<{ top: number; left: number } | null>(
+    null
+  )
+  const [isMounted, setIsMounted] = useState(false)
 
   // Refs
   const popupRef = useRef<HTMLDivElement>(null)
@@ -143,6 +149,10 @@ export function EnterpriseReactionPopup({
   // ============================================================================
   // EFFECTS AND INITIALIZATION
   // ============================================================================
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
     if (isVisible && showReactionCounts) {
@@ -260,28 +270,51 @@ export function EnterpriseReactionPopup({
 
   const getPositionClasses = useCallback(() => {
     if (isMobileCentered) {
-      return 'fixed z-[120] left-1/2 -translate-x-1/2'
+      return 'fixed z-[130] left-1/2 -translate-x-1/2'
     }
 
-    if (!autoPosition) {
-      return 'relative z-[100]'
-    }
+    return 'fixed z-[130]'
+  }, [isMobileCentered])
 
-    const baseClasses = 'absolute z-[100]'
+  const calculatePopupCoordinates = useCallback(() => {
+    if (isMobileCentered || !triggerRef?.current || !popupRef.current) return
+
+    const triggerRect = triggerRef.current.getBoundingClientRect()
+    const popupRect = popupRef.current.getBoundingClientRect()
+    const margin = 8
+
+    let top = triggerRect.bottom + margin
+    let left = triggerRect.left + triggerRect.width / 2 - popupRect.width / 2
 
     switch (popupPosition) {
       case 'top':
-        return `${baseClasses} bottom-full mb-2 left-1/2 transform -translate-x-1/2`
+        top = triggerRect.top - popupRect.height - margin
+        left = triggerRect.left + triggerRect.width / 2 - popupRect.width / 2
+        break
       case 'bottom':
-        return `${baseClasses} top-full mt-2 left-1/2 transform -translate-x-1/2`
+        top = triggerRect.bottom + margin
+        left = triggerRect.left + triggerRect.width / 2 - popupRect.width / 2
+        break
       case 'left':
-        return `${baseClasses} right-full mr-2 top-1/2 transform -translate-y-1/2`
+        top = triggerRect.top + triggerRect.height / 2 - popupRect.height / 2
+        left = triggerRect.left - popupRect.width - margin
+        break
       case 'right':
-        return `${baseClasses} left-full ml-2 top-1/2 transform -translate-y-1/2`
+        top = triggerRect.top + triggerRect.height / 2 - popupRect.height / 2
+        left = triggerRect.right + margin
+        break
       default:
-        return `${baseClasses} top-full mt-2 left-1/2 transform -translate-x-1/2`
+        break
     }
-  }, [popupPosition, autoPosition, isMobileCentered])
+
+    const maxLeft = window.innerWidth - popupRect.width - margin
+    const maxTop = window.innerHeight - popupRect.height - margin
+
+    setPopupCoordinates({
+      top: Math.max(margin, Math.min(top, maxTop)),
+      left: Math.max(margin, Math.min(left, maxLeft)),
+    })
+  }, [popupPosition, triggerRef, isMobileCentered])
 
   const getSizeClasses = useCallback(() => {
     if (variant === 'compact') {
@@ -557,6 +590,25 @@ export function EnterpriseReactionPopup({
     handleReactionClick,
   ])
 
+  useEffect(() => {
+    if (!isVisible || isMobileCentered) return
+
+    const updateCoordinates = () => {
+      calculatePopupCoordinates()
+    }
+
+    const rafId = requestAnimationFrame(updateCoordinates)
+
+    window.addEventListener('resize', updateCoordinates)
+    window.addEventListener('scroll', updateCoordinates, true)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      window.removeEventListener('resize', updateCoordinates)
+      window.removeEventListener('scroll', updateCoordinates, true)
+    }
+  }, [isVisible, isMobileCentered, popupPosition, calculatePopupCoordinates])
+
   // ============================================================================
   // MAIN RENDER
   // ============================================================================
@@ -568,7 +620,7 @@ export function EnterpriseReactionPopup({
 
   if (!isVisible) return null
 
-  return (
+  const popupContent = (
     <TooltipProvider>
       <div
         ref={popupRef}
@@ -576,7 +628,7 @@ export function EnterpriseReactionPopup({
         aria-modal="true"
         aria-labelledby="reaction-popup-title"
         className={cn(
-          'absolute z-[100] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-gray-100',
+          'bg-white shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-gray-100',
           'backdrop-blur-md bg-white/98',
           variant === 'compact' ? 'rounded-full px-1 py-1' : 'rounded-2xl p-4',
           isMobileCentered && variant !== 'compact' && 'w-[calc(100vw-24px)] max-w-sm',
@@ -584,8 +636,15 @@ export function EnterpriseReactionPopup({
           getAnimationClasses(),
           className
         )}
-        style={isMobileCentered && mobileTop !== null ? { top: `${mobileTop}px` } : undefined}
+        style={
+          isMobileCentered && mobileTop !== null
+            ? { top: `${mobileTop}px` }
+            : popupCoordinates
+              ? { top: `${popupCoordinates.top}px`, left: `${popupCoordinates.left}px` }
+              : undefined
+        }
         data-reaction-popup
+        data-reaction-popup-id={popupId}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
         onMouseEnter={onMouseEnter}
@@ -639,6 +698,10 @@ export function EnterpriseReactionPopup({
       </div>
     </TooltipProvider>
   )
+
+  if (!isMounted) return null
+
+  return createPortal(popupContent, document.body)
 }
 
 // ============================================================================
@@ -740,9 +803,6 @@ export function ReactionSummary({
   const [activeFilter, setActiveFilter] = useState<ReactionType | null>(null);
   const [isHoveringTotalCount, setIsHoveringTotalCount] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
-  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-  const [canUsePortal, setCanUsePortal] = useState(false);
-  const triggerContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -762,43 +822,6 @@ export function ReactionSummary({
     };
     fetchCounts();
   }, [entityId, entityType, engagement?.reactionCount, engagement?.userReaction, refreshToken]);
-
-  useEffect(() => {
-    setCanUsePortal(typeof window !== 'undefined' && typeof document !== 'undefined');
-  }, []);
-
-  useEffect(() => {
-    if (!showPopup || !triggerContainerRef.current || !canUsePortal) return;
-
-    const updatePopupPosition = () => {
-      if (!triggerContainerRef.current) return;
-
-      const rect = triggerContainerRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const estimatedPopupWidth = 220;
-      const margin = 8;
-
-      const preferredLeft = rect.left;
-      const clampedLeft = Math.max(
-        margin,
-        Math.min(preferredLeft, viewportWidth - estimatedPopupWidth - margin)
-      );
-
-      setPopupPosition({
-        top: rect.top - margin,
-        left: clampedLeft,
-      });
-    };
-
-    updatePopupPosition();
-    window.addEventListener('resize', updatePopupPosition);
-    window.addEventListener('scroll', updatePopupPosition, { passive: true });
-
-    return () => {
-      window.removeEventListener('resize', updatePopupPosition);
-      window.removeEventListener('scroll', updatePopupPosition);
-    };
-  }, [showPopup, canUsePortal]);
 
   // Check if we have any reactions at all from the fetched counts
   const totalReactionCount = Object.values(reactionCounts || {}).reduce((a, b) => a + b, 0);
@@ -853,45 +876,8 @@ export function ReactionSummary({
     setShowPopup(false);
   };
 
-  const popupElement = showPopup ? (
-    <div
-      style={{
-        backgroundColor: 'var(--color-app-theme-blue)',
-        position: 'fixed',
-        top: popupPosition.top,
-        left: popupPosition.left,
-        transform: 'translateY(-100%)',
-      }}
-      className="px-3 py-2 border-none rounded-xl shadow-2xl transition-all duration-200 z-[250] min-w-40 max-w-56 max-h-64 overflow-y-auto opacity-100"
-      onMouseEnter={() => setShowPopup(true)}
-      onMouseLeave={handlePopupLeave}
-    >
-      <div className="text-xs font-bold text-white mb-2 pb-1 border-b border-white/20">
-        {popupTitle}
-      </div>
-      {popupUsers.length > 0 ? (
-        <div className="space-y-0">
-          {popupUsers.slice(0, 15).map((item, idx) => (
-            <div key={`${item.user?.name || 'Unknown User'}-${idx}`} className="text-xs text-white truncate leading-tight py-0.5">
-              {item.user?.name || 'Unknown User'}
-            </div>
-          ))}
-          {popupCount > 15 && (
-            <div className="text-xs text-white font-normal pt-1 mt-1">
-              and {popupCount - 15} more...
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="text-xs text-white/80 font-normal py-1 italic text-center">
-          {activeFilter ? `No ${activeFilter} reactions` : 'No recent reactions'}
-        </div>
-      )}
-    </div>
-  ) : null;
-
   return (
-    <div ref={triggerContainerRef} className={cn('engagement-reactions flex items-center gap-1 relative', className)}>
+    <div className={cn('engagement-reactions flex items-center gap-1 relative', className)}>
       <div className="flex items-center -space-x-1 mr-1">
         {topReactions.map(([reactionType], index) => {
           const reaction = REACTION_OPTIONS.find((r) => r.type === (reactionType as ReactionType));
@@ -916,7 +902,36 @@ export function ReactionSummary({
       >
         {displayTotalCount}
       </span>
-      {canUsePortal && popupElement ? createPortal(popupElement, document.body) : popupElement}
+      {showPopup && (
+        <div
+          style={{ backgroundColor: 'var(--color-app-theme-blue)' }}
+          className="absolute bottom-full left-0 mb-2 px-3 py-2 border-none rounded-xl shadow-2xl transition-all duration-200 z-[100] min-w-40 max-h-64 overflow-y-auto opacity-100"
+          onMouseEnter={() => setShowPopup(true)}
+          onMouseLeave={handlePopupLeave}
+        >
+          <div className="text-xs font-bold text-white mb-2 pb-1 border-b border-white/20">
+            {popupTitle}
+          </div>
+          {popupUsers.length > 0 ? (
+            <div className="space-y-0">
+              {popupUsers.slice(0, 15).map((item, idx) => (
+                <div key={`${item.user?.name || 'Unknown User'}-${idx}`} className="text-xs text-white truncate leading-tight py-0.5">
+                  {item.user?.name || 'Unknown User'}
+                </div>
+              ))}
+              {popupCount > 15 && (
+                <div className="text-xs text-white font-normal pt-1 mt-1">
+                  and {popupCount - 15} more...
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-white/80 font-normal py-1 italic text-center">
+              {activeFilter ? `No ${activeFilter} reactions` : 'No recent reactions'}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,16 +1,15 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useRef, useId } from 'react'
 import { EnterpriseReactionPopup } from '@/components/enterprise/enterprise-reaction-popup'
-import { useEngagement, ReactionType } from '@/contexts/engagement-context'
+import type { ReactionType } from '@/contexts/engagement-context'
 import type { EntityType } from '@/lib/engagement/config'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 /**
  * InlineLikeButton
  *
  * A fully reusable inline "Like" button with a reaction popup on hover/click.
- * Uses an 800ms delayed-close pattern so users can move their cursor to the popup.
+ * Uses delayed-close pattern so users can move their cursor to the popup.
  *
  * Drop this component anywhere an entity can be liked — comment threads,
  * feed cards, media items, etc.
@@ -33,6 +32,18 @@ export interface InlineLikeButtonProps {
   popupSize?: 'sm' | 'md' | 'lg'
   /** Callback fired after a reaction is successfully set or removed */
   onReactionChange?: (reactionType: ReactionType | null) => void
+  /** Optional callback to broadcast reaction updates to external listeners */
+  onReactionBroadcast?: (payload: {
+    entityId: string
+    entityType: EntityType
+    reactionType: ReactionType | null
+  }) => void
+  /** Popup close delay in milliseconds (default: 1000) */
+  closeDelayMs?: number
+  /** Optional trigger button type (default: "button") */
+  buttonType?: 'button' | 'submit' | 'reset'
+  /** Additional trigger button accessibility label */
+  ariaLabel?: string
 }
 
 export function InlineLikeButton({
@@ -43,10 +54,14 @@ export function InlineLikeButton({
   buttonClassName = 'hover-app-theme action-small-pad',
   popupSize = 'sm',
   onReactionChange: onReactionChangeProp,
+  onReactionBroadcast,
+  closeDelayMs = 1000,
+  buttonType = 'button',
+  ariaLabel,
 }: InlineLikeButtonProps) {
-  const { setReaction, getEngagement } = useEngagement()
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const popupId = useId()
   const [showPopup, setShowPopup] = useState(false)
 
   // Cleanup timeout on unmount
@@ -56,7 +71,9 @@ export function InlineLikeButton({
     }
   }, [])
 
-  const handleMouseEnter = useCallback(() => {
+  const openReactionPopup = useCallback((e?: React.SyntheticEvent) => {
+    e?.preventDefault?.()
+    e?.stopPropagation?.()
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
@@ -64,15 +81,19 @@ export function InlineLikeButton({
     setShowPopup(true)
   }, [])
 
-  const handleMouseLeave = useCallback(() => {
+  const schedulePopupClose = useCallback(() => {
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
     closeTimeoutRef.current = setTimeout(() => {
-      const popup = document.querySelector('[data-reaction-popup]')
+      const popup = document.querySelector(`[data-reaction-popup-id="${popupId}"]`)
       if (popup && popup.matches(':hover')) return
       if (buttonRef.current?.matches(':hover')) return
       setShowPopup(false)
-    }, 800)
-  }, [])
+    }, closeDelayMs)
+  }, [popupId, closeDelayMs])
+
+  const handleMouseLeave = useCallback(() => {
+    schedulePopupClose()
+  }, [schedulePopupClose])
 
   const handlePopupMouseEnter = useCallback(() => {
     if (closeTimeoutRef.current) {
@@ -82,85 +103,51 @@ export function InlineLikeButton({
   }, [])
 
   const handlePopupMouseLeave = useCallback(() => {
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-    closeTimeoutRef.current = setTimeout(() => {
-      if (buttonRef.current?.matches(':hover')) return
-      setShowPopup(false)
-    }, 800)
-  }, [])
-
-  const handleLikeClick = useCallback(
-    async (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      // Toggle the default 'like' reaction directly on click
-      const currentReaction = getEngagement(entityId, entityType)?.userReaction ?? null
-      const nextReaction = currentReaction === 'like' ? null : 'like'
-      const success = await setReaction(entityId, entityType, 'like')
-      if (success) {
-        onReactionChangeProp?.(nextReaction)
-        window.dispatchEvent(
-          new CustomEvent('engagement-reaction-changed', {
-            detail: { entityId, entityType, reactionType: nextReaction },
-          })
-        )
-      }
-      setShowPopup(false)
-    },
-    [entityId, entityType, setReaction, getEngagement, onReactionChangeProp]
-  )
+    schedulePopupClose()
+  }, [schedulePopupClose])
 
   const handleReactionChange = useCallback(
     async (rt: ReactionType | null) => {
       // The reaction has already been set/removed by the EnterpriseReactionPopup
       // using the engagement context. This callback is for notification/UI cleanup.
       onReactionChangeProp?.(rt)
-      window.dispatchEvent(
-        new CustomEvent('engagement-reaction-changed', {
-          detail: { entityId, entityType, reactionType: rt },
-        })
-      )
+      onReactionBroadcast?.({ entityId, entityType, reactionType: rt })
       // Auto-close after a short delay
       setTimeout(() => setShowPopup(false), 500)
     },
-    [onReactionChangeProp]
+    [onReactionChangeProp, onReactionBroadcast, entityId, entityType]
   )
 
   return (
     <div className={`inline-block ${className ?? ''}`}>
-      <Popover open={showPopup} onOpenChange={setShowPopup}>
-        <PopoverTrigger asChild>
-          <button
-            ref={buttonRef}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onClick={handleLikeClick}
-            className={buttonClassName}
-          >
-            {label}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent 
-          className="w-auto p-0 border-none bg-transparent shadow-none" 
-          side="top" 
-          sideOffset={8}
-          onMouseEnter={handlePopupMouseEnter}
-          onMouseLeave={handlePopupMouseLeave}
-        >
-          <EnterpriseReactionPopup
-            entityId={entityId}
-            entityType={entityType}
-            isVisible={showPopup}
-            onClose={() => setShowPopup(false)}
-            triggerRef={buttonRef as unknown as React.RefObject<HTMLElement>}
-            autoPosition={false} // Popover handles positioning
-            size={popupSize}
-            animation="scale"
-            onReactionChange={handleReactionChange}
-            className="static translate-x-0 translate-y-0" // Reset internal positioning
-          />
-        </PopoverContent>
-      </Popover>
+      <button
+        type={buttonType}
+        ref={buttonRef}
+        onMouseEnter={openReactionPopup}
+        onMouseLeave={handleMouseLeave}
+        onClick={openReactionPopup}
+        aria-label={ariaLabel}
+        aria-haspopup="menu"
+        aria-expanded={showPopup}
+        className={buttonClassName}
+      >
+        {label}
+      </button>
+
+      <EnterpriseReactionPopup
+        entityId={entityId}
+        entityType={entityType}
+        isVisible={showPopup}
+        onClose={() => setShowPopup(false)}
+        triggerRef={buttonRef as unknown as React.RefObject<HTMLElement>}
+        autoPosition={true}
+        size={popupSize}
+        animation="scale"
+        onReactionChange={handleReactionChange}
+        onMouseEnter={handlePopupMouseEnter}
+        onMouseLeave={handlePopupMouseLeave}
+        popupId={popupId}
+      />
     </div>
   )
 }

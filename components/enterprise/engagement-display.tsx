@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useEntityEngagement, type EntityType, type ReactionType, type EngagementState } from '@/contexts/engagement-context'
 
+const REACTION_ICON_STACK_CLASS = 'flex items-center gap-px mr-2'
+
 export interface EngagementUser {
   id: string
   user: {
@@ -408,7 +410,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
               setIsHoveringTotalCount(false)
             }}
           >
-            <div className="flex items-center -space-x-1.5 mr-2">
+            <div className={REACTION_ICON_STACK_CLASS}>
               {reactionTypesToRender.map((type, idx) => (
                   <div
                     key={type}

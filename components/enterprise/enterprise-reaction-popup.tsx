@@ -878,7 +878,7 @@ export function ReactionSummary({
 
   return (
     <div className={cn('engagement-reactions flex items-center gap-1 relative', className)}>
-      <div className="flex items-center -space-x-1 mr-1">
+      <div className="flex items-center gap-[2px] mr-1">
         {topReactions.map(([reactionType], index) => {
           const reaction = REACTION_OPTIONS.find((r) => r.type === (reactionType as ReactionType));
           if (!reaction) return null;

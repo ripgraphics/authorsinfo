@@ -27,7 +27,8 @@ import {
 } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { CommentActionButtons } from '@/components/enterprise/comment-action-buttons'
+import { InlineLikeButton } from '@/components/enterprise/inline-like-button'
+import { ReactionSummary } from '@/components/enterprise/enterprise-reaction-popup'
 import type { EntityType } from '@/lib/engagement/config'
 
 interface Comment {
@@ -608,15 +609,24 @@ export default function EntityComments({
 
                     {/* Comment Actions */}
                     <div className="entity-comment-actions">
-                      <CommentActionButtons
-                        entityId={comment.id}
-                        entityType="comment"
-                        timestamp={formatTimestamp(comment.created_at)}
-                        onReplyClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                        className="gap-4"
-                        showLike={!!currentUser}
-                        showReply={!!currentUser}
-                      />
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>{formatTimestamp(comment.created_at)}</span>
+                        {!!currentUser && <InlineLikeButton entityId={comment.id} entityType="comment" />}
+                        {!!currentUser && (
+                          <button
+                            className="hover-app-theme action-small-pad"
+                            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                          >
+                            Reply
+                          </button>
+                        )}
+                        <div
+                          className="reaction-summary-trigger"
+                          style={{ display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          <ReactionSummary entityId={comment.id} entityType="comment" maxReactions={4} />
+                        </div>
+                      </div>
                     </div>
 
                     {/* Reply Input */}

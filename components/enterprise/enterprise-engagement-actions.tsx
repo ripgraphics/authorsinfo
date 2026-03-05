@@ -30,7 +30,7 @@
 
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef, useId } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
@@ -64,10 +64,10 @@ import { cn } from '@/lib/utils'
 import { REACTION_OPTIONS_METADATA } from '@/lib/engagement/config'
 import { useEntityEngagement, EntityType, ReactionType, EngagementState } from '@/contexts/engagement-context'
 import {
-  EnterpriseReactionPopup,
   QuickReactionButton,
   ReactionSummary,
 } from './enterprise-reaction-popup'
+import { InlineLikeButton } from './inline-like-button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -196,7 +196,6 @@ export function EnterpriseEngagementActions({
   // Use the enterprise engagement context
   const {
     engagement,
-    setReaction,
     addComment,
     shareEntity,
     bookmarkEntity,
@@ -207,24 +206,16 @@ export function EnterpriseEngagementActions({
   } = useEntityEngagement(entityId, entityType)
 
   // Local state
-  const [showReactionPopup, setShowReactionPopup] = useState(false)
   const [isCommentInputVisible, setIsCommentInputVisible] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showBookmarkMenu, setShowBookmarkMenu] = useState(false)
-  const [reactionPopupPositionState, setReactionPopupPositionState] =
-    useState(reactionPopupPosition)
 
   // Refs
-  const reactionButtonRef = useRef<HTMLButtonElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hasTrackedViewRef = useRef<boolean>(false)
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const isReactionButtonHoveredRef = useRef(false)
-  const isReactionPopupHoveredRef = useRef(false)
-  const reactionPopupId = useId()
 
   // ============================================================================
   // EFFECTS AND INITIALIZATION
@@ -298,95 +289,9 @@ export function EnterpriseEngagementActions({
     batchUpdateEngagement
   ])
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current)
-      }
-    }
-  }, [])
-
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
-
-  const handleReactionButtonHover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    isReactionButtonHoveredRef.current = true
-
-    // Clear any pending close timeout
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-    }
-
-    const button = event.currentTarget
-    const rect = button.getBoundingClientRect()
-    const viewportHeight = window.innerHeight
-
-    const spaceBelow = viewportHeight - rect.bottom
-    const spaceAbove = rect.top
-
-    // Favor 'top' by default, only use 'bottom' if space above is restricted
-    if (spaceAbove < 120 && spaceBelow > 120) {
-      setReactionPopupPositionState('bottom')
-    } else {
-      setReactionPopupPositionState('top')
-    }
-
-    setShowReactionPopup(true)
-  }, [])
-
-  const scheduleReactionPopupClose = useCallback(() => {
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-    closeTimeoutRef.current = setTimeout(() => {
-      if (isReactionButtonHoveredRef.current || isReactionPopupHoveredRef.current) {
-        return
-      }
-
-      setShowReactionPopup(false)
-    }, 1000)
-  }, [])
-
-  const handleReactionButtonLeave = useCallback(() => {
-    isReactionButtonHoveredRef.current = false
-    scheduleReactionPopupClose()
-  }, [scheduleReactionPopupClose])
-
-  const handlePopupMouseEnter = useCallback(() => {
-    isReactionPopupHoveredRef.current = true
-
-    // Clear close timeout when entering popup
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-    }
-  }, [])
-
-  const handlePopupMouseLeave = useCallback(() => {
-    isReactionPopupHoveredRef.current = false
-    scheduleReactionPopupClose()
-  }, [scheduleReactionPopupClose])
-
-  const handleReactionSelect = useCallback(
-    async (reactionType: ReactionType) => {
-      try {
-        const success = await setReaction(reactionType)
-
-        if (success) {
-          if (onEngagement) {
-            await onEngagement('reaction', entityId, entityType, reactionType)
-          }
-
-          // Auto-close popup after successful reaction
-          setTimeout(() => setShowReactionPopup(false), 500)
-        }
-      } catch (error) {
-        console.error('Error setting reaction:', error)
-      }
-    },
-    [setReaction, onEngagement, entityId, entityType]
-  )
 
   const handleCommentSubmit = useCallback(async () => {
     if (!commentText.trim()) {
@@ -553,107 +458,77 @@ export function EnterpriseEngagementActions({
 
   const renderReactionButton = useCallback(() => {
     const currentDisplay = getCurrentReactionDisplay()
+    const nextAriaLabel =
+      engagement?.isLoading
+        ? 'Reaction in progress'
+        : contextReaction || currentReaction
+          ? `You reacted with ${currentDisplay.label}. Click or hover to see more reactions.`
+          : 'Like. Click or hover to see more reactions.'
 
     return (
       <div className="relative flex-1">
-            <Button
-              ref={reactionButtonRef}
-              variant="ghost"
-              size="sm"
-              onMouseEnter={(e) => {
-                if (!user) {
-                  requireAuth()
-                  return
-                }
-                handleReactionButtonHover(e)
-              }}
-              onMouseLeave={() => {
-                if (!user) {
-                  requireAuth()
-                  return
-                }
-                handleReactionButtonLeave()
-              }}
-              onClick={() => requireAuth(() => setShowReactionPopup(true))}
-              disabled={!!engagement?.isLoading}
-              aria-busy={!!engagement?.isLoading}
-          aria-label={
-            engagement?.isLoading
-              ? 'Reaction in progress'
-              : contextReaction || currentReaction
-                ? `You reacted with ${currentDisplay.label}. Click or hover to see more reactions.`
-                : 'Like. Click or hover to see more reactions.'
-          }
-          className={cn(
+        <InlineLikeButton
+          entityId={entityId}
+          entityType={entityType}
+          buttonClassName={cn(
             'engagement-action-button w-full h-10 rounded-lg transition-colors',
-            'flex items-center justify-center gap-2',
+            'flex items-center justify-center gap-2 px-3 whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/25 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
             contextReaction || currentReaction
               ? `${currentDisplay.color} hover:bg-gray-50`
               : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
           )}
-        >
-          {engagement?.isLoading ? (
-            <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-          ) : (
-            <span
-              className={cn(
-                'flex items-center',
-                (contextReaction || currentReaction) && 'fill-current'
+          disabled={!!engagement?.isLoading}
+          ariaBusy={!!engagement?.isLoading}
+          ariaLabel={nextAriaLabel}
+          popupSize="md"
+          popupPosition={reactionPopupPosition}
+          autoPosition={true}
+          popupAnimation="scale"
+          showReactionCounts={showReactionCounts}
+          showQuickReactions={enableQuickReactions}
+          maxQuickReactions={3}
+          currentReaction={contextReaction || currentReaction}
+          onBeforeOpen={() => {
+            if (!user) {
+              requireAuth()
+              return false
+            }
+            return true
+          }}
+          onReactionChange={(rt) => {
+            if (onEngagement) {
+              onEngagement('reaction', entityId, entityType, rt || undefined)
+            }
+          }}
+          label={
+            <>
+              {engagement?.isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+              ) : (
+                <span className={cn('flex items-center', (contextReaction || currentReaction) && 'fill-current')}>
+                  {currentDisplay.icon}
+                </span>
               )}
-            >
-              {currentDisplay.icon}
-            </span>
-          )}
-          <span className="engagement-action-label">
-            {engagement?.isLoading ? 'Updating…' : currentDisplay.label}
-          </span>
-        </Button>
-
-        {/* Reaction Popup */}
-        {user && showReactionPopup && (
-          <EnterpriseReactionPopup
-            entityId={entityId}
-            entityType={entityType}
-            isVisible={showReactionPopup}
-            onClose={() => setShowReactionPopup(false)}
-            position={reactionPopupPositionState}
-            currentReaction={contextReaction || currentReaction}
-            showReactionCounts={showReactionCounts}
-            showQuickReactions={enableQuickReactions}
-            maxQuickReactions={3}
-            onReactionChange={(rt) => {
-              if (onEngagement) {
-                onEngagement('reaction', entityId, entityType, rt || undefined)
-              }
-            }}
-            triggerRef={reactionButtonRef as unknown as React.RefObject<HTMLElement>}
-            autoPosition={true}
-            size="md"
-            animation="scale"
-            popupId={reactionPopupId}
-            onMouseEnter={handlePopupMouseEnter}
-            onMouseLeave={handlePopupMouseLeave}
-          />
-        )}
+              <span className="engagement-action-label">
+                {engagement?.isLoading ? 'Updating…' : currentDisplay.label}
+              </span>
+            </>
+          }
+        />
       </div>
     )
   }, [
     contextReaction,
     currentReaction,
-    showReactionPopup,
-    reactionPopupPositionState,
+    reactionPopupPosition,
     entityId,
     entityType,
     showReactionCounts,
     enableQuickReactions,
-    handleReactionSelect,
     getCurrentReactionDisplay,
-    handleReactionButtonHover,
-    handleReactionButtonLeave,
-    handlePopupMouseEnter,
-    handlePopupMouseLeave,
     requireAuth,
     user,
+    onEngagement,
     engagement?.isLoading,
   ])
 
@@ -864,7 +739,36 @@ export function EnterpriseEngagementActions({
 
           {/* Comment Count */}
           {stats?.commentCount > 0 && (
-            <div className="engagement-comment-count text-sm text-gray-600 hover-app-theme cursor-pointer">
+            <div
+              className="engagement-comment-count text-sm text-gray-600 hover-app-theme cursor-pointer"
+              role="button"
+              tabIndex={0}
+              onClick={() =>
+                requireAuth(() => {
+                  if (onCommentClick) {
+                    onCommentClick()
+                    return
+                  }
+                  if (showCommentInput) {
+                    setIsCommentInputVisible(true)
+                  }
+                })
+              }
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  requireAuth(() => {
+                    if (onCommentClick) {
+                      onCommentClick()
+                      return
+                    }
+                    if (showCommentInput) {
+                      setIsCommentInputVisible(true)
+                    }
+                  })
+                }
+              }}
+            >
               {formatCount(stats.commentCount, 'comment')}
             </div>
           )}
@@ -889,6 +793,9 @@ export function EnterpriseEngagementActions({
     entityType,
     maxVisibleReactions,
     showAnalytics,
+    showCommentInput,
+    onCommentClick,
+    requireAuth,
     formatCount,
   ])
 

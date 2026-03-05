@@ -22,8 +22,8 @@ export interface InlineLikeButtonProps {
   entityId: string
   /** Entity type for the engagement system */
   entityType: EntityType
-  /** Label text displayed on the button (default: "Like") */
-  label?: string
+  /** Label content displayed on the button (default: "Like") */
+  label?: React.ReactNode
   /** Extra className applied to the wrapper div */
   className?: string
   /** Extra className applied to the button element */
@@ -40,10 +40,32 @@ export interface InlineLikeButtonProps {
   }) => void
   /** Popup close delay in milliseconds (default: 1000) */
   closeDelayMs?: number
+  /** Auto-close popup when mouse leaves trigger/popup (default: true) */
+  autoCloseOnMouseLeave?: boolean
   /** Optional trigger button type (default: "button") */
   buttonType?: 'button' | 'submit' | 'reset'
   /** Additional trigger button accessibility label */
   ariaLabel?: string
+  /** Whether the trigger is disabled */
+  disabled?: boolean
+  /** ARIA busy state for loading transitions */
+  ariaBusy?: boolean
+  /** Reaction popup position preference */
+  popupPosition?: 'top' | 'bottom' | 'left' | 'right'
+  /** Whether the popup should auto-position (default: true) */
+  autoPosition?: boolean
+  /** Popup animation style (default: "scale") */
+  popupAnimation?: 'fade' | 'slide' | 'scale' | 'bounce'
+  /** Whether to show reaction counts in popup (default: true) */
+  showReactionCounts?: boolean
+  /** Whether to show quick reactions in popup (default: true) */
+  showQuickReactions?: boolean
+  /** Max quick reactions shown (default: 3) */
+  maxQuickReactions?: number
+  /** Current selected reaction to display in popup */
+  currentReaction?: ReactionType | null
+  /** Guard hook before opening popup; return false to prevent opening */
+  onBeforeOpen?: (trigger: 'hover' | 'click') => boolean
 }
 
 export function InlineLikeButton({
@@ -56,11 +78,23 @@ export function InlineLikeButton({
   onReactionChange: onReactionChangeProp,
   onReactionBroadcast,
   closeDelayMs = 1000,
+  autoCloseOnMouseLeave = true,
   buttonType = 'button',
   ariaLabel,
+  disabled = false,
+  ariaBusy,
+  popupPosition = 'top',
+  autoPosition = true,
+  popupAnimation = 'scale',
+  showReactionCounts = true,
+  showQuickReactions = true,
+  maxQuickReactions = 3,
+  currentReaction,
+  onBeforeOpen,
 }: InlineLikeButtonProps) {
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isClickOpenRef = useRef(false)
   const popupId = useId()
   const isButtonHoveredRef = useRef(false)
   const isPopupHoveredRef = useRef(false)
@@ -73,18 +107,55 @@ export function InlineLikeButton({
     }
   }, [])
 
-  const openReactionPopup = useCallback((e?: React.SyntheticEvent) => {
-    e?.preventDefault?.()
-    e?.stopPropagation?.()
-    isButtonHoveredRef.current = true
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
+  useEffect(() => {
+    if (!showPopup) return
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null
+      const clickedTrigger = !!buttonRef.current && !!target && buttonRef.current.contains(target)
+      const clickedPopup = !!target?.closest(`[data-reaction-popup-id="${popupId}"]`)
+
+      if (!clickedTrigger && !clickedPopup) {
+        isClickOpenRef.current = false
+        setShowPopup(false)
+      }
     }
-    setShowPopup(true)
-  }, [])
+
+    document.addEventListener('mousedown', handlePointerDown, true)
+    return () => document.removeEventListener('mousedown', handlePointerDown, true)
+  }, [showPopup, popupId])
+
+  const openReactionPopup = useCallback(
+    (e?: React.SyntheticEvent, trigger: 'hover' | 'click' = 'click') => {
+      e?.preventDefault?.()
+      e?.stopPropagation?.()
+      if (disabled) return
+      if (onBeforeOpen && !onBeforeOpen(trigger)) return
+
+      if (trigger === 'click') {
+        if (showPopup && isClickOpenRef.current) {
+          isClickOpenRef.current = false
+          setShowPopup(false)
+          return
+        }
+        isClickOpenRef.current = true
+      } else {
+        isButtonHoveredRef.current = true
+      }
+
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current)
+        closeTimeoutRef.current = null
+      }
+      setShowPopup(true)
+    },
+    [disabled, onBeforeOpen, showPopup]
+  )
 
   const schedulePopupClose = useCallback(() => {
+    if (!autoCloseOnMouseLeave) {
+      return
+    }
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
     closeTimeoutRef.current = setTimeout(() => {
       if (isButtonHoveredRef.current || isPopupHoveredRef.current) {
@@ -92,7 +163,7 @@ export function InlineLikeButton({
       }
       setShowPopup(false)
     }, closeDelayMs)
-  }, [closeDelayMs])
+  }, [closeDelayMs, autoCloseOnMouseLeave])
 
   const handleMouseLeave = useCallback(() => {
     isButtonHoveredRef.current = false
@@ -119,6 +190,7 @@ export function InlineLikeButton({
       onReactionChangeProp?.(rt)
       onReactionBroadcast?.({ entityId, entityType, reactionType: rt })
       // Auto-close after a short delay
+      isClickOpenRef.current = false
       setTimeout(() => setShowPopup(false), 500)
     },
     [onReactionChangeProp, onReactionBroadcast, entityId, entityType]
@@ -129,12 +201,14 @@ export function InlineLikeButton({
       <button
         type={buttonType}
         ref={buttonRef}
-        onMouseEnter={openReactionPopup}
+        onMouseEnter={(event) => openReactionPopup(event, 'hover')}
         onMouseLeave={handleMouseLeave}
-        onClick={openReactionPopup}
+        onClick={(event) => openReactionPopup(event, 'click')}
         aria-label={ariaLabel}
+        aria-busy={ariaBusy}
         aria-haspopup="menu"
         aria-expanded={showPopup}
+        disabled={disabled}
         className={buttonClassName}
       >
         {label}
@@ -144,11 +218,19 @@ export function InlineLikeButton({
         entityId={entityId}
         entityType={entityType}
         isVisible={showPopup}
-        onClose={() => setShowPopup(false)}
+        onClose={() => {
+          isClickOpenRef.current = false
+          setShowPopup(false)
+        }}
+        position={popupPosition}
+        currentReaction={currentReaction}
+        showReactionCounts={showReactionCounts}
+        showQuickReactions={showQuickReactions}
+        maxQuickReactions={maxQuickReactions}
         triggerRef={buttonRef as unknown as React.RefObject<HTMLElement>}
-        autoPosition={true}
+        autoPosition={autoPosition}
         size={popupSize}
-        animation="scale"
+        animation={popupAnimation}
         onReactionChange={handleReactionChange}
         onMouseEnter={handlePopupMouseEnter}
         onMouseLeave={handlePopupMouseLeave}

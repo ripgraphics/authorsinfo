@@ -63,7 +63,8 @@ import { EnterpriseEngagementActions } from '@/components/enterprise/enterprise-
 import type { EntityType } from '@/lib/engagement/config'
 import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
 import { ReactionType, useEngagement } from '@/contexts/engagement-context'
-import { CommentActionButtons } from '@/components/enterprise/comment-action-buttons'
+import { InlineLikeButton } from '@/components/enterprise/inline-like-button'
+import { ReactionSummary } from '@/components/enterprise/enterprise-reaction-popup'
 import { NestedCommentThread } from '@/components/enterprise/nested-comment-thread'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
@@ -2891,14 +2892,32 @@ export default function EntityFeedCard({
                         {/* Comment Actions */}
                         <div className="flex items-center justify-between mt-1 ml-2">
                           <div className="flex items-center gap-4">
-                            <CommentActionButtons
-                              entityId={comment.id}
-                              entityType="comment"
-                              timestamp={formatTimeAgo(comment.created_at)}
-                              onReplyClick={() => focusReplyComposer(comment.id, comment.id, comment.id)}
-                              showLike={!!user}
-                              showReply={!!user}
-                            />
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <span>{formatTimeAgo(comment.created_at)}</span>
+                              {!!user && (
+                                <InlineLikeButton entityId={comment.id} entityType="comment" />
+                              )}
+                              {!!user && (
+                                <button
+                                  className="hover-app-theme action-small-pad"
+                                  onClick={() =>
+                                    focusReplyComposer(comment.id, comment.id, comment.id)
+                                  }
+                                >
+                                  Reply
+                                </button>
+                              )}
+                              <div
+                                className="reaction-summary-trigger"
+                                style={{ display: 'inline-flex', alignItems: 'center' }}
+                              >
+                                <ReactionSummary
+                                  entityId={comment.id}
+                                  entityType="comment"
+                                  maxReactions={4}
+                                />
+                              </div>
+                            </div>
                             {comment.reply_count > 0 && (
                               <button
                                 className="text-xs font-medium text-gray-500 hover-app-theme action-small-pad"
@@ -2978,17 +2997,30 @@ export default function EntityFeedCard({
 
                               {/* Reply Actions */}
                               <div className="flex items-center">
-                                <CommentActionButtons
-                                  entityId={reply.id}
-                                  entityType="comment"
-                                  timestamp={formatTimeAgo(reply.created_at)}
-                                  textSize="text-[11px]"
-                                  onReplyClick={() =>
-                                    focusReplyComposer(comment.id, reply.id, reply.id)
-                                  }
-                                  showLike={!!user}
-                                  showReply={!!user}
-                                />
+                                <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                                  <span>{formatTimeAgo(reply.created_at)}</span>
+                                  {!!user && <InlineLikeButton entityId={reply.id} entityType="comment" />}
+                                  {!!user && (
+                                    <button
+                                      className="hover-app-theme action-small-pad"
+                                      onClick={() =>
+                                        focusReplyComposer(comment.id, reply.id, reply.id)
+                                      }
+                                    >
+                                      Reply
+                                    </button>
+                                  )}
+                                  <div
+                                    className="reaction-summary-trigger"
+                                    style={{ display: 'inline-flex', alignItems: 'center' }}
+                                  >
+                                    <ReactionSummary
+                                      entityId={reply.id}
+                                      entityType="comment"
+                                      maxReactions={4}
+                                    />
+                                  </div>
+                                </div>
                               </div>
 
                               {user &&

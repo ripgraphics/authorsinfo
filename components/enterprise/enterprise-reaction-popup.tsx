@@ -270,10 +270,10 @@ export function EnterpriseReactionPopup({
 
   const getPositionClasses = useCallback(() => {
     if (isMobileCentered) {
-      return 'fixed z-[130] left-1/2 -translate-x-1/2'
+      return 'fixed z-[200] left-1/2 -translate-x-1/2 pointer-events-auto'
     }
 
-    return 'fixed z-[130]'
+    return 'fixed z-[200] pointer-events-auto'
   }, [isMobileCentered])
 
   const calculatePopupCoordinates = useCallback(() => {
@@ -681,7 +681,7 @@ export function EnterpriseReactionPopup({
             {renderQuickReactions()}
 
             {/* Full Reaction Grid */}
-            {showAdvanced && (
+            {(!showQuickReactions || showAdvanced) && (
               <div className="grid grid-cols-4 gap-2">
                 {REACTION_OPTIONS.map(renderReactionButton)}
               </div>

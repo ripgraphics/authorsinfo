@@ -5,7 +5,8 @@ import type { EntityType } from '@/lib/engagement/config'
 import EntityAvatar from '@/components/entity-avatar'
 import EntityName from '@/components/entity-name'
 import { TaggedTextRenderer } from '@/components/tags/tagged-text-renderer'
-import { CommentActionButtons } from '@/components/enterprise/comment-action-buttons'
+import { InlineLikeButton } from '@/components/enterprise/inline-like-button'
+import { ReactionSummary } from '@/components/enterprise/enterprise-reaction-popup'
 
 export type ReusableCommentLayoutPreset = 'modal' | 'preview'
 
@@ -223,18 +224,37 @@ export function ReusableCommentThread({
 
                 <div className={ui.rootActionsRow}>
                   <div className="flex items-center gap-4">
-                    <CommentActionButtons
-                      entityId={rootComment.id}
-                      entityType={actionEntityType}
-                      timestamp={timestampFormatter?.(rootComment, 0)}
-                      onReplyClick={() => onReplyClick?.(rootComment, rootComment)}
-                      className={rootActionOptions?.className}
-                      textSize={rootActionOptions?.textSize}
-                      showLike={rootActionOptions?.showLike}
-                      showReply={rootActionOptions?.showReply}
-                      showTimestamp={rootActionOptions?.showTimestamp}
-                      showReactionSummary={rootActionOptions?.showReactionSummary}
-                    />
+                    <div
+                      className={`flex items-center gap-3 ${rootActionOptions?.textSize || 'text-xs'} text-gray-500 ${rootActionOptions?.className || ''}`}
+                    >
+                      {(rootActionOptions?.showTimestamp ?? true) &&
+                        timestampFormatter?.(rootComment, 0) && (
+                          <span>{timestampFormatter?.(rootComment, 0)}</span>
+                        )}
+                      {(rootActionOptions?.showLike ?? true) && (
+                        <InlineLikeButton entityId={rootComment.id} entityType={actionEntityType} />
+                      )}
+                      {(rootActionOptions?.showReply ?? true) && (
+                        <button
+                          className="hover-app-theme action-small-pad"
+                          onClick={() => onReplyClick?.(rootComment, rootComment)}
+                        >
+                          Reply
+                        </button>
+                      )}
+                      {(rootActionOptions?.showReactionSummary ?? true) && (
+                        <div
+                          className="reaction-summary-trigger"
+                          style={{ display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          <ReactionSummary
+                            entityId={rootComment.id}
+                            entityType={actionEntityType}
+                            maxReactions={4}
+                          />
+                        </div>
+                      )}
+                    </div>
                     {showReplyToggle && (rootComment.replyCount || 0) > 0 && (
                       <button
                         className="text-xs font-medium text-gray-500 hover-app-theme action-small-pad"
@@ -277,18 +297,37 @@ export function ReusableCommentThread({
                           </div>
 
                           <div className={ui.replyActionsRow}>
-                            <CommentActionButtons
-                              entityId={replyComment.id}
-                              entityType={actionEntityType}
-                              timestamp={timestampFormatter?.(replyComment, 1)}
-                              onReplyClick={() => onReplyClick?.(replyComment, rootComment)}
-                              className={replyActionOptions?.className}
-                              textSize={replyActionOptions?.textSize}
-                              showLike={replyActionOptions?.showLike}
-                              showReply={replyActionOptions?.showReply}
-                              showTimestamp={replyActionOptions?.showTimestamp}
-                              showReactionSummary={replyActionOptions?.showReactionSummary}
-                            />
+                            <div
+                              className={`flex items-center gap-3 ${replyActionOptions?.textSize || 'text-xs'} text-gray-500 ${replyActionOptions?.className || ''}`}
+                            >
+                              {(replyActionOptions?.showTimestamp ?? true) &&
+                                timestampFormatter?.(replyComment, 1) && (
+                                  <span>{timestampFormatter?.(replyComment, 1)}</span>
+                                )}
+                              {(replyActionOptions?.showLike ?? true) && (
+                                <InlineLikeButton entityId={replyComment.id} entityType={actionEntityType} />
+                              )}
+                              {(replyActionOptions?.showReply ?? true) && (
+                                <button
+                                  className="hover-app-theme action-small-pad"
+                                  onClick={() => onReplyClick?.(replyComment, rootComment)}
+                                >
+                                  Reply
+                                </button>
+                              )}
+                              {(replyActionOptions?.showReactionSummary ?? true) && (
+                                <div
+                                  className="reaction-summary-trigger"
+                                  style={{ display: 'inline-flex', alignItems: 'center' }}
+                                >
+                                  <ReactionSummary
+                                    entityId={replyComment.id}
+                                    entityType={actionEntityType}
+                                    maxReactions={4}
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
                           {renderReplyAfterActions?.(replyComment, rootComment)}
                         </div>

@@ -56,6 +56,12 @@ export function ReusableModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        onInteractOutside={(event) => {
+          const target = event.target as HTMLElement | null
+          if (target?.closest('[data-reaction-popup]')) {
+            event.preventDefault()
+          }
+        }}
         className={cn(CONTENT_CLASS, contentClassName)}
       >
         {!hideHeader && (

@@ -36,6 +36,8 @@ interface EntityCommentComposerProps {
   submitButtonClassName?: string
   maxChars?: number
   maxLines?: number
+  onDraftStateChange?: (hasDraft: boolean) => void
+  onClosed?: () => void
 }
 
 export default function EntityCommentComposer({
@@ -62,12 +64,15 @@ export default function EntityCommentComposer({
   submitButtonClassName,
   maxChars = 25000,
   maxLines = 9,
+  onDraftStateChange,
+  onClosed,
 }: EntityCommentComposerProps) {
   const [isActive, setIsActive] = useState(false)
   const [text, setText] = useState('')
   const [attachedImages, setAttachedImages] = useState<ManagedUploadAsset[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const lastDraftStateRef = useRef<boolean | null>(null)
   const { toast } = useToast()
   const {
     trackTemporaryUpload,
@@ -109,6 +114,16 @@ export default function EntityCommentComposer({
   useEffect(() => {
     if (isActive) resize()
   }, [text, isActive, resize])
+
+  useEffect(() => {
+    const hasDraft = isActive && (text.trim().length > 0 || attachedImages.length > 0)
+    if (lastDraftStateRef.current === hasDraft) {
+      return
+    }
+
+    lastDraftStateRef.current = hasDraft
+    onDraftStateChange?.(hasDraft)
+  }, [attachedImages.length, isActive, onDraftStateChange, text])
 
   const submit = async () => {
     const content = text.trim()
@@ -156,6 +171,7 @@ export default function EntityCommentComposer({
       setText('')
       setAttachedImages([])
       setIsActive(false)
+      onClosed?.()
       toast({
         title: 'Comment posted',
         description: parentCommentId ? 'Your reply has been added' : 'Your comment has been added',
@@ -283,6 +299,7 @@ export default function EntityCommentComposer({
                         setIsActive(false)
                         setText('')
                         setAttachedImages([])
+                        onClosed?.()
                       }}
                       disabled={isSubmitting}
                     >

@@ -87,6 +87,9 @@ import EntityCommentComposer from '@/components/entity-comment-composer'
 import dynamic from 'next/dynamic'
 import { extractLinks, extractFirstLink } from '@/lib/link-preview/link-extractor'
 import { TaggedTextRenderer } from '@/components/tags/tagged-text-renderer'
+import ReusableCommentThread, {
+  type ReusableCommentNode,
+} from '@/components/enterprise/reusable-comment-thread'
 
 // Code splitting: Lazy load link preview components
 const EnterpriseLinkPreviewCard = dynamic(
@@ -217,6 +220,10 @@ export default function EntityFeedCard({
   const [commentFilter, setCommentFilter] = useState<'relevant' | 'all'>('relevant')
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({})
   const [replyComposerFocusTicks, setReplyComposerFocusTicks] = useState<Record<string, number>>({})
+  const [activeReplyComposerId, setActiveReplyComposerId] = useState<string | null>(null)
+  const [activeReplyAnchorId, setActiveReplyAnchorId] = useState<string | null>(null)
+  const [activeReplyParentId, setActiveReplyParentId] = useState<string | null>(null)
+  const [replyComposerDraftState, setReplyComposerDraftState] = useState<Record<string, boolean>>({})
   const [canCommentModal, setCanCommentModal] = useState<boolean>(false)
 
   // Inline editing state
@@ -287,9 +294,66 @@ export default function EntityFeedCard({
     setModalComposerFocusTick((t) => t + 1)
   }, [])
 
-  const focusReplyComposer = useCallback((commentId: string) => {
-    setExpandedReplies((prev) => ({ ...prev, [commentId]: true }))
-    setReplyComposerFocusTicks((prev) => ({ ...prev, [commentId]: (prev[commentId] || 0) + 1 }))
+  const focusReplyComposer = useCallback(
+    (commentId: string, anchorId?: string, parentId?: string) => {
+      const targetAnchorId = anchorId || commentId
+      const targetParentId = parentId || commentId
+
+      setExpandedReplies((prev) => ({ ...prev, [commentId]: true }))
+
+      let shouldOpenTarget = true
+      if (
+        activeReplyComposerId &&
+        (activeReplyComposerId !== commentId || activeReplyAnchorId !== targetAnchorId) &&
+        replyComposerDraftState[activeReplyComposerId]
+      ) {
+        const shouldDiscardDraft = window.confirm(
+          "You haven't submitted your current reply. Closing it will remove the unsent reply. Continue?"
+        )
+
+        if (!shouldDiscardDraft) {
+          shouldOpenTarget = false
+        } else {
+          setReplyComposerDraftState((prev) => ({ ...prev, [activeReplyComposerId]: false }))
+        }
+      }
+
+      if (!shouldOpenTarget) {
+        return
+      }
+
+      setReplyComposerFocusTicks((prev) => ({
+        ...prev,
+        [commentId]: (prev[commentId] || 0) + 1,
+      }))
+      setActiveReplyComposerId(commentId)
+      setActiveReplyAnchorId(targetAnchorId)
+      setActiveReplyParentId(targetParentId)
+    },
+    [activeReplyAnchorId, activeReplyComposerId, replyComposerDraftState]
+  )
+
+  const handleReplyComposerClosed = useCallback((commentId: string) => {
+    setReplyComposerDraftState((prev) => {
+      if (!prev[commentId]) {
+        return prev
+      }
+
+      return { ...prev, [commentId]: false }
+    })
+    setActiveReplyComposerId((prev) => (prev === commentId ? null : prev))
+    setActiveReplyAnchorId((prev) => (activeReplyComposerId === commentId ? null : prev))
+    setActiveReplyParentId((prev) => (activeReplyComposerId === commentId ? null : prev))
+  }, [activeReplyComposerId])
+
+  const handleReplyDraftStateChange = useCallback((commentId: string, hasDraft: boolean) => {
+    setReplyComposerDraftState((prev) => {
+      if (prev[commentId] === hasDraft) {
+        return prev
+      }
+
+      return { ...prev, [commentId]: hasDraft }
+    })
   }, [])
 
   const resizeBottomComposer = useCallback(() => {
@@ -2079,233 +2143,229 @@ export default function EntityFeedCard({
             {(() => {
               const first = comments[0]
               if (!first) return null
-              const firstReply =
-                Array.isArray(first.replies) && first.replies.length > 0 ? first.replies[0] : null
-              return (
-                <div className="space-y-3">
-                  {/* First comment bubble */}
-                  <div className="flex items-start gap-3">
-                    <EntityAvatar
-                      type="user"
-                      id={first.user?.id}
-                      name={first.user?.name || 'User'}
-                      src={first.user?.avatar_url}
-                      size="sm"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="bg-gray-100 rounded-2xl px-4 py-3 inline-block max-w-full">
-                        <div className="flex items-center gap-2 mb-1">
-                          <EntityName
-                            type="user"
-                            id={first.user?.id}
-                            name={first.user?.name || 'User'}
-                            avatar_url={first.user?.avatar_url}
-                            className="text-sm font-semibold text-gray-900"
-                          />
-                        </div>
-                        <div ref={firstCommentTextRef}>
-                          <TaggedTextRenderer
-                            text={first.comment_text || ''}
-                            showPreviews={true}
-                            renderMediaUrls={true}
-                            textClassName="text-sm text-gray-800 leading-relaxed line-clamp-5"
-                          />
-                        </div>
-                        {isFirstCommentClamped && (
-                          <button
-                            onClick={() => setShowCommentsModal(true)}
-                            className="mt-1 text-xs font-medium text-gray-600 hover:underline"
-                          >
-                            View more
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between mt-1 ml-2">
-                        <CommentActionButtons
-                          entityId={first.id}
-                          entityType="comment"
-                          timestamp={formatTimeAgo(first.created_at)}
-                          className="gap-4"
-                          showLike={false}
-                          showReply={false}
-                        />
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              className="p-1 rounded-full hover:bg-gray-100"
-                              aria-label="Comment actions"
-                            >
-                              <MoreHorizontal className="h-4 w-4 text-gray-500" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={async () => {
-                                try {
-                                  await fetch('/api/comments/hide', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ comment_id: first.id }),
-                                  })
-                                  fetchComments()
-                                } catch (e) {
-                                  console.error(e)
-                                }
-                              }}
-                            >
-                              Hide comment
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={async () => {
-                                try {
-                                  await fetch('/api/users/block', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ user_id: first.user?.id }),
-                                  })
-                                  fetchComments()
-                                } catch (e) {
-                                  console.error(e)
-                                }
-                              }}
-                            >
-                              Block {first.user?.name || 'user'}
-                            </DropdownMenuItem>
-                            <DropdownMenuSub>
-                              <DropdownMenuSubTrigger>More block options</DropdownMenuSubTrigger>
-                              <DropdownMenuSubContent>
-                                <DropdownMenuItem
-                                  onClick={async () => {
-                                    try {
-                                      await fetch('/api/comments/hide-user', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ user_id: first.user?.id }),
-                                      })
-                                      fetchComments()
-                                    } catch (e) {
-                                      console.error(e)
-                                    }
-                                  }}
-                                >
-                                  Hide all comments from this user
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={async () => {
-                                    try {
-                                      await fetch('/api/users/block', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ user_id: first.user?.id }),
-                                      })
-                                      fetchComments()
-                                    } catch (e) {
-                                      console.error(e)
-                                    }
-                                  }}
-                                >
-                                  Block user globally
-                                </DropdownMenuItem>
-                              </DropdownMenuSubContent>
-                            </DropdownMenuSub>
-                            <DropdownMenuItem
-                              onClick={async () => {
-                                try {
-                                  await fetch('/api/users/block', {
-                                    method: 'DELETE',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ user_id: first.user?.id }),
-                                  })
-                                  fetchComments()
-                                } catch (e) {
-                                  console.error(e)
-                                }
-                              }}
-                            >
-                              Unblock {first.user?.name || 'user'}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={async () => {
-                                try {
-                                  await fetch('/api/report', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      target_type: 'comment',
-                                      target_id: first.id,
-                                    }),
-                                  })
-                                } catch (e) {
-                                  console.error(e)
-                                }
-                              }}
-                            >
-                              Report comment
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* First reply (if any) */}
-                  {firstReply && (
-                    <div className="ml-4 flex items-start gap-2">
-                      <EntityAvatar
-                        type="user"
-                        id={firstReply.user?.id}
-                        name={firstReply.user?.name || 'User'}
-                        src={firstReply.user?.avatar_url}
-                        size="xs"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <EntityName
-                              type="user"
-                              id={firstReply.user?.id}
-                              name={firstReply.user?.name || 'User'}
-                              avatar_url={firstReply.user?.avatar_url}
-                              className="text-xs font-semibold text-gray-900"
-                            />
-                          </div>
-                          <div className="text-xs text-gray-800 leading-relaxed">
+              const previewComments: ReusableCommentNode[] = [
+                {
+                  id: first.id,
+                  commentText: first.comment_text || '',
+                  createdAt: first.created_at,
+                  replyCount: first.reply_count || 0,
+                  user: {
+                    id: first.user?.id,
+                    name: first.user?.name || 'User',
+                    avatarUrl: first.user?.avatar_url,
+                  },
+                  replies: Array.isArray(first.replies)
+                    ? first.replies.slice(0, 1).map((reply: any) => ({
+                        id: reply.id,
+                        commentText: reply.comment_text || '',
+                        createdAt: reply.created_at,
+                        user: {
+                          id: reply.user?.id,
+                          name: reply.user?.name || 'User',
+                          avatarUrl: reply.user?.avatar_url,
+                        },
+                      }))
+                    : [],
+                },
+              ]
+
+              return (
+                <ReusableCommentThread
+                  comments={previewComments}
+                  layoutPreset="preview"
+                  maxRootItems={1}
+                  maxRepliesPerRoot={1}
+                  expandedReplies={{ [first.id]: true }}
+                  rootActionOptions={{
+                    className: 'gap-4',
+                    showLike: false,
+                    showReply: false,
+                  }}
+                  replyActionOptions={{
+                    textSize: 'text-[11px]',
+                    showLike: false,
+                    showReply: false,
+                  }}
+                  timestampFormatter={(comment) => formatTimeAgo(comment.createdAt)}
+                  renderCommentText={(comment, depth) => {
+                    if (depth === 0) {
+                      return (
+                        <>
+                          <div ref={firstCommentTextRef}>
                             <TaggedTextRenderer
-                              text={firstReply.comment_text || ''}
+                              text={comment.commentText || ''}
                               showPreviews={true}
                               renderMediaUrls={true}
-                              textClassName="text-xs text-gray-800 leading-relaxed"
+                              textClassName="text-sm text-gray-800 leading-relaxed line-clamp-5"
                             />
                           </div>
-                        </div>
-                        <CommentActionButtons
-                          entityId={firstReply.id}
-                          entityType="comment"
-                          timestamp={formatTimeAgo(firstReply.created_at)}
-                          textSize="text-[11px]"
-                          onReplyClick={() => focusReplyComposer(first.id)}
-                          showLike={false}
-                          showReply={false}
-                        />
-                        {expandedReplies[first.id] && (
-                          <div className="mt-2">
-                            <EntityCommentComposer
-                              entityId={post.id}
-                              entityType={engagementEntityType}
-                              currentUserId={user?.id}
-                              currentUserName={currentUserDisplayName}
-                              focusControl={replyComposerFocusTicks[first.id] || 0}
-                              parentCommentId={firstReply.id}
-                              placeholder={`Reply to ${firstReply.user?.name || 'reply'}`}
-                              onSubmitted={handleCommentSubmitted}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                          {isFirstCommentClamped && (
+                            <button
+                              onClick={() => setShowCommentsModal(true)}
+                              className="mt-1 text-xs font-medium text-gray-600 hover:underline"
+                            >
+                              View more
+                            </button>
+                          )}
+                        </>
+                      )
+                    }
+
+                    return (
+                      <TaggedTextRenderer
+                        text={comment.commentText || ''}
+                        showPreviews={true}
+                        renderMediaUrls={true}
+                        textClassName="text-xs text-gray-800 leading-relaxed"
+                      />
+                    )
+                  }}
+                  onReplyClick={(comment, rootComment) => {
+                    if (comment.id !== rootComment.id) {
+                      focusReplyComposer(rootComment.id, comment.id, comment.id)
+                    }
+                  }}
+                  renderRootTrailing={() => (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Comment actions">
+                          <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            try {
+                              await fetch('/api/comments/hide', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ comment_id: first.id }),
+                              })
+                              fetchComments()
+                            } catch (e) {
+                              console.error(e)
+                            }
+                          }}
+                        >
+                          Hide comment
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            try {
+                              await fetch('/api/users/block', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ user_id: first.user?.id }),
+                              })
+                              fetchComments()
+                            } catch (e) {
+                              console.error(e)
+                            }
+                          }}
+                        >
+                          Block {first.user?.name || 'user'}
+                        </DropdownMenuItem>
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>More block options</DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                try {
+                                  await fetch('/api/comments/hide-user', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ user_id: first.user?.id }),
+                                  })
+                                  fetchComments()
+                                } catch (e) {
+                                  console.error(e)
+                                }
+                              }}
+                            >
+                              Hide all comments from this user
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                try {
+                                  await fetch('/api/users/block', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ user_id: first.user?.id }),
+                                  })
+                                  fetchComments()
+                                } catch (e) {
+                                  console.error(e)
+                                }
+                              }}
+                            >
+                              Block user globally
+                            </DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            try {
+                              await fetch('/api/users/block', {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ user_id: first.user?.id }),
+                              })
+                              fetchComments()
+                            } catch (e) {
+                              console.error(e)
+                            }
+                          }}
+                        >
+                          Unblock {first.user?.name || 'user'}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            try {
+                              await fetch('/api/report', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  target_type: 'comment',
+                                  target_id: first.id,
+                                }),
+                              })
+                            } catch (e) {
+                              console.error(e)
+                            }
+                          }}
+                        >
+                          Report comment
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
-                </div>
+                  renderReplyAfterActions={(replyComment, rootComment) => {
+                    if (activeReplyComposerId !== rootComment.id || activeReplyAnchorId !== replyComment.id) {
+                      return null
+                    }
+
+                    return (
+                      <div className="mt-2">
+                        <EntityCommentComposer
+                          entityId={post.id}
+                          entityType={engagementEntityType}
+                          currentUserId={user?.id}
+                          currentUserName={currentUserDisplayName}
+                          focusControl={replyComposerFocusTicks[rootComment.id] || 0}
+                          parentCommentId={activeReplyParentId || replyComment.id}
+                          placeholder={`Reply to ${replyComment.user?.name || 'reply'}`}
+                          onDraftStateChange={(hasDraft) =>
+                            handleReplyDraftStateChange(rootComment.id, hasDraft)
+                          }
+                          onClosed={() => handleReplyComposerClosed(rootComment.id)}
+                          onSubmitted={handleCommentSubmitted}
+                        />
+                      </div>
+                    )
+                  }}
+                />
               )
             })()}
           </div>
@@ -2797,7 +2857,7 @@ export default function EntityFeedCard({
             {!isLoadingComments && comments.length > 0 ? (
               <div className="space-y-6">
                 {(commentFilter === 'all' ? [...comments] : comments).map((comment) => (
-                  <div key={comment.id} className="group">
+                  <div key={comment.id} className="space-y-4">
                     <div className="flex items-start gap-3">
                       <EntityAvatar
                         type="user"
@@ -2808,7 +2868,7 @@ export default function EntityFeedCard({
                       />
                       <div className="flex-1 min-w-0">
                         {/* Comment Bubble */}
-                        <div className="bg-gray-50 group-hover:bg-gray-100 transition-colors rounded-2xl px-4 py-3 inline-block max-w-full">
+                        <div className="bg-gray-100 rounded-2xl px-4 py-3 inline-block max-w-full">
                           <div className="flex items-center gap-2 mb-1">
                             <EntityName
                               type="user"
@@ -2817,14 +2877,6 @@ export default function EntityFeedCard({
                               avatar_url={comment.user?.avatar_url}
                               className="text-sm font-semibold text-gray-900"
                             />
-                            <span className="text-xs text-gray-400">
-                              {new Date(comment.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: 'numeric',
-                              })}
-                            </span>
                           </div>
                           <div className="text-sm text-gray-800 leading-relaxed">
                             <TaggedTextRenderer
@@ -2837,15 +2889,15 @@ export default function EntityFeedCard({
                         </div>
 
                         {/* Comment Actions */}
-                        <div className="flex items-center justify-between mt-2 ml-2">
+                        <div className="flex items-center justify-between mt-1 ml-2">
                           <div className="flex items-center gap-4">
                             <CommentActionButtons
                               entityId={comment.id}
                               entityType="comment"
-                              onReplyClick={() => focusReplyComposer(comment.id)}
+                              timestamp={formatTimeAgo(comment.created_at)}
+                              onReplyClick={() => focusReplyComposer(comment.id, comment.id, comment.id)}
                               showLike={!!user}
                               showReply={!!user}
-                              showTimestamp={false}
                             />
                             {comment.reply_count > 0 && (
                               <button
@@ -2864,82 +2916,109 @@ export default function EntityFeedCard({
                             )}
                           </div>
                         </div>
-                        {/* Nested Replies Section */}
-                        {(expandedReplies[comment.id] || !user) && (
-                          <div className="mt-4 ml-4 space-y-4 border-l-2 border-gray-100 pl-4">
-                            {comment.replies?.map((reply: any) => (
-                              <div key={reply.id} className="flex items-start gap-2">
-                                <EntityAvatar
-                                  type="user"
-                                  id={reply.user?.id}
-                                  name={reply.user?.name || 'User'}
-                                  src={reply.user?.avatar_url}
-                                  size="xs"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <EntityName
-                                        type="user"
-                                        id={reply.user?.id}
-                                        name={reply.user?.name || 'Unknown User'}
-                                        avatar_url={reply.user?.avatar_url}
-                                        className="text-xs font-semibold text-gray-900"
-                                      />
-                                      <span className="text-xs text-gray-400">
-                                        {new Date(reply.created_at).toLocaleDateString('en-US', {
-                                          month: 'short',
-                                          day: 'numeric',
-                                        })}
-                                      </span>
-                                    </div>
-                                    <div className="text-xs text-gray-800">
-                                      <TaggedTextRenderer
-                                        text={reply.comment_text || ''}
-                                        showPreviews={true}
-                                        renderMediaUrls={true}
-                                        textClassName="text-xs text-gray-800"
-                                      />
-                                    </div>
-                                  </div>
 
-                                  {/* Reply Actions */}
-                                  <div className="flex items-center mt-1 ml-2">
-                                    <CommentActionButtons
-                                      entityId={reply.id}
-                                      entityType="comment"
-                                      textSize="text-[11px]"
-                                      onReplyClick={() => focusReplyComposer(comment.id)}
-                                      showLike={!!user}
-                                      showReply={!!user}
-                                      showTimestamp={false}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                            {/* Inline Reply Composer */}
-                            {user && (
-                              <div className="pt-2">
-                                <EntityCommentComposer
-                                  entityId={post.id}
-                                  entityType={engagementEntityType}
-                                  currentUserId={user?.id}
-                                  currentUserName={currentUserDisplayName}
-                                  focusControl={replyComposerFocusTicks[comment.id] || 0}
-                                  parentCommentId={comment.id}
-                                  placeholder={`Reply to ${comment.user?.name || 'comment'}...`}
-                                  onSubmitted={handleCommentSubmitted}
-                                  cancelButtonClassName="h-7 px-2 text-[10px]"
-                                  submitButtonClassName="h-7 px-3 text-[10px]"
-                                  textareaClassName="min-h-[32px] text-xs"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {user &&
+                          activeReplyComposerId === comment.id &&
+                          activeReplyAnchorId === comment.id && (
+                            <div className="pt-2">
+                              <EntityCommentComposer
+                                entityId={post.id}
+                                entityType={engagementEntityType}
+                                currentUserId={user?.id}
+                                currentUserName={currentUserDisplayName}
+                                focusControl={replyComposerFocusTicks[comment.id] || 0}
+                                parentCommentId={activeReplyParentId || comment.id}
+                                placeholder={`Reply to ${comment.user?.name || 'comment'}...`}
+                                onDraftStateChange={(hasDraft) =>
+                                  handleReplyDraftStateChange(comment.id, hasDraft)
+                                }
+                                onClosed={() => handleReplyComposerClosed(comment.id)}
+                                onSubmitted={handleCommentSubmitted}
+                                cancelButtonClassName="h-7 px-2 text-[10px]"
+                                submitButtonClassName="h-7 px-3 text-[10px]"
+                                textareaClassName="min-h-[32px] text-xs"
+                              />
+                            </div>
+                          )}
                       </div>
                     </div>
+
+                    {/* Nested Replies Section */}
+                    {(expandedReplies[comment.id] || !user) && (
+                      <div className="space-y-4">
+                        {comment.replies?.map((reply: any) => (
+                          <div key={reply.id} className="ml-4 flex items-start gap-2">
+                            <EntityAvatar
+                              type="user"
+                              id={reply.user?.id}
+                              name={reply.user?.name || 'User'}
+                              src={reply.user?.avatar_url}
+                              size="xs"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <EntityName
+                                    type="user"
+                                    id={reply.user?.id}
+                                    name={reply.user?.name || 'Unknown User'}
+                                    avatar_url={reply.user?.avatar_url}
+                                    className="text-xs font-semibold text-gray-900"
+                                  />
+                                </div>
+                                <div className="text-xs text-gray-800 leading-relaxed">
+                                  <TaggedTextRenderer
+                                    text={reply.comment_text || ''}
+                                    showPreviews={true}
+                                    renderMediaUrls={true}
+                                    textClassName="text-xs text-gray-800 leading-relaxed"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Reply Actions */}
+                              <div className="flex items-center">
+                                <CommentActionButtons
+                                  entityId={reply.id}
+                                  entityType="comment"
+                                  timestamp={formatTimeAgo(reply.created_at)}
+                                  textSize="text-[11px]"
+                                  onReplyClick={() =>
+                                    focusReplyComposer(comment.id, reply.id, reply.id)
+                                  }
+                                  showLike={!!user}
+                                  showReply={!!user}
+                                />
+                              </div>
+
+                              {user &&
+                                activeReplyComposerId === comment.id &&
+                                activeReplyAnchorId === reply.id && (
+                                  <div className="pt-2">
+                                    <EntityCommentComposer
+                                      entityId={post.id}
+                                      entityType={engagementEntityType}
+                                      currentUserId={user?.id}
+                                      currentUserName={currentUserDisplayName}
+                                      focusControl={replyComposerFocusTicks[comment.id] || 0}
+                                      parentCommentId={activeReplyParentId || reply.id}
+                                      placeholder={`Reply to ${reply.user?.name || 'reply'}...`}
+                                      onDraftStateChange={(hasDraft) =>
+                                        handleReplyDraftStateChange(comment.id, hasDraft)
+                                      }
+                                      onClosed={() => handleReplyComposerClosed(comment.id)}
+                                      onSubmitted={handleCommentSubmitted}
+                                      cancelButtonClassName="h-7 px-2 text-[10px]"
+                                      submitButtonClassName="h-7 px-3 text-[10px]"
+                                      textareaClassName="min-h-[32px] text-xs"
+                                    />
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

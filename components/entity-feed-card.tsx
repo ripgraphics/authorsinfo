@@ -226,6 +226,9 @@ export default function EntityFeedCard({
   const [activeReplyParentId, setActiveReplyParentId] = useState<string | null>(null)
   const [replyComposerDraftState, setReplyComposerDraftState] = useState<Record<string, boolean>>({})
   const [canCommentModal, setCanCommentModal] = useState<boolean>(false)
+  const [lastSubmittedCommentId, setLastSubmittedCommentId] = useState<string | null>(null)
+  const [localCommentCount, setLocalCommentCount] = useState<number | null>(null)
+  const hasLoadedCommentsRef = useRef(false)
 
   // Inline editing state
   const [isEditing, setIsEditing] = useState(false)
@@ -374,7 +377,11 @@ export default function EntityFeedCard({
   // Function to fetch comments for this post
   const fetchComments = useCallback(async () => {
     try {
-      setIsLoadingComments(true)
+      // Only show the loading state on the initial fetch; refetches after a
+      // submission update in place so the modal does not flicker or lose scroll.
+      if (!hasLoadedCommentsRef.current) {
+        setIsLoadingComments(true)
+      }
       console.log('🔍 FeedCard: Fetching comments for post:', post.id)
 
       const response = await fetch(
@@ -390,7 +397,24 @@ export default function EntityFeedCard({
 
         if (data.data && Array.isArray(data.data)) {
           console.log('🔍 FeedCard: Setting comments:', data.data)
-          setComments(data.data)
+          setComments((prev) => {
+            // Identify the newly added comment/reply so the modal can scroll to it
+            const prevIds = new Set(
+              prev.flatMap((c) => [c.id, ...(c.replies?.map((r: any) => r.id) || [])])
+            )
+            for (const root of data.data) {
+              if (!prevIds.has(root.id)) {
+                setLastSubmittedCommentId(root.id)
+                break
+              }
+              const newReply = (root.replies || []).find((r: any) => !prevIds.has(r.id))
+              if (newReply) {
+                setLastSubmittedCommentId(newReply.id)
+                break
+              }
+            }
+            return data.data
+          })
         } else {
           console.log('🔍 FeedCard: No comments found, setting empty array')
           setComments([])
@@ -411,11 +435,24 @@ export default function EntityFeedCard({
       }
       setComments([])
     } finally {
+      hasLoadedCommentsRef.current = true
       setIsLoadingComments(false)
     }
   }, [post.id, engagementEntityType])
 
   const handleCommentSubmitted = useCallback(() => {
+    setLocalCommentCount((count) => (count === null ? (post.comment_count || 0) + 1 : count + 1))
+    // Keep the global engagement context in sync so the feed card's comment
+    // count updates immediately without a reload.
+    batchUpdateEngagement([
+      {
+        entityId: post.id,
+        entityType: engagementEntityType,
+        updates: {
+          commentCount: (getEngagement(post.id, engagementEntityType)?.commentCount || post.comment_count || 0) + 1,
+        },
+      },
+    ])
     if (onPostUpdated) {
       onPostUpdated({
         ...post,
@@ -423,7 +460,23 @@ export default function EntityFeedCard({
       })
     }
     fetchComments()
-  }, [fetchComments, onPostUpdated, post])
+  }, [fetchComments, onPostUpdated, post, batchUpdateEngagement, getEngagement, engagementEntityType])
+
+  // Detect the newly added comment after a refetch and scroll it into view
+  // so the user sees their submission without hunting for it.
+  useEffect(() => {
+    if (!lastSubmittedCommentId || isLoadingComments) return
+
+    const requestAnimationFrame = window.requestAnimationFrame.bind(window)
+    const raf = requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(
+        `[data-comment-id="${lastSubmittedCommentId}"]`
+      )
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+
+    return () => window.cancelAnimationFrame(raf)
+  }, [lastSubmittedCommentId, isLoadingComments, comments])
 
   const submitBottomComment = useCallback(async () => {
     const text = bottomComment.trim()
@@ -1781,7 +1834,7 @@ export default function EntityFeedCard({
           entityId={post.id}
           entityType={engagementEntityType}
           reactionCount={post.like_count || 0}
-          commentCount={post.comment_count || 0}
+          commentCount={localCommentCount ?? post.comment_count ?? 0}
           userReactionType={post.user_reaction_type}
           onReactionsClick={() => setShowLikesModal(true)}
           onCommentsClick={() => setShowCommentsModal(true)}
@@ -2821,7 +2874,7 @@ export default function EntityFeedCard({
             <div className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">
-                {post.comment_count || 0} Comments
+                {localCommentCount ?? post.comment_count ?? 0} Comments
               </span>
             </div>
             <DropdownMenu>
@@ -2858,7 +2911,7 @@ export default function EntityFeedCard({
             {!isLoadingComments && comments.length > 0 ? (
               <div className="space-y-6">
                 {(commentFilter === 'all' ? [...comments] : comments).map((comment) => (
-                  <div key={comment.id} className="space-y-4">
+                  <div key={comment.id} className="space-y-4" data-comment-id={comment.id}>
                     <div className="flex items-start gap-3">
                       <EntityAvatar
                         type="user"
@@ -2966,7 +3019,12 @@ export default function EntityFeedCard({
                     {(expandedReplies[comment.id] || !user) && (
                       <div className="space-y-4">
                         {comment.replies?.map((reply: any) => (
-                          <div key={reply.id} className="ml-4 flex items-start gap-2">
+                          <div
+                            key={reply.id}
+                            data-comment-id={reply.id}
+                            className="flex items-start gap-2"
+                            style={{ marginLeft: `${Math.min(reply.comment_depth || 1, 6) * 16}px` }}
+                          >
                             <EntityAvatar
                               type="user"
                               id={reply.user?.id}

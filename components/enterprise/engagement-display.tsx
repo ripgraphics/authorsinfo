@@ -53,7 +53,11 @@ const EngagementHoverPopup: React.FC<{
   isLoading: boolean
   emptyMessage: string
   className?: string
-}> = ({ title, items, totalCount, isLoading, emptyMessage, className }) => {
+  maxVisibleItems?: number
+}> = ({ title, items, totalCount, isLoading, emptyMessage, className, maxVisibleItems = 15 }) => {
+  const visibleItems = items.slice(0, maxVisibleItems)
+  const remainingCount = Math.max(0, totalCount - visibleItems.length)
+
   return (
     <div
       style={{ backgroundColor: 'var(--color-app-theme-blue)' }}
@@ -66,23 +70,23 @@ const EngagementHoverPopup: React.FC<{
         {title}
       </div>
 
-      {!isLoading && items.length > 0 ? (
+      {!isLoading && visibleItems.length > 0 ? (
         <div className="space-y-0">
-          {items.slice(0, 15).map((item) => {
+          {visibleItems.map((item) => {
             if (!item || !item.user) return null
             return (
               <div key={item.id} className="flex items-center gap-2 py-0">
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-normal text-white truncate leading-tight">
+                  <div className="text-sm font-normal text-white truncate leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                     {item.user?.name || 'Unknown User'}
                   </div>
                 </div>
               </div>
             )
           })}
-          {totalCount > 15 && (
-            <div className="text-sm text-white font-normal pt-1 mt-1">
-              and {totalCount - 15} more...
+          {remainingCount > 0 && (
+            <div className="text-sm text-white font-normal pt-1 mt-1 truncate whitespace-nowrap overflow-hidden text-ellipsis">
+              and {remainingCount} more...
             </div>
           )}
         </div>
@@ -130,6 +134,8 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({})
   const [reactionUsersByType, setReactionUsersByType] = useState<Record<string, EngagementUser[]>>({})
   const [hasLoadedReactionCounts, setHasLoadedReactionCounts] = useState(false)
+  const [uniqueReactorCount, setUniqueReactorCount] = useState<number | null>(null)
+  const [uniqueCommenterCount, setUniqueCommenterCount] = useState<number | null>(null)
 
   const aggregatedReactionCount = Object.values(reactionCounts).reduce((sum, value) => sum + value, 0)
 
@@ -211,6 +217,12 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
 
           setInternalReactionCount(newLikesCount)
           setInternalCommentCount(newCommentsCount)
+          setUniqueReactorCount(
+            typeof data.unique_reactors_count === 'number' ? data.unique_reactors_count : null
+          )
+          setUniqueCommenterCount(
+            typeof data.unique_commenters_count === 'number' ? data.unique_commenters_count : null
+          )
 
           // Sync with global engagement context
           batchUpdateEngagement([
@@ -327,11 +339,23 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
     : activeFilter
       ? activeFilterUsers
       : reactions
+  // The popup lists unique users, so its total must be the unique-user count,
+  // not the raw reaction total (which includes multiple reactions per user).
+  const uniqueReactorTotal =
+    uniqueReactorCount ??
+    (hasLoadedReactionCounts
+      ? new Set(
+          Object.values(reactionUsersByType)
+            .flat()
+            .map((u) => u.user?.id)
+            .filter(Boolean)
+        ).size
+      : null)
   const popupTotalCount = isHoveringTotalCount
-    ? displayReactionCount
+    ? (uniqueReactorTotal ?? displayReactionCount)
     : activeFilter
       ? reactionCounts[activeFilter] || activeFilterUsers.length
-      : displayReactionCount
+      : (uniqueReactorTotal ?? displayReactionCount)
 
   // Get reaction icon based on type
   const getReactionIcon = (reactionType?: string | null) => {
@@ -467,6 +491,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
                     : 'No recent reactions'
               }
               className="opacity-0 group-hover:opacity-100"
+              maxVisibleItems={5}
             />
           </div>
         )}
@@ -485,10 +510,11 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
             <EngagementHoverPopup
               title="Recent Commenters"
               items={comments}
-              totalCount={displayCommentCount}
+              totalCount={uniqueCommenterCount ?? displayCommentCount}
               isLoading={isLoadingComments}
               emptyMessage="No recent comments"
               className="opacity-0 group-hover:opacity-100 min-w-48"
+              maxVisibleItems={5}
             />
           </div>
         )}

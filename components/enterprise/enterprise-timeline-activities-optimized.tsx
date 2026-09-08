@@ -1133,6 +1133,7 @@ const EnterpriseTimelineActivities = React.memo(
             ? {
               ...a,
               like_count: updatedPost.like_count ?? a.like_count,
+              comment_count: updatedPost.comment_count ?? a.comment_count,
               user_reaction_type: updatedPost.user_reaction_type ?? a.user_reaction_type,
               is_liked: !!updatedPost.user_reaction_type,
             }

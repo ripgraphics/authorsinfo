@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           likes_count: 0,
           comments_count: 0,
+          unique_reactors_count: 0,
+          unique_commenters_count: 0,
           recent_likes: [],
           recent_comments: [],
         })
@@ -45,6 +47,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           likes_count: 0,
           comments_count: 0,
+          unique_reactors_count: 0,
+          unique_commenters_count: 0,
           recent_likes: [],
           recent_comments: [],
         })
@@ -75,11 +79,15 @@ export async function GET(request: NextRequest) {
     const engagement: {
       likes_count?: number
       comments_count?: number
+      unique_reactors_count?: number
+      unique_commenters_count?: number
       recent_likes?: any[]
       recent_comments?: any[]
     } = engagementData?.[0] || {
       likes_count: 0,
       comments_count: 0,
+      unique_reactors_count: 0,
+      unique_commenters_count: 0,
       recent_likes: [],
       recent_comments: [],
     }
@@ -202,6 +210,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       likes_count: engagement.likes_count || 0,
       comments_count: engagement.comments_count || 0,
+      unique_reactors_count: engagement.unique_reactors_count || 0,
+      unique_commenters_count: engagement.unique_commenters_count || 0,
       recent_likes: transformedLikes,
       recent_comments: transformedComments,
     })

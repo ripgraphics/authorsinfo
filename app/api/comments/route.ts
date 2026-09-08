@@ -355,7 +355,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fetch replies for all top-level comments
+    // Fetch every descendant reply for the visible top-level comments.
     const topLevelIds = formattedComments.map((c: FormattedComment) => c.id)
     if (topLevelIds.length > 0) {
       const { data: replies, error: repliesError } = await supabaseAdmin
@@ -370,7 +370,9 @@ export async function GET(request: NextRequest) {
           )
         `
         )
-        .in('parent_comment_id', topLevelIds)
+        .in('entity_type', entityTypeMatchValues)
+        .eq('entity_id', effectiveEntityId)
+        .not('parent_comment_id', 'is', null)
         .eq('is_hidden', false)
         .eq('is_deleted', false)
         .order('created_at', { ascending: true })
@@ -382,11 +384,19 @@ export async function GET(request: NextRequest) {
           if (!repliesByParent.has(parentId)) {
             repliesByParent.set(parentId, [])
           }
-          repliesByParent.get(parentId)!.push(formatComment(reply))
+          const formattedReply = formatComment(reply)
+          ;(formattedReply as FormattedComment & { comment_depth?: number }).comment_depth = 1
+          repliesByParent.get(parentId)!.push(formattedReply)
         }
 
+        const collectReplies = (parentId: string, depth: number): FormattedComment[] =>
+          (repliesByParent.get(parentId) || []).flatMap((reply) => {
+            ;(reply as FormattedComment & { comment_depth?: number }).comment_depth = depth
+            return [reply, ...collectReplies(reply.id as string, depth + 1)]
+          })
+
         for (const comment of formattedComments) {
-          const childReplies = repliesByParent.get(comment.id as string) || []
+          const childReplies = collectReplies(comment.id as string, 1)
           comment.replies = childReplies
           comment.reply_count = childReplies.length
         }

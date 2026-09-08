@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
@@ -229,6 +229,17 @@ export default function EntityFeedCard({
   const [lastSubmittedCommentId, setLastSubmittedCommentId] = useState<string | null>(null)
   const [localCommentCount, setLocalCommentCount] = useState<number | null>(null)
   const hasLoadedCommentsRef = useRef(false)
+  const replyContainersRef = useRef<Set<HTMLDivElement>>(new Set())
+  const registerReplyContainer = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      replyContainersRef.current.add(node)
+    } else {
+      // Remove by reference on unmount
+      Array.from(replyContainersRef.current).forEach((el) => {
+        if (!el.isConnected) replyContainersRef.current.delete(el)
+      })
+    }
+  }, [])
 
   // Inline editing state
   const [isEditing, setIsEditing] = useState(false)
@@ -477,6 +488,68 @@ export default function EntityFeedCard({
 
     return () => window.cancelAnimationFrame(raf)
   }, [lastSubmittedCommentId, isLoadingComments, comments])
+
+  // Keep the connector trunk tied to the last reply avatar, not the full reply
+  // content height, so images and GIFs don't stretch the line. Uses a ref to
+  // target this card's reply container directly.
+  useLayoutEffect(() => {
+    const AVATAR_CENTER_OFFSET = 16 // xs avatar is 32px; its center is 16px from row top
+    const PARENT_AVATAR_HEIGHT = 40 // sm avatar is 40px, anchored to its row's top
+    const measure = (container: HTMLElement) => {
+      const replies = container.querySelectorAll<HTMLElement>(':scope > [data-comment-id]')
+      const lastReply = replies[replies.length - 1]
+      const trunk = container.querySelector<HTMLElement>('[data-connector-trunk]')
+      if (!lastReply || !trunk) return
+
+      // The parent comment row owns this replies container.
+      const parentRow = container.closest<HTMLElement>('[data-comment-id]')
+      if (!parentRow) return
+
+      const containerRect = container.getBoundingClientRect()
+      const parentRowRect = parentRow.getBoundingClientRect()
+      // Parent avatar bottom edge: the sm avatar sits at the top of its row.
+      const parentAvatarBottom = parentRowRect.top + PARENT_AVATAR_HEIGHT
+      // Last reply's avatar vertical center, measured from the container's top.
+      // Using the reply row (always present) instead of the avatar element,
+      // which renders asynchronously and may not exist at measure time.
+      const replyRect = lastReply.getBoundingClientRect()
+      const lastAvatarCenter = replyRect.top + AVATAR_CENTER_OFFSET
+
+      // Trunk spans from the parent avatar's bottom edge down to the last
+      // reply's avatar center, positioned relative to the container's top.
+      // Both points are measured live, so a tall image in the parent comment
+      // (which pushes the container down) no longer detaches the line's start
+      // from the parent avatar.
+      const top = parentAvatarBottom - containerRect.top
+      const height = lastAvatarCenter - parentAvatarBottom
+      trunk.style.top = `${top}px`
+      trunk.style.height = `${Math.max(0, height)}px`
+    }
+
+    const measureAll = () => {
+      replyContainersRef.current.forEach((container) => {
+        if (container.isConnected) measure(container)
+      })
+    }
+
+    measureAll()
+    const frame = window.requestAnimationFrame(measureAll)
+
+    // Re-measure when a container or its parent comment resizes (e.g. an
+    // image or GIF finishes loading in the parent comment and pushes the
+    // replies container further down).
+    const observer = new ResizeObserver(measureAll)
+    replyContainersRef.current.forEach((container) => {
+      observer.observe(container)
+      const parentRow = container.closest<HTMLElement>('[data-comment-id]')
+      if (parentRow) observer.observe(parentRow)
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [comments, expandedReplies])
 
   const submitBottomComment = useCallback(async () => {
     const text = bottomComment.trim()
@@ -2911,7 +2984,7 @@ export default function EntityFeedCard({
             {!isLoadingComments && comments.length > 0 ? (
               <div className="space-y-6">
                 {(commentFilter === 'all' ? [...comments] : comments).map((comment) => (
-                  <div key={comment.id} className="space-y-4" data-comment-id={comment.id}>
+                  <div key={comment.id} className="relative space-y-4" data-comment-id={comment.id}>
                     <div className="flex items-start gap-3">
                       <EntityAvatar
                         type="user"
@@ -3015,16 +3088,40 @@ export default function EntityFeedCard({
                       </div>
                     </div>
 
-                    {/* Nested Replies Section */}
+                    {/* Nested Replies Section — Facebook-style tree connectors:
+                        a vertical trunk drops from the parent avatar's bottom-center,
+                        and each reply gets an L-branch that ends at its avatar's
+                        left-center. The trunk stops at the last reply's avatar. */}
                     {(expandedReplies[comment.id] || !user) && (
-                      <div className="space-y-4">
-                        {comment.replies?.map((reply: any) => (
+                      <div ref={registerReplyContainer} className="relative ml-4 space-y-4">
+                        <span
+                          aria-hidden="true"
+                          data-connector-trunk
+                          className="absolute left-1 w-px bg-gray-300"
+                        />
+                        {comment.replies?.map((reply: any) => {
+                          const visualDepth = Math.min(reply.comment_depth || 1, 2)
+                          const isSecondLevel = visualDepth === 2
+                          return (
                           <div
                             key={reply.id}
                             data-comment-id={reply.id}
-                            className="flex items-start gap-2"
-                            style={{ marginLeft: `${Math.min(reply.comment_depth || 1, 6) * 16}px` }}
+                            className="relative flex items-start gap-2"
+                            style={{ marginLeft: isSecondLevel ? '16px' : undefined }}
                           >
+                            {/* Trunk: vertical line from parent avatar bottom-center.
+                                For the last reply it stops at the avatar's vertical
+                                center; for earlier replies it continues downward. */}
+                            {/* Branch: horizontal line into this reply's avatar,
+                                at the avatar's vertical center (16px = half of xs avatar's 32px height) */}
+                            <span
+                              aria-hidden="true"
+                              className="absolute top-4 h-px bg-gray-300"
+                              style={{
+                                left: isSecondLevel ? '-12px' : '0',
+                                width: isSecondLevel ? '12px' : '4px',
+                              }}
+                            />
                             <EntityAvatar
                               type="user"
                               id={reply.user?.id}
@@ -3106,7 +3203,8 @@ export default function EntityFeedCard({
                                 )}
                             </div>
                           </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     )}
                   </div>

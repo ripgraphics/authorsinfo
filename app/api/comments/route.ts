@@ -389,11 +389,15 @@ export async function GET(request: NextRequest) {
           repliesByParent.get(parentId)!.push(formattedReply)
         }
 
+        // Keep the thread flat for the existing modal renderer, but retain a
+        // capped visual depth: root, direct reply, and reply-to-reply.
         const collectReplies = (parentId: string, depth: number): FormattedComment[] =>
-          (repliesByParent.get(parentId) || []).flatMap((reply) => {
-            ;(reply as FormattedComment & { comment_depth?: number }).comment_depth = depth
-            return [reply, ...collectReplies(reply.id as string, depth + 1)]
-          })
+          (repliesByParent.get(parentId) || []).flatMap((reply) => [
+            Object.assign(reply, {
+              comment_depth: Math.min(depth, 2),
+            }),
+            ...collectReplies(reply.id as string, depth + 1),
+          ])
 
         for (const comment of formattedComments) {
           const childReplies = collectReplies(comment.id as string, 1)

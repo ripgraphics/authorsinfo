@@ -3055,8 +3055,8 @@ export default function EntityFeedCard({
                                 }
                               >
                                 {expandedReplies[comment.id]
-                                  ? 'Hide'
-                                  : `Show ${comment.reply_count} replies`}
+                                  ? 'Hide replies'
+                                  : `Show ${comment.reply_count} ${comment.reply_count === 1 ? 'reply' : 'replies'}`}
                               </button>
                             )}
                           </div>
@@ -3092,7 +3092,7 @@ export default function EntityFeedCard({
                         a vertical trunk drops from the parent avatar's bottom-center,
                         and each reply gets an L-branch that ends at its avatar's
                         left-center. The trunk stops at the last reply's avatar. */}
-                    {(expandedReplies[comment.id] || !user) && (
+                    {(expandedReplies[comment.id]) && (
                       <div ref={registerReplyContainer} className="relative ml-4 space-y-4">
                         <span
                           aria-hidden="true"

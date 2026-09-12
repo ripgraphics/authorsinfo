@@ -4,30 +4,10 @@ import Image from 'next/image'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Camera,
-  BookOpen,
-  Users,
-  MapPin,
-  Globe,
-  User,
-  MoreHorizontal,
-  MessageSquare,
-  UserPlus,
-  Settings,
-  Crop,
-  Loader2,
-} from 'lucide-react'
+import { Camera, Globe, User, MoreHorizontal, Settings, Crop } from 'lucide-react'
 import Link from 'next/link'
 import { Avatar } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
-import {
-  GroupHoverCard,
-  EventCreatorHoverCard,
-} from '@/components/entity-hover-cards'
-import { UserHoverCard } from '@/components/entity-hover-cards'
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +31,7 @@ import { EntityTabs } from '@/components/ui/entity-tabs'
 import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
 import { createBrowserClient } from '@supabase/ssr'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
+import { MessageButton } from '@/components/message-button'
 
 export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
 
@@ -214,8 +194,8 @@ export function EntityHeader({
   cropCoverLabel = 'Crop Cover',
   cropCoverSuccessMessage,
   onMessage,
-  onFollow,
-  isFollowing = false,
+  onFollow: _onFollow,
+  isFollowing: _isFollowing = false,
   isMessageable = true,
   isEditable = false,
   entityId,
@@ -229,9 +209,9 @@ export function EntityHeader({
   group,
   eventCreator,
   creatorJoinedAt,
-  isMember = false,
-  bookId,
-  enhancedProfile,
+  isMember: _isMember = false,
+  bookId: _bookId,
+  enhancedProfile: _enhancedProfile,
   userStats,
 }: EntityHeaderProps) {
   const { user } = useAuth()
@@ -251,7 +231,7 @@ export function EntityHeader({
   const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
   const [isProcessing, setIsProcessing] = useState(false)
   const [imageVersion, setImageVersion] = useState(0)
-  const [entityImages, setEntityImages] = useState<{
+  const [, setEntityImages] = useState<{
     header?: string
     avatar?: string
   }>({})
@@ -1082,15 +1062,13 @@ export function EntityHeader({
             )}
             {/* Message button - shown by default when isMessageable is true, but not for own profile */}
             {isMessageable && !(entityType === 'user' && user?.id === entityId) && (
-              <ResponsiveActionButton
-                icon={<MessageSquare className="h-4 w-4" />}
-                label="Message"
-                tooltip="Message"
+              <MessageButton
+                targetUserId={entityId!}
                 compact={isCompact}
                 variant="default"
                 size="sm"
-                onClick={onMessage}
                 className="entity-header__message-button flex items-center"
+                onClick={onMessage}
               />
             )}
           </>
@@ -1241,7 +1219,10 @@ export function EntityHeader({
       <div className="entity-header__content px-4 pb-4">
         <div className="entity-header__profile-section flex flex-col items-center md:flex-row md:items-start relative z-10">
           {/* Profile Image - Only this should go outside the container */}
-          <div className="shrink-0 self-start mx-auto md:mx-0" style={{ transform: 'translateY(-40px)' }}>
+          <div
+            className="shrink-0 self-start mx-auto md:mx-0"
+            style={{ transform: 'translateY(-40px)' }}
+          >
             {renderAvatar()}
           </div>
 
@@ -1300,10 +1281,7 @@ export function EntityHeader({
                 {/* Only show mutual friends if user is logged in (mutual friends require a logged-in user to compare) */}
                 {user && mutualFriendsCount !== undefined && mutualFriendsCount > 0 && (
                   <div className="entity-header__mutual-friends-item flex items-center text-muted-foreground">
-                    <MutualFriendsDisplay
-                      count={mutualFriendsCount}
-                      variant="compact"
-                    />
+                    <MutualFriendsDisplay count={mutualFriendsCount} variant="compact" />
                   </div>
                 )}
 

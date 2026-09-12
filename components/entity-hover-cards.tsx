@@ -4,15 +4,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { CloseButton } from '@/components/ui/close-button'
-import {
-  Users,
-  MapPin,
-  Globe,
-  Calendar,
-  BookOpen,
-  MessageSquare,
-  MoreHorizontal,
-} from 'lucide-react'
+import { Users, Calendar, BookOpen, MoreHorizontal } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   DropdownMenu,
@@ -27,7 +19,7 @@ import { MutualFriendsDisplay } from '@/components/mutual-friends-display'
 import { useAuth } from '@/hooks/useAuth'
 import { useUserStats } from '@/hooks/useUserStats'
 import { useButtonOverflow } from '@/hooks/use-button-overflow'
-import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
+import { MessageButton } from '@/components/message-button'
 
 // Enterprise-grade type definitions
 type EntityType = 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
@@ -98,12 +90,7 @@ interface BookEntity extends BaseEntity {
 }
 
 type Entity =
-  | UserEntity
-  | AuthorEntity
-  | PublisherEntity
-  | GroupEntity
-  | EventCreatorEntity
-  | BookEntity
+  UserEntity | AuthorEntity | PublisherEntity | GroupEntity | EventCreatorEntity | BookEntity
 
 interface EntityHoverCardProps {
   type: EntityType
@@ -210,10 +197,10 @@ export function EntityHoverCard({
         const authorEntity = entity as AuthorEntity
         // Extract image URL - handle null, undefined, and empty strings
         const authorImageUrl = authorEntity.author_image?.url?.trim()
-        
+
         // Proper pluralization: "1 Book" vs "2 Books"
         const bookText = authorEntity.bookCount === 1 ? 'book' : 'books'
-        
+
         // Build subtitle - keep it simple, we'll show followers/mutual friends separately
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
@@ -228,18 +215,20 @@ export function EntityHoverCard({
       case 'publisher':
         const publisherEntity = entity as PublisherEntity
         // Extract image URL - try publisher_image first, then logo_url, handling null, undefined, and empty strings
-        const publisherImageUrl = (publisherEntity.publisher_image?.url && publisherEntity.publisher_image.url.trim() !== '') 
-          ? publisherEntity.publisher_image.url.trim()
-          : (publisherEntity.logo_url && publisherEntity.logo_url.trim() !== '')
-            ? publisherEntity.logo_url.trim()
-            : undefined
-        
+        const publisherImageUrl =
+          publisherEntity.publisher_image?.url && publisherEntity.publisher_image.url.trim() !== ''
+            ? publisherEntity.publisher_image.url.trim()
+            : publisherEntity.logo_url && publisherEntity.logo_url.trim() !== ''
+              ? publisherEntity.logo_url.trim()
+              : undefined
+
         // Build subtitle - show author count, followers and mutual friends will be shown separately
         const bookCountText = `${publisherEntity.bookCount} ${publisherEntity.bookCount === 1 ? 'book' : 'books'}`
-        const authorCountText = publisherEntity.authorCount !== undefined && publisherEntity.authorCount > 0
-          ? `${publisherEntity.authorCount} ${publisherEntity.authorCount === 1 ? 'author' : 'authors'}`
-          : null
-        
+        const authorCountText =
+          publisherEntity.authorCount !== undefined && publisherEntity.authorCount > 0
+            ? `${publisherEntity.authorCount} ${publisherEntity.authorCount === 1 ? 'author' : 'authors'}`
+            : null
+
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
           countText: bookCountText,
@@ -285,23 +274,9 @@ export function EntityHoverCard({
     }
   }
 
-  const handleMessage = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    // For authors and publishers, navigate to their page for messaging
-    if (type === 'author' || type === 'publisher') {
-      const info = getEntityInfo()
-      if (info.href) {
-        router.push(info.href)
-      }
-    } else {
-      // TODO: Implement message functionality for users
-      console.log('Message:', entity.id)
-    }
-  }
-
   const info = getEntityInfo()
   // Ensure imageUrl is a valid non-empty string, otherwise use placeholder
-  const imageUrl = (info.imageUrl && info.imageUrl.trim() !== '') ? info.imageUrl : '/placeholder.svg'
+  const imageUrl = info.imageUrl && info.imageUrl.trim() !== '' ? info.imageUrl : '/placeholder.svg'
 
   return (
     <HoverCard open={isHoverCardOpen || isDropdownOpen} onOpenChange={handleHoverCardOpenChange}>
@@ -313,7 +288,7 @@ export function EntityHoverCard({
           {children}
         </span>
       </HoverCardTrigger>
-      <HoverCardContent 
+      <HoverCardContent
         className="p-0 bg-white border border-gray-200 shadow-xl"
         onPointerDownOutside={(e) => {
           // Don't close if clicking on dropdown menu
@@ -349,25 +324,37 @@ export function EntityHoverCard({
               </h3>
               {info.subtitle && <p className="text-sm text-gray-500 mb-2">{info.subtitle}</p>}
               {/* Display followers and mutual friends for author and publisher using reusable components */}
-              {(type === 'author' || type === 'publisher') && (
+              {(type === 'author' || type === 'publisher') &&
                 (() => {
                   const hasFollowers = info.followersCount !== undefined && info.followersCount > 0
                   // Only show mutual friends if user is logged in (mutual friends require a logged-in user to compare)
-                  const hasMutualFriends = user && info.mutualFriendsCount !== undefined && info.mutualFriendsCount > 0
-                  
+                  const hasMutualFriends =
+                    user && info.mutualFriendsCount !== undefined && info.mutualFriendsCount > 0
+
                   if (!hasFollowers && !hasMutualFriends) {
                     return null
                   }
-                  
+
                   return (
                     <p className="text-sm text-gray-500 mb-2">
-                      {hasFollowers && <FollowersDisplay count={info.followersCount} variant="compact" className="inline" />}
+                      {hasFollowers && (
+                        <FollowersDisplay
+                          count={info.followersCount}
+                          variant="compact"
+                          className="inline"
+                        />
+                      )}
                       {hasFollowers && hasMutualFriends && <span className="mx-1">•</span>}
-                      {hasMutualFriends && <MutualFriendsDisplay count={info.mutualFriendsCount} variant="compact" className="inline" />}
+                      {hasMutualFriends && (
+                        <MutualFriendsDisplay
+                          count={info.mutualFriendsCount}
+                          variant="compact"
+                          className="inline"
+                        />
+                      )}
                     </p>
                   )
-                })()
-              )}
+                })()}
               <div className="flex items-center text-sm text-gray-500">
                 {info.icon}
                 <span>{info.countText}</span>
@@ -406,77 +393,79 @@ export function EntityHoverCard({
           </div>
         </div>
         {/* Action Buttons - Show for users, authors, and publishers (only when logged in). Hide for own user. */}
-        {user && showActions && !isOwnUser && (type === 'user' || type === 'author' || type === 'publisher') && (
-          <div className="px-4 pb-4 border-t border-gray-100">
-            <div ref={actionsContainerRef} className="flex gap-2 mt-3">
-              {type === 'user' ? (
-                <AddFriendButton
-                  targetUserId={entity.id}
-                  targetUserName={entity.name}
-                  className="flex-1"
-                  variant="outline"
-                  size="sm"
-                  compact={isCompact}
-                />
-              ) : (
-                <FollowButton
-                  entityId={entity.id}
-                  targetType={type === 'author' ? 'author' : 'publisher'}
-                  entityName={entity.name}
-                  className="flex-1"
-                  size="sm"
-                  showText={!isCompact}
-                />
-              )}
-              <ResponsiveActionButton
-                icon={<MessageSquare className="h-4 w-4" />}
-                label="Message"
-                tooltip="Message"
-                compact={isCompact}
-                variant="default"
-                size="sm"
-                onClick={handleMessage}
-                className="flex-1 flex items-center"
-              />
-              <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-9 w-9 p-0"
+        {user &&
+          showActions &&
+          !isOwnUser &&
+          (type === 'user' || type === 'author' || type === 'publisher') && (
+            <div className="px-4 pb-4 border-t border-gray-100">
+              <div ref={actionsContainerRef} className="flex gap-2 mt-3">
+                {type === 'user' ? (
+                  <AddFriendButton
+                    targetUserId={entity.id}
+                    targetUserName={entity.name}
+                    className="flex-1"
+                    variant="outline"
+                    size="sm"
+                    compact={isCompact}
+                  />
+                ) : (
+                  <FollowButton
+                    entityId={entity.id}
+                    targetType={type === 'author' ? 'author' : 'publisher'}
+                    entityName={entity.name}
+                    className="flex-1"
+                    size="sm"
+                    showText={!isCompact}
+                  />
+                )}
+                {type === 'user' && (
+                  <MessageButton
+                    targetUserId={entity.id}
+                    compact={isCompact}
+                    variant="default"
+                    size="sm"
+                    className="flex-1 flex items-center"
+                  />
+                )}
+                <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 w-9 p-0"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
+                    onEscapeKeyDown={(e) => {
+                      // Close dropdown but keep hover card open
+                      setIsDropdownOpen(false)
+                      e.preventDefault()
+                    }}
                   >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onEscapeKeyDown={(e) => {
-                    // Close dropdown but keep hover card open
-                    setIsDropdownOpen(false)
-                    e.preventDefault()
-                  }}
-                >
-                  <DropdownMenuItem 
-                    className="flex items-center cursor-pointer"
-                    onPointerDown={(e) => e.stopPropagation()}
-                  >
-                    Share
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="flex items-center cursor-pointer"
-                    onPointerDown={(e) => e.stopPropagation()}
-                  >
-                    Report
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuItem
+                      className="flex items-center cursor-pointer"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      Share
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center cursor-pointer"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      Report
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </HoverCardContent>
     </HoverCard>
   )
@@ -510,7 +499,6 @@ export function UserHoverCard({
     </EntityHoverCard>
   )
 }
-
 
 interface GroupHoverCardProps {
   group: GroupEntity

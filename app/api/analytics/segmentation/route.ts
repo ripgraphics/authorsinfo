@@ -1,55 +1,44 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import {
-  experimental_taintObjectReference,
-  experimental_taintUniqueValue,
-} from 'react';
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 // Interface for segmentation data returned from the API
 interface SegmentData {
-  id: number;
-  name: string;
-  description: string;
-  segment_type: 'behavioral' | 'demographic' | 'engagement' | 'activity';
-  criteria: Record<string, any>;
-  status: 'active' | 'inactive' | 'archived';
-  member_count: number;
-  created_at: string;
-  updated_at: string;
+  id: number
+  name: string
+  description: string
+  segment_type: 'behavioral' | 'demographic' | 'engagement' | 'activity'
+  criteria: Record<string, unknown>
+  status: 'active' | 'inactive' | 'archived'
+  member_count: number
+  created_at: string
+  updated_at: string
 }
 
 export async function GET() {
   try {
-    const supabase = createClient();
-    experimental_taintObjectReference(
-      'Do not pass the Supabase client to the client.',
-      supabase,
-    );
-    experimental_taintUniqueValue(
-      'Do not pass the Supabase client to the client.',
-      supabase,
-      "supabase"
-    );
+    const supabase = createClient()
 
     // Verify admin access
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .single()
 
     if (profileError || !profile || !['admin', 'superadmin'].includes(profile.role)) {
       return NextResponse.json(
         { error: 'Forbidden: You do not have permission to view analytics.' },
         { status: 403 }
-      );
+      )
     }
 
     // Fetch all active segments with member counts
@@ -57,29 +46,21 @@ export async function GET() {
       .from('user_segments')
       .select('*')
       .eq('status', 'active')
-      .order('member_count', { ascending: false });
+      .order('member_count', { ascending: false })
 
     if (segmentError) {
-      console.error('Error fetching segments:', segmentError);
-      return NextResponse.json(
-        { error: 'Failed to fetch segmentation data' },
-        { status: 500 }
-      );
+      console.error('Error fetching segments:', segmentError)
+      return NextResponse.json({ error: 'Failed to fetch segmentation data' }, { status: 500 })
     }
 
     // If no segments exist, return empty array
     if (!segments || segments.length === 0) {
-      return NextResponse.json([]);
+      return NextResponse.json([])
     }
 
-    return NextResponse.json(segments as SegmentData[]);
-
+    return NextResponse.json(segments as SegmentData[])
   } catch (error) {
-    console.error('An unexpected error occurred in segmentation GET route:', error);
-    return NextResponse.json(
-      { error: 'An internal server error occurred.' },
-      { status: 500 }
-    );
+    console.error('An unexpected error occurred in segmentation GET route:', error)
+    return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 })
   }
 }
-

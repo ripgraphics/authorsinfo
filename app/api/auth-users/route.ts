@@ -5,6 +5,24 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 // Cache duration for user data (5 minutes)
 const CACHE_DURATION = 300
 
+async function getUserWithRetry(
+  supabase: Awaited<ReturnType<typeof createRouteHandlerClientAsync>>
+) {
+  let lastError: unknown = null
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const result = await supabase.auth.getUser()
+      if (!result.error || result.data.user) return result
+      lastError = result.error
+      const status = (result.error as { status?: number }).status
+      if (status !== undefined && status < 500) return result
+    } catch (error) {
+      lastError = error
+    }
+  }
+  return { data: { user: null }, error: lastError }
+}
+
 export async function GET(request: Request) {
   try {
     const supabase = await createRouteHandlerClientAsync()
@@ -165,7 +183,7 @@ export async function POST(request: Request) {
     let userError = null
 
     try {
-      const result = await supabase.auth.getUser()
+      const result = await getUserWithRetry(supabase)
       user = result.data?.user || null
       userError = result.error || null
     } catch (error) {
@@ -278,5 +296,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
-

@@ -55,7 +55,8 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, loading } = useAuth()
-  const currentUserName = (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'User'
+  const currentUserName =
+    (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'User'
 
   const handleSignOut = async () => {
     const supabase = createBrowserClient(
@@ -109,6 +110,8 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
             variant="ghost"
             size="icon"
             className="page-header__messages-btn hidden sm:flex rounded-full"
+            onClick={() => window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))}
+            aria-label="Open chat"
           >
             <MessageSquare className="h-5 w-5" />
             <span className="sr-only">Messages</span>

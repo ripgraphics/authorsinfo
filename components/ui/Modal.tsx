@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import { CloseButton } from '@/components/ui/close-button'
 
 export default function Modal({
   open,
@@ -64,13 +65,12 @@ export default function Modal({
             {icon && <span className="text-2xl">{icon}</span>}
             {title && <h2 className="text-xl font-bold">{title}</h2>}
           </div>
-          <button
-            className="text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
-            aria-label="Close modal"
+          <CloseButton
             onClick={onClose}
-          >
-            ×
-          </button>
+            variant="ghost"
+            size="sm"
+            className="static top-auto right-auto rounded-md p-1.5 text-gray-400 hover:text-gray-700"
+          />
         </div>
         <div className="overflow-y-auto px-4 py-4" style={{ flex: 1 }}>
           {children}

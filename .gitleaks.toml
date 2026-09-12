@@ -1,0 +1,12 @@
+title = "Authors Info secret scanning"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known non-secret placeholders and generated artifacts"
+paths = [
+  '''(^|/)\.next/''',
+  '''(^|/)artifacts/''',
+  '''(^|/)tests-e2e/\.auth/''',
+]

@@ -138,6 +138,7 @@ interface EnterpriseActivity {
     negative: number
     mixed: number
   }
+
   content_insights?: {
     readability_score: number
     complexity_level: string
@@ -158,6 +159,23 @@ interface EnterpriseActivity {
   engagement_score?: number
   metadata?: any
   user_reaction_type?: string | null
+}
+
+interface FollowRow {
+  follower_id: string
+  following_id: string
+  status?: string | null
+}
+
+interface ConnectionRow {
+  friend_id?: string
+  follower_id?: string
+  following_id?: string
+}
+
+interface TimelineRealtimePayload {
+  new: Record<string, unknown>
+  old: Record<string, unknown>
 }
 
 // ============================================================================
@@ -230,11 +248,19 @@ const EnterpriseTimelineActivities = React.memo(
     const { user } = useAuth()
     const { toast } = useToast()
     const { batchUpdateEngagement } = useEngagement()
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const currentUserName = (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'User'
+    const supabaseRef = useRef<ReturnType<typeof createBrowserClient> | null>(null)
+    if (!supabaseRef.current) {
+      supabaseRef.current = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+    }
+    const supabase = supabaseRef.current
+    const currentUserName =
+      (user as any)?.name ||
+      (user as any)?.user_metadata?.full_name ||
+      (user as any)?.email ||
+      'User'
 
     // ============================================================================
     // PERFORMANCE OPTIMIZED STATE MANAGEMENT
@@ -279,11 +305,6 @@ const EnterpriseTimelineActivities = React.memo(
       autoModerate: true,
       safetyThreshold: 0.6,
     })
-    const [analytics, setAnalytics] = useState({
-      total_activities: 0,
-      total_engagement: 0,
-      average_engagement_rate: 0,
-    })
     const [filters, setFilters] = useState({
       search_query: '',
       date_range: 'all' as 'all' | '1d' | '7d' | '30d',
@@ -291,26 +312,17 @@ const EnterpriseTimelineActivities = React.memo(
     })
 
     // Memoized filter handlers to prevent Select re-renders
-    const handleSearchChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFilters((prev) => ({ ...prev, search_query: e.target.value }))
-      },
-      []
-    )
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+      setFilters((prev) => ({ ...prev, search_query: e.target.value }))
+    }, [])
 
-    const handleDateRangeChange = useCallback(
-      (v: string) => {
-        setFilters((prev) => ({ ...prev, date_range: v as any }))
-      },
-      []
-    )
+    const handleDateRangeChange = useCallback((v: string) => {
+      setFilters((prev) => ({ ...prev, date_range: v as any }))
+    }, [])
 
-    const handleContentTypeChange = useCallback(
-      (v: string) => {
-        setFilters((prev) => ({ ...prev, content_type: v as any }))
-      },
-      []
-    )
+    const handleContentTypeChange = useCallback((v: string) => {
+      setFilters((prev) => ({ ...prev, content_type: v as any }))
+    }, [])
 
     const handleClearFilters = useCallback(() => {
       setFilters({ search_query: '', date_range: 'all', content_type: 'all' })
@@ -569,10 +581,10 @@ const EnterpriseTimelineActivities = React.memo(
               )
             const isFollower =
               followData?.some(
-                (r) =>
+                (r: FollowRow) =>
                   r.follower_id === posterUserId &&
                   r.following_id === timelineUserId &&
-                  (r as any).status === 'accepted'
+                  r.status === 'accepted'
               ) || false
             return { canPost: isFollower, reason: 'Only followers can post' }
           }
@@ -637,9 +649,9 @@ const EnterpriseTimelineActivities = React.memo(
             .eq('target_type_id', userTargetType.id),
         ])
         setUserConnections({
-          friends: friends?.map((f) => f.friend_id) || [],
-          followers: followers?.map((f) => f.follower_id) || [],
-          following: following?.map((f) => f.following_id) || [],
+          friends: (friends as ConnectionRow[] | null)?.map((f) => f.friend_id).filter(Boolean) as string[] || [],
+          followers: (followers as ConnectionRow[] | null)?.map((f) => f.follower_id).filter(Boolean) as string[] || [],
+          following: (following as ConnectionRow[] | null)?.map((f) => f.following_id).filter(Boolean) as string[] || [],
         })
       } catch (e) {
         console.warn('Error fetching connections:', e)
@@ -651,7 +663,7 @@ const EnterpriseTimelineActivities = React.memo(
         if (!enableReadingProgress) return
         // Placeholder hook to keep parity; real endpoint optional
         setReadingProgress(null)
-      } catch { }
+      } catch {}
     }, [enableReadingProgress])
 
     const fetchPrivacySettings = useCallback(async () => {
@@ -693,10 +705,13 @@ const EnterpriseTimelineActivities = React.memo(
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'activities' },
-          (payload) => {
-            const row = (payload.new || payload.old) as any
+          (payload: TimelineRealtimePayload) => {
+            const row = payload.new || payload.old
             if (!row) return
-            if (row.entity_type === memoizedEntityType && row.entity_id === memoizedUserId) {
+            if (
+              row.entity_type === memoizedEntityType &&
+              row.entity_id === memoizedUserId
+            ) {
               fetchActivities(1, false)
             }
           }
@@ -705,7 +720,7 @@ const EnterpriseTimelineActivities = React.memo(
       return () => {
         try {
           supabase.removeChannel(channel)
-        } catch { }
+        } catch {}
       }
     }, [enableRealTime, supabase, memoizedEntityType, memoizedUserId, fetchActivities])
 
@@ -783,7 +798,10 @@ const EnterpriseTimelineActivities = React.memo(
       () => (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-xl border border-gray-100 bg-white p-4 animate-pulse shadow-sm">
+            <div
+              key={index}
+              className="rounded-xl border border-gray-100 bg-white p-4 animate-pulse shadow-sm"
+            >
               <div className="flex items-start space-x-4">
                 <div className="h-12 w-12 bg-gray-100 rounded-full" />
                 <div className="flex-1 space-y-3">
@@ -831,9 +849,9 @@ const EnterpriseTimelineActivities = React.memo(
         list = list.filter((a) => new Date(a.created_at) >= cutoff)
       }
       return list
-    }, [activities, filters])
+    }, [activities, filters.search_query, filters.content_type, filters.date_range])
 
-    useEffect(() => {
+    const analytics = useMemo(() => {
       const totalEngagement = filteredActivities.reduce(
         (sum, a) => sum + (a.like_count || 0) + (a.comment_count || 0),
         0
@@ -841,11 +859,11 @@ const EnterpriseTimelineActivities = React.memo(
       const average = filteredActivities.length
         ? (totalEngagement / filteredActivities.length) * 100
         : 0
-      setAnalytics({
+      return {
         total_activities: filteredActivities.length,
         total_engagement: totalEngagement,
         average_engagement_rate: average,
-      })
+      }
     }, [filteredActivities])
 
     const renderAnalyticsDashboard = useCallback(() => {
@@ -856,15 +874,21 @@ const EnterpriseTimelineActivities = React.memo(
             <div className="grid grid-cols-3 gap-6 text-center">
               <div>
                 <div className="text-2xl font-bold text-gray-900">{analytics.total_activities}</div>
-                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">Posts</div>
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">
+                  Posts
+                </div>
               </div>
               <div className="border-x border-gray-100">
                 <div className="text-2xl font-bold text-gray-900">{analytics.total_engagement}</div>
-                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">Engagement</div>
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">
+                  Engagement
+                </div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900">{filteredActivities.length}</div>
-                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">Visible</div>
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">
+                  Visible
+                </div>
               </div>
             </div>
           </CardContent>
@@ -1056,9 +1080,9 @@ const EnterpriseTimelineActivities = React.memo(
             link_url: postForm.linkUrl || null,
             hashtags: postForm.hashtags
               ? postForm.hashtags
-                .split(',')
-                .map((t) => t.trim())
-                .filter(Boolean)
+                  .split(',')
+                  .map((t) => t.trim())
+                  .filter(Boolean)
               : [],
             data: {
               content: trimmed,
@@ -1131,12 +1155,12 @@ const EnterpriseTimelineActivities = React.memo(
         prev.map((a) =>
           a.id === updatedPost.id
             ? {
-              ...a,
-              like_count: updatedPost.like_count ?? a.like_count,
-              comment_count: updatedPost.comment_count ?? a.comment_count,
-              user_reaction_type: updatedPost.user_reaction_type ?? a.user_reaction_type,
-              is_liked: !!updatedPost.user_reaction_type,
-            }
+                ...a,
+                like_count: updatedPost.like_count ?? a.like_count,
+                comment_count: updatedPost.comment_count ?? a.comment_count,
+                user_reaction_type: updatedPost.user_reaction_type ?? a.user_reaction_type,
+                is_liked: !!updatedPost.user_reaction_type,
+              }
             : a
         )
       )
@@ -1165,9 +1189,9 @@ const EnterpriseTimelineActivities = React.memo(
           }
           const current = postForm.imageUrl
             ? postForm.imageUrl
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean)
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
             : []
           setPostForm((prev) => ({ ...prev, imageUrl: [...current, ...uploaded].join(', ') }))
           toast({ title: 'Photos uploaded', description: `${uploaded.length} photo(s) ready` })
@@ -1223,10 +1247,7 @@ const EnterpriseTimelineActivities = React.memo(
                   className="pl-10"
                 />
               </div>
-              <Select
-                value={filters.date_range}
-                onValueChange={handleDateRangeChange}
-              >
+              <Select value={filters.date_range} onValueChange={handleDateRangeChange}>
                 <SelectTrigger className="w-[9rem]">
                   <SelectValue />
                 </SelectTrigger>
@@ -1237,10 +1258,7 @@ const EnterpriseTimelineActivities = React.memo(
                   <SelectItem value="30d">This Month</SelectItem>
                 </SelectContent>
               </Select>
-              <Select
-                value={filters.content_type}
-                onValueChange={handleContentTypeChange}
-              >
+              <Select value={filters.content_type} onValueChange={handleContentTypeChange}>
                 <SelectTrigger className="w-[9rem]">
                   <SelectValue />
                 </SelectTrigger>
@@ -1251,11 +1269,7 @@ const EnterpriseTimelineActivities = React.memo(
                   <SelectItem value="link">Link</SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearFilters}
-              >
+              <Button variant="outline" size="sm" onClick={handleClearFilters}>
                 Clear
               </Button>
             </div>
@@ -1287,7 +1301,9 @@ const EnterpriseTimelineActivities = React.memo(
                     <div className="flex items-center gap-3 ml-3 text-gray-400">
                       <ImageIcon className="h-4.5 w-4.5" />
                       <Smile className="h-4.5 w-4.5" />
-                      <div className="h-5 w-8 flex items-center justify-center rounded bg-gray-100 text-[9px] font-bold text-gray-500 uppercase tracking-tighter">GIF</div>
+                      <div className="h-5 w-8 flex items-center justify-center rounded bg-gray-100 text-[9px] font-bold text-gray-500 uppercase tracking-tighter">
+                        GIF
+                      </div>
                     </div>
                   </button>
                 ) : (
@@ -1321,15 +1337,21 @@ const EnterpriseTimelineActivities = React.memo(
         <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden mb-8">
           <div className="grid grid-cols-3 divide-x divide-gray-50">
             <div className="p-4 bg-blue-50/20 hover:bg-blue-50/40 transition-colors">
-              <div className="text-[10px] uppercase tracking-wider font-bold text-blue-600/70 mb-1">Cross-post Reach</div>
+              <div className="text-[10px] uppercase tracking-wider font-bold text-blue-600/70 mb-1">
+                Cross-post Reach
+              </div>
               <div className="text-xl font-bold text-blue-900">—</div>
             </div>
             <div className="p-4 bg-purple-50/20 hover:bg-purple-50/40 transition-colors">
-              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-600/70 mb-1">Collaboration</div>
+              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-600/70 mb-1">
+                Collaboration
+              </div>
               <div className="text-xl font-bold text-purple-900">—</div>
             </div>
             <div className="p-4 bg-amber-50/20 hover:bg-amber-50/40 transition-colors">
-              <div className="text-[10px] uppercase tracking-wider font-bold text-amber-600/70 mb-1">AI Insights</div>
+              <div className="text-[10px] uppercase tracking-wider font-bold text-amber-600/70 mb-1">
+                AI Insights
+              </div>
               <div className="text-xl font-bold text-amber-900">—</div>
             </div>
           </div>
@@ -1372,7 +1394,8 @@ const EnterpriseTimelineActivities = React.memo(
             <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-gray-900 mb-2">No Activities Yet</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
-              This timeline is empty. Start sharing your thoughts or follow others to see activities here.
+              This timeline is empty. Start sharing your thoughts or follow others to see activities
+              here.
             </p>
             {isOwnEntity && (
               <Button className="rounded-full px-6 shadow-md hover:shadow-lg transition-all duration-300">

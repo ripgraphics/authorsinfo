@@ -54,7 +54,10 @@ test.describe('Cross-post functionality', () => {
     }
 
     // Step 3: Wait for modal to open
-    const dialogVisible = await page.locator('[role="dialog"]').isVisible({ timeout: 10000 }).catch(() => false)
+    const dialogVisible = await page
+      .locator('[role="dialog"]')
+      .isVisible({ timeout: 10000 })
+      .catch(() => false)
     if (!dialogVisible) {
       test.skip(true, 'Create-post dialog did not open')
       return
@@ -77,22 +80,29 @@ test.describe('Cross-post functionality', () => {
       fullPage: true,
     })
 
-    // Step 5: Submit the post - find the Post button in DialogFooter
+    // Step 5: Advance from the create step to the post settings step.
+    const nextButton = page
+      .locator('[role="dialog"] button:visible')
+      .filter({ hasText: /^Next$/i })
+      .first()
+    await expect(nextButton).toBeVisible({ timeout: 5000 })
+    await nextButton.click()
+
+    // Step 6: Submit the post from the settings step.
     const submitButton = page
-      .locator('[role="dialog"]')
-      .locator('button')
+      .locator('[role="dialog"] button:visible')
       .filter({ hasText: /^Post$/i })
       .first()
-    
+
     // If not found, try alternative selectors
-    let buttonFound = await submitButton.count() > 0
+    let buttonFound = (await submitButton.count()) > 0
     if (!buttonFound) {
       const altButton = page
-        .locator('[role="dialog"]')
+        .locator('[role="dialog"] button:visible')
         .locator('button[type="button"]')
         .filter({ hasText: /Post/i })
         .last() // Usually the last button in footer is the submit button
-      buttonFound = await altButton.count() > 0
+      buttonFound = (await altButton.count()) > 0
       if (buttonFound) {
         await expect(altButton).toBeVisible({ timeout: 5000 })
         await altButton.click({ force: true }) // Force click to bypass overlay
@@ -101,7 +111,7 @@ test.describe('Cross-post functionality', () => {
       await expect(submitButton).toBeVisible({ timeout: 5000 })
       await submitButton.click({ force: true }) // Force click to bypass overlay
     }
-    
+
     if (!buttonFound) {
       test.skip(true, 'Could not find Post button in modal')
       return
@@ -111,7 +121,10 @@ test.describe('Cross-post functionality', () => {
     await page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 10000 }).catch(() => {
       // Modal might not close immediately, continue anyway
     })
-    await page.waitForTimeout(3000)
+    await expect(page.locator('[role="dialog"]')).toBeHidden({ timeout: 15000 })
+    await expect(page.getByText(testPostText, { exact: true }).first()).toBeVisible({
+      timeout: 15000,
+    })
 
     await page.screenshot({
       path: 'artifacts/cross-post-4-post-created-on-book.png',
@@ -177,7 +190,7 @@ test.describe('Cross-post functionality', () => {
     // Try to find profile URL from page links if cookie extraction fails
     if (!profileUrl) {
       const profileLink = page.locator('a[href*="/profile/"]').first()
-      if (await profileLink.count() > 0) {
+      if ((await profileLink.count()) > 0) {
         profileUrl = await profileLink.getAttribute('href')
       }
     }
@@ -223,7 +236,9 @@ test.describe('Cross-post functionality', () => {
 
     // Step 10: Verify post appears on profile timeline
     const profileTimelinePost = page.locator('text=' + testPostText).first()
-    const postOnProfileTimeline = await profileTimelinePost.isVisible({ timeout: 10000 }).catch(() => false)
+    const postOnProfileTimeline = await profileTimelinePost
+      .isVisible({ timeout: 10000 })
+      .catch(() => false)
 
     if (postOnProfileTimeline) {
       // Verify it has the cross-post badge

@@ -1,0 +1,78 @@
+services:
+  matrix-db:
+    image: postgres:16
+    container_name: authorsinfo-matrix-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: synapse-local-only
+      POSTGRES_DB: synapse
+      LANG: C
+      LC_ALL: C
+      POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C
+    volumes:
+      - matrix-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse -d synapse"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  matrix-data-init:
+    image: alpine:3.20
+    container_name: authorsinfo-matrix-data-init
+    command: ["sh", "-c", "chown -R 991:991 /data"]
+    volumes:
+      - matrix-data:/data
+
+  matrix-synapse:
+    image: ghcr.io/element-hq/synapse:v1.160.0
+    container_name: authorsinfo-matrix-synapse
+    restart: unless-stopped
+    depends_on:
+      matrix-db:
+        condition: service_healthy
+      matrix-data-init:
+        condition: service_completed_successfully
+    environment:
+      SYNAPSE_SERVER_NAME: localhost
+      SYNAPSE_REPORT_STATS: "no"
+      UID: "991"
+      GID: "991"
+    volumes:
+      - ./infra/matrix/homeserver.yaml:/data/homeserver.yaml:ro
+      - ./infra/matrix/log.config:/data/log.config:ro
+      - matrix-data:/data
+    ports:
+      - "8008:8008"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8008/health', timeout=3)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  matrix-turn:
+    image: coturn/coturn:4.6.3
+    container_name: authorsinfo-matrix-turn
+    restart: unless-stopped
+    command:
+      - -n
+      - --log-file=stdout
+      - --realm=localhost
+      - --server-name=localhost
+      - --use-auth-secret
+      - --static-auth-secret=matrix-turn-local-only
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+
+volumes:
+  matrix-db-data:
+  matrix-data:

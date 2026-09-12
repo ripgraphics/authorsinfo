@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable descriptive-classname/require-semantic-classname */
 
 import type React from 'react'
 
@@ -13,6 +14,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { supabaseClient } from '@/lib/supabase/client'
 import { User, Camera } from 'lucide-react'
 import { Combobox } from '@/components/ui/combobox'
+import Image from 'next/image'
+
+interface AuthorMutationClient {
+  insert(values: Record<string, string>): {
+    select(columns: string): {
+      single(): Promise<{ data: { id?: string } | null; error: Error | null }>
+    }
+  }
+  delete(): { eq(column: string, value: string): Promise<{ error: Error | null }> }
+}
 
 export default function AddAuthorPage() {
   const router = useRouter()
@@ -49,7 +60,7 @@ export default function AddAuthorPage() {
         // Extract unique nationalities
         const uniqueNationalities = Array.from(
           new Set(
-            data
+            (data as Array<{ nationality: string | null }>)
               .map((item: { nationality: string | null }) => item.nationality)
               .filter(Boolean) as string[]
           )
@@ -90,7 +101,8 @@ export default function AddAuthorPage() {
 
     try {
       // Create author in database
-      const { data: createdAuthor, error } = await (supabaseClient.from('authors') as any)
+      const authorClient = supabaseClient.from('authors') as unknown as AuthorMutationClient
+      const { data: createdAuthor, error } = await authorClient
         .insert(formData)
         .select('id')
         .single()
@@ -125,7 +137,7 @@ export default function AddAuthorPage() {
           console.error('Error uploading author avatar:', errorPayload)
 
           // Best-effort rollback: if avatar upload failed, remove the newly created author
-          await (supabaseClient.from('authors') as any).delete().eq('id', createdAuthor.id)
+          await authorClient.delete().eq('id', createdAuthor.id)
           return
         }
       }
@@ -157,9 +169,11 @@ export default function AddAuthorPage() {
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl relative">
                       {photoPreview ? (
-                        <img
+                        <Image
                           src={photoPreview || '/placeholder.svg'}
                           alt="Author preview"
+                          width={128}
+                          height={128}
                           className="w-full h-full object-cover"
                         />
                       ) : (

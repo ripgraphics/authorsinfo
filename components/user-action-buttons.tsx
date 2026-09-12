@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, UserMinus, UserPlus, Clock, Loader2, MoreHorizontal } from 'lucide-react'
-import Link from 'next/link'
+import { UserMinus, UserPlus, Clock, Loader2, MoreHorizontal } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { FollowButton } from '@/components/follow-button'
@@ -17,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
+import { MessageButton } from '@/components/message-button'
 
 function OwnCardDropdown({
   entityId,
@@ -47,7 +47,11 @@ function OwnCardDropdown({
         onRemoveSelf?.()
         router.refresh()
       } else {
-        toast({ title: 'Error', description: result.error || 'Failed to unfollow', variant: 'destructive' })
+        toast({
+          title: 'Error',
+          description: result.error || 'Failed to unfollow',
+          variant: 'destructive',
+        })
       }
     } catch (e) {
       console.error('Error unfollowing:', e)
@@ -70,7 +74,11 @@ function OwnCardDropdown({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem className="cursor-pointer" onClick={handleUnfollow} disabled={isUnfollowing}>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={handleUnfollow}
+            disabled={isUnfollowing}
+          >
             Unfollow
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -96,7 +104,10 @@ interface UserActionButtonsProps {
   /** hide the report/block dropdown entirely */
   showMoreOptions?: boolean
   /** When viewing own card in a list (e.g. followers), pass entity to allow "Unfollow" in dropdown */
-  removeSelfEntity?: { entityId: string; entityType: 'book' | 'author' | 'publisher' | 'user' | 'group' }
+  removeSelfEntity?: {
+    entityId: string
+    entityType: 'book' | 'author' | 'publisher' | 'user' | 'group'
+  }
   onRemoveSelf?: () => void
 }
 
@@ -315,12 +326,10 @@ export function UserActionButtons({
   return (
     <div className={containerClass}>
       {showMessage && (
-        <ResponsiveActionButton
-          icon={<MessageCircle className="h-4 w-4" />}
-          label="Message"
-          tooltip="Message"
+        <MessageButton
+          targetUserId={userId}
+          targetUserPermalink={userPermalink}
           compact={compact}
-          href={`/messages/${userPermalink || userId}`}
           variant="default"
           size={size}
         />
@@ -421,9 +430,7 @@ export function UserActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem className="cursor-pointer">
-              Report User
-            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">Report User</DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer text-destructive">
               Block User
             </DropdownMenuItem>

@@ -1,0 +1,5 @@
+* @ripgraphics
+/app/api/ @ripgraphics
+/lib/auth/ @ripgraphics
+/proxy.ts @ripgraphics
+/.github/ @ripgraphics

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { checkColumnExists } from '@/lib/schema/schema-validators'
 import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
 
 export async function GET(request: NextRequest) {
@@ -36,23 +35,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Check if publish_status column exists before filtering
-    const hasPublishStatus = await checkColumnExists('posts', 'publish_status')
-
-    // Build query - conditionally apply publish_status filter
+    // The live posts schema includes publish_status and visibility. Keep this
+    // request path deterministic; schema introspection belongs in migrations.
     let query = (readClient.from('posts') as any)
       .select('*')
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
 
-    // Only filter by publish_status if the column exists
-    if (hasPublishStatus) {
-      query = query.or('publish_status.eq.published,publish_status.is.null')
-    }
+    query = query.or('publish_status.eq.published,publish_status.is.null')
 
     // Enforce public visibility for unauthenticated requests
-    const hasVisibility = await checkColumnExists('posts', 'visibility')
-    if (!isAuthenticated && hasVisibility) {
+    if (!isAuthenticated) {
       query = query.eq('visibility', 'public')
     }
 
@@ -78,7 +71,10 @@ export async function GET(request: NextRequest) {
           .in('entity_id', postIds)
         if (Array.isArray(reactions)) {
           userReactionByActivity = reactions.reduce(
-            (acc: Record<string, string | null>, r: { entity_id: string; like_type?: string | null }) => {
+            (
+              acc: Record<string, string | null>,
+              r: { entity_id: string; like_type?: string | null }
+            ) => {
               acc[r.entity_id] = r.like_type ?? 'like'
               return acc
             },
@@ -146,20 +142,23 @@ export async function GET(request: NextRequest) {
     if (Array.isArray(data) && data.length > 0) {
       try {
         const postIds = data.map((row: any) => row.id)
-        const postTypes = data.map((row: any) => 
+        const postTypes = data.map((row: any) =>
           row.entity_type === 'book' ? 'book' : ENGAGEMENT_ENTITY_TYPE_POST
         )
-        
-        const { data: batchCounts, error: batchError } = await (readClient.rpc as any)('get_multiple_entities_engagement', {
-          p_entity_ids: postIds,
-          p_entity_types: postTypes
-        })
-        
+
+        const { data: batchCounts, error: batchError } = await (readClient.rpc as any)(
+          'get_multiple_entities_engagement',
+          {
+            p_entity_ids: postIds,
+            p_entity_types: postTypes,
+          }
+        )
+
         if (!batchError && Array.isArray(batchCounts)) {
           countsMap = batchCounts.reduce((acc: any, item: any) => {
             acc[item.entity_id] = {
               likes_count: Number(item.likes_count || 0),
-              comments_count: Number(item.comments_count || 0)
+              comments_count: Number(item.comments_count || 0),
             }
             return acc
           }, {})
@@ -172,7 +171,7 @@ export async function GET(request: NextRequest) {
     // Project only fields used by the UI
     const activities = (data || []).map((row: any) => {
       const engagement = countsMap[row.id] || { likes_count: 0, comments_count: 0 }
-      
+
       return {
         id: row.id,
         user_id: row.user_id,
@@ -211,4 +210,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-

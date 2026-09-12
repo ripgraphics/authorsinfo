@@ -1,7 +1,6 @@
 'use server'
 
 import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
-import { validateAndFilterPayload } from '@/lib/schema/schema-validators'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
 export interface CreateActivityParams {
@@ -31,6 +30,29 @@ export interface CreateActivityResult {
   error?: string
   warnings?: string[]
   removedColumns?: string[]
+}
+
+const POST_COLUMNS = new Set([
+  'user_id',
+  'activity_type',
+  'visibility',
+  'content_type',
+  'content_summary',
+  'image_url',
+  'link_url',
+  'hashtags',
+  'entity_type',
+  'entity_id',
+  'metadata',
+  'publish_status',
+  'published_at',
+  'created_at',
+  'updated_at',
+  'content',
+])
+
+function filterPostPayload(payload: Record<string, any>): Record<string, any> {
+  return Object.fromEntries(Object.entries(payload).filter(([key]) => POST_COLUMNS.has(key)))
 }
 
 /**
@@ -167,20 +189,18 @@ export async function createActivityWithValidation(
     const postPayload = {
       ...params,
       content: params.text || (params.data as any)?.content || (params.data as any)?.text,
+      metadata: {
+        ...(params.metadata || {}),
+        content_data: params.data || undefined,
+      },
     }
-    
+
     // Remove 'text' as it's now 'content'
-    delete (postPayload as any).text;
+    delete (postPayload as any).text
 
-    const { payload: entityPayload, removedColumns, warnings } = await validateAndFilterPayload(
-      'posts',
-      postPayload
-    )
-
-    // Log warnings if any columns were removed
-    if (removedColumns.length > 0) {
-      console.warn(`Removed non-existent columns from posts insert:`, removedColumns)
-    }
+    const entityPayload = filterPostPayload(postPayload)
+    const removedColumns: string[] = []
+    const warnings: string[] = []
 
     const entityType = params.entity_type || 'user'
     const entityId = params.entity_id || params.user_id
@@ -209,19 +229,10 @@ export async function createActivityWithValidation(
         metadata: crossPostMetadata,
       }
 
-      const crossPostResult = await validateAndFilterPayload('posts', crossPostDraft)
-      userPayload = crossPostResult.payload
-      if (crossPostResult.removedColumns.length > 0) {
-        console.warn(`Removed non-existent columns from cross-post insert:`, crossPostResult.removedColumns)
-        combinedRemovedColumns.push(...crossPostResult.removedColumns)
-      }
-      if (crossPostResult.warnings.length > 0) {
-        console.warn(`Cross-post insert warnings:`, crossPostResult.warnings)
-        combinedWarnings.push(...crossPostResult.warnings)
-      }
+      userPayload = filterPostPayload(crossPostDraft)
     }
 
-    // Note: Engagement counts are calculated dynamically from 
+    // Note: Engagement counts are calculated dynamically from
     // engagement tables which are the single source of truth.
 
     // Insert the filtered payload(s) (no cached count columns)

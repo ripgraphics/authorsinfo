@@ -1,274 +1,307 @@
 'use client'
 
+import type { FormEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createClient } from '@/lib/supabase-client'
-import dynamic from 'next/dynamic'
+import { applyReactionDelete, applyReactionInsert } from '@/lib/chat-reaction-state'
+
+interface ChatChannel {
+  id: string
+  group_id: string
+  name: string | null
+  description: string | null
+}
+
+interface ChatMessage {
+  id: string
+  channel_id: string
+  user_id: string | null
+  message: string | null
+  created_at: string | null
+}
+
+interface ChatReaction {
+  message_id: string
+  reaction: string
+  user_id: string
+}
 
 const EMOJIS = ['👍', '😂', '🔥', '❤️', '😮', '🎉']
-const GroupChatThreadsPage = dynamic(() => import('./threads'), { ssr: false })
-const GroupChatThreadPage = dynamic(() => import('./thread'), { ssr: false })
 
 export default function GroupChatPage() {
-  const params = useParams()
-  const groupId = params.id as string
-  const [messages, setMessages] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const params = useParams<{ id: string }>()
+  const groupId = params.id
+  const [userId, setUserId] = useState<string | null>(null)
+  const [channel, setChannel] = useState<ChatChannel | null>(null)
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [body, setBody] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const user = { id: 'mock', name: 'Test User' } // Replace with real user
+  const [reactions, setReactions] = useState<Record<string, string[]>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
-  const [typingUsers, setTypingUsers] = useState<any[]>([])
-  const [reactions, setReactions] = useState<{ [msgId: string]: string[] }>({})
-  const [selectedThread, setSelectedThread] = useState<any | null>(null)
-  const [threadParticipants, setThreadParticipants] = useState<{ [threadId: string]: string[] }>({})
-  const [threadReactions, setThreadReactions] = useState<{ [threadId: string]: string[] }>({})
-  const [threads, setThreads] = useState<any[]>([])
-  const channelRef = useRef<any>(null)
 
   useEffect(() => {
-    fetch(`/api/groups/${groupId}/chat`)
-      .then((res) => res.json())
-      .then((data) => setMessages(data))
-      .finally(() => setLoading(false))
-
-    // Subscribe to real-time chat messages
+    let cancelled = false
     const supabase = createClient()
-    const channel = supabase.channel(`group_chat_${groupId}`)
-    channelRef.current = channel
+
+    async function loadChat() {
+      setLoading(true)
+      setError(null)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (cancelled) return
+      if (!user) {
+        setError('Sign in to access group chat.')
+        setLoading(false)
+        return
+      }
+
+      setUserId(user.id)
+      const channelsResponse = await fetch(`/api/groups/${groupId}/chat`)
+      const channelsData = await channelsResponse.json()
+      if (cancelled) return
+      if (!channelsResponse.ok) {
+        setError(channelsData.error || 'Unable to load group chat.')
+        setLoading(false)
+        return
+      }
+
+      const selectedChannel = (channelsData as ChatChannel[])[0] ?? null
+      setChannel(selectedChannel)
+      if (!selectedChannel) {
+        setMessages([])
+        setLoading(false)
+        return
+      }
+
+      const messagesResponse = await fetch(
+        `/api/groups/${groupId}/chat?channel_id=${encodeURIComponent(selectedChannel.id)}`
+      )
+      const messagesData = await messagesResponse.json()
+      if (cancelled) return
+      if (!messagesResponse.ok) {
+        setError(messagesData.error || 'Unable to load group messages.')
+      } else {
+        setMessages(messagesData as ChatMessage[])
+        const loadedReactions: Record<string, string[]> = {}
+        for (const message of messagesData as ChatMessage[]) {
+          const reactionsResponse = await fetch(
+            `/api/groups/${groupId}/chat/reactions?message_id=${encodeURIComponent(message.id)}`
+          )
+          if (!reactionsResponse.ok) continue
+          const reactionRows = (await reactionsResponse.json()) as ChatReaction[]
+          loadedReactions[message.id] = reactionRows.map((reaction) => reaction.reaction)
+        }
+        setReactions(loadedReactions)
+        const latestMessage = (messagesData as ChatMessage[]).at(-1)
+        if (latestMessage?.created_at) {
+          await fetch(`/api/groups/${groupId}/chat/read-state`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              channel_id: selectedChannel.id,
+              last_read_at: latestMessage.created_at,
+            }),
+          })
+        }
+      }
+      setLoading(false)
+    }
+
+    void loadChat()
+    return () => {
+      cancelled = true
+    }
+  }, [groupId])
+
+  useEffect(() => {
+    if (!channel || !userId) return
+    const supabase = createClient()
+    const realtimeChannel = supabase
+      .channel(`group_chat_channel_${channel.id}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'group_chat_messages',
-          filter: `group_id=eq.${groupId}`,
+          filter: `channel_id=eq.${channel.id}`,
         },
-        (payload: any) => {
-          setMessages((prev: any[]) => [...prev, payload.new])
+        (payload) => {
+          setMessages((previous) => {
+            if (previous.some((message) => message.id === payload.new.id)) return previous
+            return [...previous, payload.new as ChatMessage]
+          })
         }
       )
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState()
-        const typing = Object.values(state)
-          .flat()
-          .filter((u: any) => u.typing && u.user_id !== user.id)
-        setTypingUsers(typing)
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        setTypingUsers((prev: any[]) => [
-          ...prev,
-          ...newPresences.filter((u: any) => u.typing && u.user_id !== user.id),
-        ])
-      })
-      .on('presence', { event: 'leave' }, ({ key }) => {
-        setTypingUsers((prev: any[]) => prev.filter((u: any) => u.user_id !== key))
-      })
-      .subscribe(async () => {
-        await channel.track({ user_id: user.id, name: user.name, typing: false })
-      })
-    return () => {
-      if (channel) supabase.removeChannel(channel)
-    }
-  }, [groupId])
-
-  useEffect(() => {
-    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault()
-    setError(null)
-    setSuccess(null)
-    const res = await fetch(`/api/groups/${groupId}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: user.id, body }),
-    })
-    if (res.ok) {
-      setBody('')
-    } else {
-      const err = await res.json()
-      setError(err.error || 'Failed to send message')
-    }
-  }
-
-  // Typing indicator logic
-  const typingTimeout = useRef<any>(null)
-  const handleTyping = (e: any) => {
-    setBody(e.target.value)
-    if (channelRef.current) {
-      channelRef.current.track({ user_id: user.id, name: user.name, typing: true })
-    }
-    if (typingTimeout.current) clearTimeout(typingTimeout.current)
-    typingTimeout.current = setTimeout(() => {
-      if (channelRef.current) {
-        channelRef.current.track({ user_id: user.id, name: user.name, typing: false })
-      }
-    }, 2000)
-  }
-
-  // Message reactions (local only)
-  const handleReaction = (msgId: string, emoji: string) => {
-    setReactions((prev) => {
-      const arr = prev[msgId] || []
-      return { ...prev, [msgId]: arr.includes(emoji) ? arr : [...arr, emoji] }
-    })
-  }
-
-  // Real-time updates for threads
-  useEffect(() => {
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`group_chat_threads_${groupId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'group_chat_threads',
-          filter: `group_id=eq.${groupId}`,
+          table: 'group_chat_message_reactions',
         },
-        (payload: any) => {
-          setThreads((prev: any[]) => [payload.new, ...prev])
+        (payload) => {
+          setReactions((previous) => applyReactionInsert(previous, payload.new))
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'group_chat_message_reactions',
+        },
+        (payload) => {
+          setReactions((previous) => applyReactionDelete(previous, payload.old))
         }
       )
       .subscribe()
-    return () => {
-      if (channel) supabase.removeChannel(channel)
-    }
-  }, [groupId])
 
-  // Thread participants (local, for now)
-  const handleJoinThread = (thread: any) => {
-    setSelectedThread(thread)
-    setThreadParticipants((prev) => {
-      const arr = prev[thread.id] || []
-      return { ...prev, [thread.id]: arr.includes(user.id) ? arr : [...arr, user.id] }
+    return () => {
+      void supabase.removeChannel(realtimeChannel)
+    }
+  }, [channel, userId])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!channel || !body.trim() || sending) return
+    setSending(true)
+    setError(null)
+    const response = await fetch(`/api/groups/${groupId}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel_id: channel.id, message: body }),
     })
+    const data = await response.json()
+    if (!response.ok) {
+      setError(data.error || 'Unable to send message.')
+    } else {
+      setBody('')
+      setMessages((previous) =>
+        previous.some((message) => message.id === data.id) ? previous : [...previous, data]
+      )
+    }
+    setSending(false)
   }
 
-  // Thread reactions (local, for now)
-  const handleThreadReaction = (threadId: string, emoji: string) => {
-    setThreadReactions((prev) => {
-      const arr = prev[threadId] || []
-      return { ...prev, [threadId]: arr.includes(emoji) ? arr : [...arr, emoji] }
-    })
+  const handleReaction = async (messageId: string, emoji: string) => {
+    if (!groupId) return
+    const current = reactions[messageId] ?? []
+    const hasReaction = current.includes(emoji)
+    const response = await fetch(
+      `/api/groups/${groupId}/chat/reactions${hasReaction ? `?message_id=${encodeURIComponent(messageId)}&reaction=${encodeURIComponent(emoji)}` : ''}`,
+      {
+        method: hasReaction ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        ...(hasReaction
+          ? {}
+          : { body: JSON.stringify({ message_id: messageId, reaction: emoji }) }),
+      }
+    )
+    if (!response.ok) return
+    setReactions((previous) =>
+      hasReaction
+        ? applyReactionDelete(previous, { message_id: messageId, reaction: emoji })
+        : applyReactionInsert(previous, { message_id: messageId, reaction: emoji })
+    )
   }
 
   return (
-    <div className="flex h-[80vh]">
-      {/* Sidebar: Threads */}
-      <div className="w-1/3 border-r bg-gray-50 overflow-y-auto">
-        <GroupChatThreadsPage params={{ id: groupId }} onSelectThread={handleJoinThread} />
-        {/* Show thread reactions */}
-        {selectedThread && (
-          <div className="p-2 border-t flex gap-1">
-            {['👍', '😂', '🔥', '❤️', '😮', '🎉'].map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                className="text-lg hover:scale-110"
-                onClick={() => handleThreadReaction(selectedThread.id, emoji)}
-              >
-                {emoji}
-              </button>
-            ))}
-            <div className="flex gap-1 ml-2">
-              {(threadReactions[selectedThread.id] || []).map((emoji) => (
-                <span key={emoji} className="text-lg">
-                  {emoji}
-                </span>
-              ))}
-            </div>
-          </div>
+    <div className="group-chat group-chat__layout mx-auto flex h-[80vh] max-w-3xl flex-col p-4">
+      <header className="group-chat__header mb-4">
+        <h2 className="group-chat__title text-2xl font-bold">{channel?.name || 'Group Chat'}</h2>
+        {channel?.description && (
+          <p className="group-chat__description text-sm text-gray-500">{channel.description}</p>
         )}
-        {/* Show thread participants */}
-        {selectedThread && (
-          <div className="p-2 text-xs text-gray-500">
-            Participants: {(threadParticipants[selectedThread.id] || []).join(', ')}
-          </div>
-        )}
-      </div>
-      {/* Main: Chat or Thread */}
-      <div className="flex-1">
-        {selectedThread ? (
-          <GroupChatThreadPage params={{ id: groupId }} thread={selectedThread} />
+      </header>
+      <div className="group-chat__message-list mb-4 flex-1 overflow-y-auto rounded-sm bg-gray-50 p-4">
+        {loading ? (
+          <div className="group-chat__status">Loading...</div>
+        ) : error && !channel ? (
+          <div className="group-chat__error text-red-600">{error}</div>
+        ) : !channel ? (
+          <div className="group-chat__empty text-gray-500">No group chat channel is available.</div>
+        ) : messages.length === 0 ? (
+          <div className="group-chat__empty text-gray-500">No messages yet.</div>
         ) : (
-          <div className="max-w-2xl mx-auto p-4 flex flex-col h-[80vh]">
-            <h2 className="text-2xl font-bold mb-4">Group Chat</h2>
-            <div className="flex-1 overflow-y-auto bg-gray-50 rounded-sm p-4 mb-4">
-              {loading ? (
-                <div>Loading...</div>
-              ) : messages.length === 0 ? (
-                <div className="text-gray-500">No messages yet.</div>
-              ) : (
-                <div className="space-y-2">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.user_id === user.id ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`rounded-lg px-4 py-2 max-w-xs ${msg.user_id === user.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}
-                      >
-                        <div className="text-xs font-semibold mb-1">
-                          {msg.user_id === user.id ? 'You' : msg.user_id}
-                        </div>
-                        <div>{msg.body}</div>
-                        <div className="flex gap-1 mt-1">
-                          {EMOJIS.map((emoji) => (
-                            <button
-                              key={emoji}
-                              type="button"
-                              className="text-lg hover:scale-110 transition-transform"
-                              onClick={() => handleReaction(msg.id, emoji)}
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex gap-1 mt-1">
-                          {(reactions[msg.id] || []).map((emoji) => (
-                            <span key={emoji} className="text-lg">
-                              {emoji}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="text-[10px] text-gray-400 mt-1">
-                          {msg.created_at?.slice(0, 16).replace('T', ' ')}
-                        </div>
-                      </div>
+          <div className="group-chat__messages space-y-2">
+            {messages.map((message) => {
+              const isOwnMessage = message.user_id === userId
+              return (
+                <div
+                  key={message.id}
+                  className={`group-chat__message flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`group-chat__bubble max-w-xl rounded-lg px-4 py-2 ${
+                      isOwnMessage ? 'bg-blue-500 text-white' : 'border bg-white'
+                    }`}
+                  >
+                    <div className="group-chat__sender text-xs font-semibold">
+                      {isOwnMessage ? 'You' : message.user_id}
                     </div>
-                  ))}
-                  <div ref={bottomRef} />
+                    <div className="group-chat__body whitespace-pre-wrap break-words">
+                      {message.message}
+                    </div>
+                    <div className="group-chat__reactions mt-1 flex gap-1">
+                      {EMOJIS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          className="group-chat__reaction text-lg transition-transform hover:scale-110"
+                          onClick={() => handleReaction(message.id, emoji)}
+                          aria-label={`React ${emoji}`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                    {(reactions[message.id] ?? []).length > 0 && (
+                      <div className="group-chat__reaction-summary mt-1 text-sm">
+                        {reactions[message.id].join(' ')}
+                      </div>
+                    )}
+                    <div className="group-chat__timestamp mt-1 text-[10px] text-gray-400">
+                      {message.created_at?.slice(0, 16).replace('T', ' ')}
+                    </div>
+                  </div>
                 </div>
-              )}
-              {typingUsers.length > 0 && (
-                <div className="text-xs text-blue-500 mt-2 animate-pulse">
-                  {typingUsers.map((u) => u.name || u.user_id).join(', ')}{' '}
-                  {typingUsers.length === 1 ? 'is' : 'are'} typing...
-                </div>
-              )}
-            </div>
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <Input
-                value={body}
-                onChange={handleTyping}
-                placeholder="Type a message..."
-                className="flex-1"
-                required
-              />
-              <Button type="submit">Send</Button>
-            </form>
-            {error && <div className="text-red-500 text-xs mt-2">{error}</div>}
-            {success && <div className="text-green-600 text-xs mt-2">{success}</div>}
+              )
+            })}
+            <div ref={bottomRef} className="group-chat__scroll-anchor" />
           </div>
         )}
       </div>
+      {error && channel && (
+        <div className="group-chat__error mb-2 text-xs text-red-600">{error}</div>
+      )}
+      <form onSubmit={handleSubmit} className="group-chat__composer flex gap-2">
+        <Input
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder={channel ? 'Type a message...' : 'Chat is unavailable'}
+          className="group-chat__input flex-1"
+          disabled={!channel || !userId || sending}
+          maxLength={10000}
+        />
+        <Button
+          type="submit"
+          className="group-chat__send-button"
+          disabled={!channel || !userId || !body.trim() || sending}
+        >
+          {sending ? 'Sending...' : 'Send'}
+        </Button>
+      </form>
     </div>
   )
 }

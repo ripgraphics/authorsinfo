@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable descriptive-classname/require-semantic-classname */
 
 import type React from 'react'
 
@@ -19,6 +20,8 @@ import { uploadImage } from '@/app/actions/upload'
 import type { Author, Book } from '@/types/database'
 import { Combobox } from '@/components/ui/combobox'
 
+type AuthorImage = { url?: string | null } | null
+
 export default function EditAuthorPage() {
   const router = useRouter()
   const params = useParams()
@@ -32,8 +35,8 @@ export default function EditAuthorPage() {
   const [selectedNationality, setSelectedNationality] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [authorImageUrl, setAuthorImageUrl] = useState<string | null>(null)
+  const authorId = params.id as string
   // Fetch author data
   useEffect(() => {
     async function fetchAuthorData() {
@@ -44,7 +47,7 @@ export default function EditAuthorPage() {
         const { data: authorData, error: authorError } = await supabaseClient
           .from('authors')
           .select('*, author_image:author_image_id(url)')
-          .eq('id', params.id as string)
+          .eq('id', authorId)
           .single()
 
         if (authorError) {
@@ -58,7 +61,7 @@ export default function EditAuthorPage() {
         setSelectedNationality(author.nationality || '')
 
         // Set the image URL from the joined author_image table
-        const authorImage = (authorData as any).author_image as any
+        const authorImage = (authorData as unknown as { author_image?: AuthorImage }).author_image
         if (authorImage && authorImage.url) {
           setAuthorImageUrl(authorImage.url)
         }
@@ -67,7 +70,7 @@ export default function EditAuthorPage() {
         const { data: booksData, error: booksError } = await supabaseClient
           .from('books')
           .select('*')
-          .eq('author_id', params.id as string)
+          .eq('author_id', authorId)
           .order('title')
 
         if (booksError) {
@@ -89,7 +92,7 @@ export default function EditAuthorPage() {
           // Extract unique nationalities
           const uniqueNationalities = Array.from(
             new Set(
-              nationalitiesData
+              (nationalitiesData as Array<{ nationality: string | null }>)
                 .map((item: { nationality: string | null }) => item.nationality)
                 .filter(Boolean) as string[]
             )
@@ -106,7 +109,7 @@ export default function EditAuthorPage() {
     }
 
     fetchAuthorData()
-  }, [params.id as string])
+  }, [authorId])
 
   // Handle photo change
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,7 +134,8 @@ export default function EditAuthorPage() {
       const formData = new FormData(e.currentTarget)
 
       // Handle photo upload if changed
-      let newAuthorImageId = (author as any).author_image_id
+      let newAuthorImageId: string | null =
+        (author as Author & { author_image_id?: string | null }).author_image_id ?? null
 
       if (photoFile) {
         try {
@@ -184,7 +188,7 @@ export default function EditAuthorPage() {
 
       // Prepare the update data
       const birthDateValue = formData.get('birth_date') as string
-      const updateData: any = {
+      const updateData: Record<string, string | null> = {
         name: formData.get('name') as string,
         bio: formData.get('bio') as string,
         // Only include birth_date if it's not empty
@@ -199,9 +203,15 @@ export default function EditAuthorPage() {
       }
 
       // Update the author
-      const { error: updateError } = await (supabaseClient.from('authors') as any)
+      const { error: updateError } = await (
+        supabaseClient.from('authors') as unknown as {
+          update(values: Record<string, string | null>): {
+            eq(column: string, value: string): Promise<{ error: Error | null }>
+          }
+        }
+      )
         .update(updateData)
-        .eq('id', params.id as string)
+        .eq('id', authorId)
 
       if (updateError) {
         console.error('Error updating author:', updateError)
@@ -214,7 +224,7 @@ export default function EditAuthorPage() {
 
       // Redirect back to the author page after a short delay
       setTimeout(() => {
-        router.push(`/authors/${params.id as string}`)
+        router.push(`/authors/${authorId}`)
       }, 1500)
     } catch (error) {
       console.error('Error in handleSubmit:', error)
@@ -271,18 +281,6 @@ export default function EditAuthorPage() {
             <Alert className="mb-6 bg-green-50 border-green-200">
               <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
             </Alert>
-          )}
-
-          {uploadProgress > 0 && uploadProgress < 100 && (
-            <div className="mb-6">
-              <p className="text-sm mb-1">Uploading image: {uploadProgress}%</p>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full"
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
-              </div>
-            </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

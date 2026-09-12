@@ -137,52 +137,8 @@ export function useAuth() {
     isInitialized.current = true
 
     try {
-      const {
-        data: { user },
-        error,
-      } = await safeGetUser()
-
-      // Handle AuthSessionMissingError gracefully - this is normal for public users
-      if (error) {
-        // Check if it's a session missing error (expected for public users)
-        const errorName = (error as any)?.name || error?.constructor?.name || ''
-        const errorMessage = error?.message || String(error) || ''
-        const isSessionError =
-          errorName === 'AuthSessionMissingError' ||
-          errorName === 'AuthLockTimeoutError' ||
-          errorMessage.includes('session') ||
-          errorMessage.includes('Auth session missing') ||
-          isLockTimeoutError(error)
-
-        if (isSessionError) {
-          // This is normal for public users - don't log as error, just set user to null
-          debouncedSetUser(null)
-          setLoading(false)
-          return
-        }
-        // For other errors, throw them
-        throw error
-      }
-
-      if (user) {
-        try {
-          const userData = await fetchUserData()
-          if (userData && userData.name) {
-            debouncedSetUser(userData)
-          } else {
-            // User data is null or invalid - clear user state
-            debouncedSetUser(null)
-          }
-        } catch (err) {
-          console.error('❌ CRITICAL: Failed to fetch user data after all retries:', err)
-          // Don't set user - let the error be visible so it can be fixed
-          // The UI should show loading state until this is resolved
-          debouncedSetUser(null)
-        }
-      } else {
-        // No authenticated user - this is normal for public users
-        debouncedSetUser(null)
-      }
+      const userData = await fetchUserData()
+      debouncedSetUser(userData && userData.name ? userData : null)
     } catch (err: any) {
       // Check if this is a session missing error (normal for public users)
       const errorName = err?.name || err?.constructor?.name || ''
@@ -280,4 +236,3 @@ export function useAuth() {
 
   return { user, loading }
 }
-

@@ -3,10 +3,13 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface CloseButtonProps {
-  onClick: () => void
+  onClick?: React.ComponentPropsWithoutRef<'button'>['onClick']
   className?: string
   size?: 'sm' | 'md' | 'lg'
   variant?: 'default' | 'primary' | 'ghost'
+  positioned?: boolean
+  'aria-label'?: string
+  type?: 'button' | 'submit' | 'reset'
 }
 
 export function CloseButton({
@@ -14,6 +17,9 @@ export function CloseButton({
   className = '',
   size = 'md',
   variant = 'primary',
+  positioned = true,
+  'aria-label': ariaLabel = 'Close',
+  type = 'button',
 }: CloseButtonProps) {
   const sizeClasses = {
     sm: 'w-4 h-4',
@@ -29,12 +35,12 @@ export function CloseButton({
 
   return (
     <button
-      aria-label="Close"
-      role="button"
-      tabIndex={0}
+      type={type}
+      aria-label={ariaLabel}
       onClick={onClick}
       className={cn(
-        'absolute top-2 right-2 p-1.5 rounded-full transition-all duration-200',
+        positioned && 'absolute top-2 right-2',
+        'p-1.5 rounded-full transition-all duration-200',
         'focus:outline-none',
         variantClasses[variant],
         className

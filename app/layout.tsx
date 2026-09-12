@@ -10,7 +10,6 @@ import { ClientLayout } from '@/components/client-layout'
 import { RealTimeNotifications } from '@/components/real-time-notifications'
 import { UserProvider } from '@/contexts/UserContext'
 import { EngagementProvider } from '@/contexts/engagement-context'
-import { ApiCallMonitor } from '@/components/debug/ApiCallMonitor'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -48,7 +47,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <RealTimeNotifications />
                 </div>
                 <Toaster />
-                {process.env.NODE_ENV === 'development' && <ApiCallMonitor />}
               </TooltipProvider>
             </EngagementProvider>
           </UserProvider>

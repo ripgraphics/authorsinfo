@@ -11,6 +11,7 @@ This guide explains how to run SQL migration scripts against your Supabase datab
    - `SUPABASE_DB_NAME` - Database name
    - `SUPABASE_DB_PORT` - Database port (defaults to 5432)
    - `SUPABASE_TRANSACTION_POOLER` - (Optional) Transaction pooler URL for better connection handling
+   - `SUPABASE_DB_CA_CERT` - (Recommended) Path to the Supabase `prod-ca-2021.crt` file for certificate verification
 
 2. **Node.js Dependencies**: Ensure all npm packages are installed:
    ```bash
@@ -20,6 +21,7 @@ This guide explains how to run SQL migration scripts against your Supabase datab
 ## Migration Script Location
 
 Migration files are stored in the `supabase/migrations/` directory. They should follow a naming convention like:
+
 - `YYYYMMDD_description.sql` (e.g., `20260108_add_reading_progress_columns.sql`)
 
 ## Running a Migration
@@ -32,7 +34,14 @@ The easiest way to run a migration is using the npm script:
 npm run db:migrate supabase/migrations/your_migration_file.sql
 ```
 
+The project runner automatically searches `SUPABASE_DB_CA_CERT`,
+`supabase/certs/prod-ca-2021.crt`, `certs/prod-ca-2021.crt`, and the user
+Supabase certificate directory. Download the project-specific CA certificate
+from Supabase Database Settings and place it at `supabase/certs/prod-ca-2021.crt`
+so VS Code and every migration command use it automatically.
+
 **Example:**
+
 ```bash
 npm run db:migrate supabase/migrations/20260108_add_reading_progress_columns.sql
 ```
@@ -46,6 +55,7 @@ npx ts-node scripts/run-migration-pg.ts supabase/migrations/your_migration_file.
 ```
 
 **Example:**
+
 ```bash
 npx ts-node scripts/run-migration-pg.ts supabase/migrations/20260108_add_reading_progress_columns.sql
 ```
@@ -60,6 +70,7 @@ npx ts-node scripts/run-migration-pg.ts supabase/migrations/20260108_add_reading
 ### Connection Priority
 
 The script uses the following connection priority:
+
 1. **Transaction Pooler** (if `SUPABASE_TRANSACTION_POOLER` is set) - Recommended for better connection handling
 2. **Direct Connection** (using individual environment variables)
 
@@ -71,12 +82,12 @@ Your migration files should be standard SQL files. Example:
 -- Add current_page column to reading_progress
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name = 'reading_progress' 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'reading_progress'
                    AND column_name = 'current_page') THEN
-        ALTER TABLE public.reading_progress 
+        ALTER TABLE public.reading_progress
         ADD COLUMN current_page INTEGER;
-        COMMENT ON COLUMN public.reading_progress.current_page 
+        COMMENT ON COLUMN public.reading_progress.current_page
         IS 'Current page the user is on for the book.';
     END IF;
 END $$;
@@ -96,6 +107,7 @@ END $$;
 ### Error: "Missing database configuration in .env.local"
 
 **Solution**: Ensure your `.env.local` file contains all required environment variables:
+
 - `SUPABASE_DB_PASSWORD`
 - `SUPABASE_DB_HOST`
 - `SUPABASE_DB_USER`
@@ -104,7 +116,8 @@ END $$;
 
 ### Error: "Migration file not found"
 
-**Solution**: 
+**Solution**:
+
 - Check that the file path is correct
 - Use relative paths from the project root (e.g., `supabase/migrations/file.sql`)
 - Or use absolute paths
@@ -112,6 +125,7 @@ END $$;
 ### Error: "Connection failed"
 
 **Solution**:
+
 - Verify your database credentials are correct
 - Check that your IP is whitelisted in Supabase (if required)
 - Try using the transaction pooler URL instead of direct connection
@@ -120,6 +134,7 @@ END $$;
 ### Error: "Migration failed" with SQL errors
 
 **Solution**:
+
 - Review the SQL error message in the console output
 - Check that your SQL syntax is correct
 - Ensure the migration is idempotent (can be run multiple times)
@@ -170,8 +185,8 @@ Migration failed: [error details]
 
 ## Notes
 
-- The migration script uses SSL connections with `rejectUnauthorized: false` for Supabase compatibility
+- The migration script requires TLS certificate verification and automatically discovers `prod-ca-2021.crt` from standard project locations. Set `SUPABASE_DB_CA_CERT` only when using a different certificate location.
+- Never set `NODE_TLS_REJECT_UNAUTHORIZED=0` or disable certificate verification for production migrations.
 - Migrations are executed in a single transaction (if the SQL file uses transactions)
 - The script automatically handles connection cleanup
 - Always review migration files before running them in production
-

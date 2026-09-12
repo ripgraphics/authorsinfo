@@ -1994,10 +1994,13 @@ export default function EntityFeedCard({
 
               {/* Entity Type Badge */}
               {currentEntityConfig && (
-                <Badge variant="outline" className="enterprise-feed-card-entity-type">
-                  <currentEntityConfig.icon className="h-3 w-3 mr-1" />
-                  {currentEntityConfig.label}
-                </Badge>
+                <span
+                  className="enterprise-feed-card-entity-type inline-flex h-6 w-6 items-center justify-center text-foreground"
+                  aria-label={currentEntityConfig.label}
+                  title={currentEntityConfig.label}
+                >
+                  <currentEntityConfig.icon className="h-3 w-3" />
+                </span>
               )}
 
               {/* Content Safety Badge */}
@@ -2017,14 +2020,19 @@ export default function EntityFeedCard({
 
               {/* Cross-post Badge */}
               {post.metadata?.cross_post && (
-                <Badge variant="secondary" className="enterprise-feed-card-cross-post">
-                  <Share2 className="h-3.5 w-3.5 mr-1.5" />
-                  Cross-posted from{' '}
-                  {post.metadata.cross_post.origin_entity_type
+                <span
+                  className="enterprise-feed-card-cross-post h-6 w-6 justify-center p-0"
+                  aria-label={`Cross-posted from ${post.metadata.cross_post.origin_entity_type
                     ? post.metadata.cross_post.origin_entity_type.charAt(0).toUpperCase() +
-                    post.metadata.cross_post.origin_entity_type.slice(1)
-                    : 'another timeline'}
-                </Badge>
+                      post.metadata.cross_post.origin_entity_type.slice(1)
+                    : 'another timeline'}`}
+                  title={`Cross-posted from ${post.metadata.cross_post.origin_entity_type
+                    ? post.metadata.cross_post.origin_entity_type.charAt(0).toUpperCase() +
+                      post.metadata.cross_post.origin_entity_type.slice(1)
+                    : 'another timeline'}`}
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                </span>
               )}
 
               {/* Visibility Badge / Control */}
@@ -2680,10 +2688,13 @@ export default function EntityFeedCard({
 
                   {/* Entity Type Badge */}
                   {currentEntityConfig && (
-                    <Badge variant="outline" className="enterprise-feed-card-entity-type">
-                      <currentEntityConfig.icon className="h-3 w-3 mr-1" />
-                      {currentEntityConfig.label}
-                    </Badge>
+                    <span
+                      className="enterprise-feed-card-entity-type inline-flex h-6 w-6 items-center justify-center text-foreground"
+                      aria-label={currentEntityConfig.label}
+                      title={currentEntityConfig.label}
+                    >
+                      <currentEntityConfig.icon className="h-3 w-3" />
+                    </span>
                   )}
 
                   {/* Content Safety Badge */}
@@ -2703,14 +2714,19 @@ export default function EntityFeedCard({
 
                   {/* Cross-post Badge */}
                   {post.metadata?.cross_post && (
-                    <Badge variant="secondary" className="enterprise-feed-card-cross-post">
-                      <Share2 className="h-3.5 w-3.5 mr-1.5" />
-                      Cross-posted from{' '}
-                      {post.metadata.cross_post.origin_entity_type
+                    <span
+                      className="enterprise-feed-card-cross-post h-6 w-6 justify-center p-0"
+                      aria-label={`Cross-posted from ${post.metadata.cross_post.origin_entity_type
                         ? post.metadata.cross_post.origin_entity_type.charAt(0).toUpperCase() +
                           post.metadata.cross_post.origin_entity_type.slice(1)
-                        : 'another timeline'}
-                    </Badge>
+                        : 'another timeline'}`}
+                      title={`Cross-posted from ${post.metadata.cross_post.origin_entity_type
+                        ? post.metadata.cross_post.origin_entity_type.charAt(0).toUpperCase() +
+                          post.metadata.cross_post.origin_entity_type.slice(1)
+                        : 'another timeline'}`}
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                    </span>
                   )}
 
                   {/* Visibility Badge / Control */}
@@ -2958,7 +2974,10 @@ export default function EntityFeedCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuItem onClick={() => setCommentFilter('relevant')}>
+                <DropdownMenuItem
+                  className="text-gray-900 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900"
+                  onClick={() => setCommentFilter('relevant')}
+                >
                   <div>
                     <div className="font-medium">Most relevant</div>
                     <div className="text-xs text-gray-500">
@@ -2967,7 +2986,10 @@ export default function EntityFeedCard({
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setCommentFilter('all')}>
+                <DropdownMenuItem
+                  className="text-gray-900 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900"
+                  onClick={() => setCommentFilter('all')}
+                >
                   <div>
                     <div className="font-medium">All comments</div>
                     <div className="text-xs text-gray-500">

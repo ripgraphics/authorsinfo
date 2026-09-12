@@ -34,8 +34,13 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
   // Detect if this is a large/full-screen modal by checking for flex-col or h-full in className
-  const isLargeModal = className?.includes('flex flex-col') || className?.includes('h-full') || className?.includes('max-w-6xl') || className?.includes('max-w-7xl') || className?.includes('max-w-full')
-  
+  const isLargeModal =
+    className?.includes('flex flex-col') ||
+    className?.includes('h-full') ||
+    className?.includes('max-w-6xl') ||
+    className?.includes('max-w-7xl') ||
+    className?.includes('max-w-full')
+
   const baseClasses = isLargeModal
     ? // Large modal: use flex layout, centered with padding, no transform
       'fixed left-[50%] top-[50%] z-50 flex w-full translate-x-[-50%] translate-y-[-50%] border border-black bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg'
@@ -45,18 +50,13 @@ const DialogContent = React.forwardRef<
   return (
     <DialogPortal>
       <DialogOverlay />
-      <DialogPrimitive.Content
-        ref={ref}
-        className={cn(baseClasses, className)}
-        {...props}
-      >
+      <DialogPrimitive.Content ref={ref} className={cn(baseClasses, className)} {...props}>
         {children}
         {/* Close button - always shown by default using reusable CloseButton component */}
         {/* Hide with [&>button]:hidden in className when using a header with its own close button */}
         {!className?.includes('[&>button]:hidden') && (
           <DialogPrimitive.Close asChild>
-            {/* CloseButton onClick is handled by DialogPrimitive.Close, pass no-op to satisfy prop requirement */}
-            <CloseButton onClick={() => {}} className="absolute right-4 top-4 z-50" />
+            <CloseButton className="absolute right-4 top-4 z-50" />
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
@@ -69,8 +69,10 @@ const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   // DialogHeader supports both vertical (default) and horizontal layouts
   // Vertical: Title and description stacked (default)
   // Horizontal: Add "flex items-center justify-between" to className for title/actions layout
-  const isHorizontalLayout = className?.includes('flex items-center justify-between') || className?.includes('justify-between')
-  
+  const isHorizontalLayout =
+    className?.includes('flex items-center justify-between') ||
+    className?.includes('justify-between')
+
   // Add right padding to prevent title from overlapping with close button (close button is ~48px wide: 32px button + 16px margin)
   // Only add padding for vertical layout (horizontal layouts handle spacing themselves)
   const baseClasses = isHorizontalLayout
@@ -78,7 +80,7 @@ const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
       'flex items-center justify-between'
     : // Default vertical layout: title and description stacked with padding to avoid close button
       'flex flex-col space-y-1.5 text-center sm:text-left pr-12'
-  
+
   return <div className={cn(baseClasses, className)} {...props} />
 }
 DialogHeader.displayName = 'DialogHeader'

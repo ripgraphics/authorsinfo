@@ -43,6 +43,10 @@ export interface FloatingChatProps {
 export function FloatingChat({
   openEventName = 'authorsinfo:open-floating-chat',
 }: FloatingChatProps) {
+  const formatMessageTime = (value: string) =>
+    new Date(value).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  const formatMessageDate = (value: string) =>
+    new Date(value).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
   const { user, loading: authLoading } = useAuth()
   const userId = user?.id ?? null
   const [open, setOpen] = useState(false)
@@ -57,6 +61,24 @@ export function FloatingChat({
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
+
+  useEffect(() => {
+    const storedOpen = window.sessionStorage.getItem('authorsinfo:floating-chat:open')
+    const storedConversation = window.sessionStorage.getItem(
+      'authorsinfo:floating-chat:conversation'
+    )
+    if (storedOpen === 'true') setOpen(true)
+    if (storedConversation) setActiveConversationId(storedConversation)
+  }, [])
+
+  useEffect(() => {
+    window.sessionStorage.setItem('authorsinfo:floating-chat:open', String(open))
+    if (activeConversationId) {
+      window.sessionStorage.setItem('authorsinfo:floating-chat:conversation', activeConversationId)
+    } else {
+      window.sessionStorage.removeItem('authorsinfo:floating-chat:conversation')
+    }
+  }, [open, activeConversationId])
 
   useEffect(() => {
     if (!user) return
@@ -114,6 +136,8 @@ export function FloatingChat({
       )
     }
     void refreshUnread()
+    const interval = window.setInterval(() => void refreshUnread(), 3000)
+    return () => window.clearInterval(interval)
   }, [user, userId, open])
 
   useEffect(() => {
@@ -172,11 +196,27 @@ export function FloatingChat({
             current.some((item) => item.id === message.id) ? current : [...current, message]
           )
           if (message.sender_id !== userId) {
-            void fetch(`/api/messages/direct/${activeConversationId}/read-state`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ last_read_message_id: message.id }),
-            })
+            if (open) {
+              void fetch(`/api/messages/direct/${activeConversationId}/read-state`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ last_read_message_id: message.id }),
+              })
+            } else {
+              setUnreadConversations((current) => {
+                const existing = current.find(
+                  (conversation) => conversation.id === activeConversationId
+                )
+                if (existing) {
+                  return current.map((conversation) =>
+                    conversation.id === activeConversationId
+                      ? { ...conversation, unread_count: conversation.unread_count + 1 }
+                      : conversation
+                  )
+                }
+                return current
+              })
+            }
           }
         }
       )
@@ -186,7 +226,7 @@ export function FloatingChat({
       channelRef.current = null
       void client.removeChannel(channel)
     }
-  }, [activeConversationId, userId])
+  }, [activeConversationId, userId, open])
 
   const openConversation = async (friendId: string) => {
     const response = await fetch('/api/messages/direct', {
@@ -228,7 +268,7 @@ export function FloatingChat({
     : null
 
   return (
-    <div className="floating-chat fixed bottom-5 right-5 z-50">
+    <div className="floating-chat fixed bottom-5 right-5 z-50 flex items-end gap-3">
       {open ? (
         <section className="floating-chat__panel flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
           <header className="floating-chat__header flex items-center gap-3 border-b bg-primary px-4 py-3 text-primary-foreground">
@@ -322,42 +362,60 @@ export function FloatingChat({
                 {loadingMessages ? (
                   <p className="text-sm text-muted-foreground">Loading...</p>
                 ) : null}
-                {messages.map((message, index) => (
-                  <div
-                    key={message.id}
-                    className={`floating-chat__message-row flex items-end gap-2 ${message.sender_id === userId ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {message.sender_id !== userId ? (
-                      <Avatar
-                        src={activeFriend?.avatar_url ?? undefined}
-                        name={activeFriend?.name ?? ''}
-                        alt={activeFriend?.name ?? 'Friend'}
-                        size="xs"
-                        className="floating-chat__message-avatar"
-                      />
-                    ) : null}
-                    <div
-                      className={`floating-chat__message max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-                        message.sender_id === userId
-                          ? 'floating-chat__message--sent ml-auto bg-primary text-primary-foreground rounded-br-md'
-                          : 'floating-chat__message--received mr-auto bg-muted text-foreground rounded-bl-md'
-                      }`}
-                    >
-                      {message.deleted_at ? <em>Message deleted</em> : message.body}
+                {messages.map((message, index) => {
+                  const previousMessage = messages[index - 1]
+                  const showDate =
+                    !previousMessage ||
+                    new Date(previousMessage.created_at).toDateString() !==
+                      new Date(message.created_at).toDateString()
+                  return (
+                    <div key={message.id} className="floating-chat__message-group">
+                      {showDate ? (
+                        <div className="floating-chat__date-separator my-3 text-center text-[11px] text-muted-foreground">
+                          {formatMessageDate(message.created_at)}
+                        </div>
+                      ) : null}
+                      <div
+                        className={`floating-chat__message-row flex items-end gap-2 ${message.sender_id === userId ? 'justify-end' : 'justify-start'}`}
+                      >
+                        {message.sender_id !== userId ? (
+                          <Avatar
+                            src={activeFriend?.avatar_url ?? undefined}
+                            name={activeFriend?.name ?? ''}
+                            alt={activeFriend?.name ?? 'Friend'}
+                            size="xs"
+                            className="floating-chat__message-avatar"
+                          />
+                        ) : null}
+                        <div
+                          className={`floating-chat__message max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
+                            message.sender_id === userId
+                              ? 'floating-chat__message--sent ml-auto bg-primary text-primary-foreground rounded-br-md'
+                              : 'floating-chat__message--received mr-auto bg-muted text-foreground rounded-bl-md'
+                          }`}
+                        >
+                          {message.deleted_at ? <em>Message deleted</em> : message.body}
+                        </div>
+                        {message.sender_id === userId &&
+                        index === messages.length - 1 &&
+                        recipientReadMessageId === message.id ? (
+                          <Avatar
+                            src={activeFriend?.avatar_url ?? undefined}
+                            name={activeFriend?.name ?? ''}
+                            alt="Seen by recipient"
+                            size="xs"
+                            className="floating-chat__seen-avatar"
+                          />
+                        ) : null}
+                      </div>
+                      <div
+                        className={`floating-chat__message-time mt-1 text-[10px] text-muted-foreground ${message.sender_id === userId ? 'text-right' : 'text-left'}`}
+                      >
+                        {formatMessageTime(message.created_at)}
+                      </div>
                     </div>
-                    {message.sender_id === userId &&
-                    index === messages.length - 1 &&
-                    recipientReadMessageId === message.id ? (
-                      <Avatar
-                        src={activeFriend?.avatar_url ?? undefined}
-                        name={activeFriend?.name ?? ''}
-                        alt="Seen by recipient"
-                        size="xs"
-                        className="floating-chat__seen-avatar"
-                      />
-                    ) : null}
-                  </div>
-                ))}
+                  )
+                })}
                 {!loadingMessages && messages.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No messages yet.</p>
                 ) : null}
@@ -425,47 +483,46 @@ export function FloatingChat({
             </div>
           )}
         </section>
-      ) : (
-        <div className="floating-chat__launcher-stack relative">
-          <div className="floating-chat__unread-stack absolute bottom-full right-0 mb-3 flex flex-col items-end gap-2">
-            {unreadConversations.map((conversation) => {
-              const friend = friendById.get(conversation.participant_id)
-              return (
-                <button
-                  key={conversation.id}
-                  type="button"
-                  className="floating-chat__unread-conversation relative rounded-full shadow-lg"
-                  onClick={() => {
-                    setOpen(true)
-                    setActiveConversationId(conversation.id)
-                  }}
-                  aria-label={`Open ${friend?.name || 'conversation'}, ${conversation.unread_count} unread messages`}
-                >
-                  <Avatar
-                    src={friend?.avatar_url ?? undefined}
-                    name={friend?.name ?? ''}
-                    alt={friend?.name || 'Friend'}
-                    size="sm"
-                    className="floating-chat__unread-avatar ring-2 ring-background"
-                  />
-                  <span className="floating-chat__unread-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
-                    {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-          <Button
-            type="button"
-            size="icon"
-            className="floating-chat__launcher h-14 w-14 rounded-full shadow-xl"
-            onClick={() => setOpen(true)}
-            aria-label="Open chat"
-          >
-            <MessageCircle className="h-6 w-6" />
-          </Button>
+      ) : null}
+      <div className="floating-chat__launcher-stack relative">
+        <div className="floating-chat__unread-stack absolute bottom-full right-0 mb-3 flex flex-col items-end gap-2">
+          {unreadConversations.map((conversation) => {
+            const friend = friendById.get(conversation.participant_id)
+            return (
+              <button
+                key={conversation.id}
+                type="button"
+                className="floating-chat__unread-conversation relative rounded-full shadow-lg"
+                onClick={() => {
+                  setOpen(true)
+                  setActiveConversationId(conversation.id)
+                }}
+                aria-label={`Open ${friend?.name || 'conversation'}, ${conversation.unread_count} unread messages`}
+              >
+                <Avatar
+                  src={friend?.avatar_url ?? undefined}
+                  name={friend?.name ?? ''}
+                  alt={friend?.name || 'Friend'}
+                  size="sm"
+                  className="floating-chat__unread-avatar ring-2 ring-background"
+                />
+                <span className="floating-chat__unread-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
+                  {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+                </span>
+              </button>
+            )
+          })}
         </div>
-      )}
+        <Button
+          type="button"
+          size="icon"
+          className="floating-chat__launcher h-14 w-14 rounded-full shadow-xl"
+          onClick={() => setOpen(true)}
+          aria-label="Open chat"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      </div>
     </div>
   )
 }

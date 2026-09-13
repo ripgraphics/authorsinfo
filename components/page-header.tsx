@@ -37,6 +37,7 @@ import { useAuth } from '@/hooks/useAuth'
 import EntityAvatar from '@/components/entity-avatar'
 import { Avatar } from '@/components/ui/avatar'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
+import { useChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { usePathname } from 'next/navigation'
 
 interface PageHeaderProps {
@@ -55,6 +56,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, loading } = useAuth()
+  const unreadChatTotal = useChatUnreadTotal()
   const currentUserName =
     (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'User'
 
@@ -109,11 +111,20 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="page-header__messages-btn hidden sm:flex rounded-full"
+            className="page-header__messages-btn relative hidden sm:flex rounded-full"
             onClick={() => window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))}
-            aria-label="Open chat"
+            aria-label={
+              unreadChatTotal > 0
+                ? `Open chat, ${unreadChatTotal} unread messages`
+                : 'Open chat'
+            }
           >
             <MessageSquare className="h-5 w-5" />
+            {unreadChatTotal > 0 && (
+              <span className="page-header__messages-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
+                {unreadChatTotal > 99 ? '99+' : unreadChatTotal}
+              </span>
+            )}
             <span className="sr-only">Messages</span>
           </Button>
 

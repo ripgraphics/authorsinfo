@@ -6,6 +6,7 @@ import { MessageCircle, Minus, Send, Phone, Video } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
+import { broadcastChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -150,9 +151,12 @@ export function FloatingChat({
           return count > 0 ? { ...conversation, unread_count: count } : null
         })
       )
-      setUnreadConversations(
-        unread.filter((conversation): conversation is UnreadConversation => Boolean(conversation))
+      const nextUnread = unread.filter((conversation): conversation is UnreadConversation =>
+        Boolean(conversation)
       )
+      setUnreadConversations(nextUnread)
+      // Broadcast the total so the header Messages badge stays in sync.
+      broadcastChatUnreadTotal(nextUnread.reduce((sum, item) => sum + item.unread_count, 0))
     }
     void refreshUnread()
     const interval = window.setInterval(() => void refreshUnread(), 3000)
@@ -167,11 +171,16 @@ export function FloatingChat({
 
   // Clear the unread badge for the active conversation as soon as it is
   // opened — the read state is persisted server-side right after.
+  // Reads the latest list via ref so the deps stay stable.
+  const unreadRef = useRef<UnreadConversation[]>([])
+  unreadRef.current = unreadConversations
   useEffect(() => {
     if (!open || !activeConversationId) return
-    setUnreadConversations((current) =>
-      current.filter((conversation) => conversation.id !== activeConversationId)
-    )
+    const current = unreadRef.current
+    const next = current.filter((conversation) => conversation.id !== activeConversationId)
+    if (next.length === current.length) return
+    setUnreadConversations(next)
+    broadcastChatUnreadTotal(next.reduce((sum, item) => sum + item.unread_count, 0))
   }, [open, activeConversationId])
 
   useEffect(() => {

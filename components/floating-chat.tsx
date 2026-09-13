@@ -254,12 +254,35 @@ export function FloatingChat({
   const send = async (event: FormEvent) => {
     event.preventDefault()
     if (!activeConversationId || !draft.trim()) return
-    const response = await fetch(`/api/messages/direct/${activeConversationId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: draft }),
-    })
-    if (response.ok) setDraft('')
+    const body = draft.trim()
+    // Optimistic update: show the message immediately, replace with the
+    // server response (or remove on failure) without waiting on realtime.
+    const optimisticId = `optimistic-${Date.now()}`
+    const optimisticMessage: Message = {
+      id: optimisticId,
+      sender_id: userId ?? '',
+      body,
+      created_at: new Date().toISOString(),
+      deleted_at: null,
+    }
+    setMessages((current) => [...current, optimisticMessage])
+    setDraft('')
+    try {
+      const response = await fetch(`/api/messages/direct/${activeConversationId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body }),
+      })
+      if (!response.ok) throw new Error('Send failed')
+      const saved = (await response.json()) as Message
+      setMessages((current) =>
+        current.map((message) => (message.id === optimisticId ? saved : message))
+      )
+    } catch {
+      // Roll back the optimistic message and restore the draft
+      setMessages((current) => current.filter((message) => message.id !== optimisticId))
+      setDraft(body)
+    }
   }
 
   if (authLoading || !user) return null

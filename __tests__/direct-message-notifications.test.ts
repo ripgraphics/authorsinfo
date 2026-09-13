@@ -5,6 +5,12 @@ import { POST } from '@/app/api/messages/direct/[id]/route'
 import { requireUser } from '@/lib/auth/require-auth'
 
 jest.mock('@/lib/auth/require-auth', () => ({ requireUser: jest.fn() }))
+jest.mock('next/server', () => ({
+  ...jest.requireActual('next/server'),
+  after: (callback: () => unknown) => {
+    void callback()
+  },
+}))
 jest.mock('@/lib/error-handler', () => ({
   nextErrorResponse: jest.fn(() =>
     NextResponse.json({ error: 'Operation failed' }, { status: 500 })

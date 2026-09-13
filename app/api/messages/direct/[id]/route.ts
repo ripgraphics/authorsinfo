@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { after } from 'next/server'
 import { z } from 'zod'
 import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
 import { nextErrorResponse } from '@/lib/error-handler'
@@ -140,15 +141,19 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
         : access.user_low_id
     const sentMessage = data as MessageRow | null
     if (sentMessage) {
-      await NotificationDispatcher.dispatch({
-        recipient_id: recipientId,
-        type: 'message',
-        title: 'New message',
-        message: input.data.body.slice(0, 100),
-        source_user_id: authentication.context.user.id,
-        source_type: 'direct_conversation',
-        source_id: id,
-        data: { conversation_id: id, message_id: sentMessage.id },
+      // Dispatch notification after the response is sent so the client
+      // does not wait on preference lookups, email/push queueing, etc.
+      after(async () => {
+        await NotificationDispatcher.dispatch({
+          recipient_id: recipientId,
+          type: 'message',
+          title: 'New message',
+          message: input.data.body.slice(0, 100),
+          source_user_id: authentication.context.user.id,
+          source_type: 'direct_conversation',
+          source_id: id,
+          data: { conversation_id: id, message_id: sentMessage.id },
+        })
       })
     }
 

@@ -214,20 +214,39 @@ export default function DirectMessagePage({ params }: Props) {
     if (!conversationId || !body.trim() || sending) return
     setSending(true)
     setError(null)
-    const response = await fetch(`/api/messages/direct/${conversationId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body }),
-    })
-    const data = await response.json()
-    if (!response.ok) setError(data.error || 'Unable to send message.')
-    else {
-      setMessages((current) =>
-        current.some((item) => item.id === data.id) ? current : [...current, data as DirectMessage]
-      )
-      setBody('')
+    const trimmedBody = body.trim()
+    // Optimistic update: show the message immediately, replace with the
+    // server response (or remove on failure) without waiting on realtime.
+    const optimisticId = `optimistic-${Date.now()}`
+    const optimisticMessage: DirectMessage = {
+      id: optimisticId,
+      conversation_id: conversationId,
+      sender_id: currentUserId ?? '',
+      body: trimmedBody,
+      created_at: new Date().toISOString(),
+      edited_at: null,
+      deleted_at: null,
     }
-    setSending(false)
+    setMessages((current) => [...current, optimisticMessage])
+    setBody('')
+    try {
+      const response = await fetch(`/api/messages/direct/${conversationId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: trimmedBody }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Unable to send message.')
+      setMessages((current) =>
+        current.map((message) => (message.id === optimisticId ? (data as DirectMessage) : message))
+      )
+    } catch {
+      setMessages((current) => current.filter((message) => message.id !== optimisticId))
+      setBody(trimmedBody)
+      setError('Unable to send message.')
+    } finally {
+      setSending(false)
+    }
   }
 
   const startCall = async (mediaType: 'audio' | 'video') => {

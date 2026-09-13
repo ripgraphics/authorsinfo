@@ -2,15 +2,15 @@
 'use client'
 
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { MessageCircle, Minus, Send, Phone, Video } from 'lucide-react'
+import { MessageCircle, Minus, Send, Phone, Video, X } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
 import { broadcastChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { IconButton } from '@/components/ui/icon-button'
 import { Input } from '@/components/ui/input'
-import { CloseButton } from '@/components/ui/close-button'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 
 interface Conversation {
@@ -357,46 +357,30 @@ export function FloatingChat({
               {activeFriend?.name || 'Chat'}
             </span>
             <div className="floating-chat__chat-icons flex shrink-0 items-center gap-0.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="floating-chat__call h-7 w-7 rounded-full p-0 text-inherit hover:bg-primary-foreground/20"
-                aria-label="Audio call"
-                title="Audio call"
-              >
-                <Phone className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="floating-chat__video h-7 w-7 rounded-full p-0 text-inherit hover:bg-primary-foreground/20"
-                aria-label="Video call"
-                title="Video call"
-              >
-                <Video className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="floating-chat__minimize h-7 w-7 rounded-full p-0 text-inherit hover:bg-primary-foreground/20"
+              <IconButton
+                icon={Phone}
+                label="Audio call"
+                className="floating-chat__call"
+              />
+              <IconButton
+                icon={Video}
+                label="Video call"
+                className="floating-chat__video"
+              />
+              <IconButton
+                icon={Minus}
+                label="Minimize chat"
                 onClick={() => setOpen(false)}
-                aria-label="Minimize chat"
-                title="Minimize chat"
-              >
-                <Minus className="floating-chat__minimize-icon h-4 w-4" />
-              </Button>
-              <CloseButton
+                className="floating-chat__minimize"
+              />
+              <IconButton
+                icon={X}
+                label="Close"
                 onClick={() => {
                   setOpen(false)
                   setActiveConversationId(null)
                 }}
-                size="sm"
-                variant="ghost"
-                positioned={false}
-                className="floating-chat__dismiss h-7 w-7 rounded-full p-0 text-inherit hover:bg-primary-foreground/20"
+                className="floating-chat__dismiss"
               />
             </div>
           </header>

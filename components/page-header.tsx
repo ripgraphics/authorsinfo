@@ -38,6 +38,7 @@ import EntityAvatar from '@/components/entity-avatar'
 import { Avatar } from '@/components/ui/avatar'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 import { useChatUnreadTotal } from '@/hooks/use-chat-unread'
+import { IconButton } from '@/components/ui/icon-button'
 import { usePathname } from 'next/navigation'
 
 interface PageHeaderProps {
@@ -108,25 +109,19 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
 
           <FriendRequestNotification />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="page-header__messages-btn relative hidden sm:flex rounded-full"
-            onClick={() => window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))}
-            aria-label={
+          <IconButton
+            icon={MessageSquare}
+            label={
               unreadChatTotal > 0
                 ? `Open chat, ${unreadChatTotal} unread messages`
                 : 'Open chat'
             }
-          >
-            <MessageSquare className="h-5 w-5" />
-            {unreadChatTotal > 0 && (
-              <span className="page-header__messages-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
-                {unreadChatTotal > 99 ? '99+' : unreadChatTotal}
-              </span>
-            )}
-            <span className="sr-only">Messages</span>
-          </Button>
+            size="lg"
+            tone="muted"
+            badge={unreadChatTotal > 0 ? (unreadChatTotal > 99 ? '99+' : unreadChatTotal) : null}
+            className="page-header__messages-btn hidden sm:flex"
+            onClick={() => window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))}
+          />
 
           {/* User avatar dropdown, only if logged in */}
           {!loading && user ? (

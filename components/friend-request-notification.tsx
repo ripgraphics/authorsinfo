@@ -13,6 +13,7 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { IconButton } from '@/components/ui/icon-button'
 import { Bell, UserPlus, Check, X, Loader2, Users } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { formatDistanceToNow } from 'date-fns'
@@ -245,17 +246,18 @@ export function FriendRequestNotification() {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {pendingCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-            >
-              {pendingCount > 9 ? '9+' : pendingCount}
-            </Badge>
-          )}
-        </Button>
+        <IconButton
+          icon={Bell}
+          label={
+            pendingCount > 0
+              ? `Friend requests, ${pendingCount} pending`
+              : 'Friend requests'
+          }
+          size="lg"
+          tone="muted"
+          badge={pendingCount > 0 ? (pendingCount > 9 ? '9+' : pendingCount) : null}
+          className="friend-request-notification__trigger"
+        />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-80">

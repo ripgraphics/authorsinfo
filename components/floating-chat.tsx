@@ -106,14 +106,24 @@ export function FloatingChat({
     })
   }, [user])
 
+  // Latest open/active state for the unread poll — read via ref so the
+  // polling effect does not re-run (and re-fetch) when the chat window
+  // opens or minimizes.
+  const chatStateRef = useRef({ open: false, activeConversationId: null as string | null })
+  chatStateRef.current = { open, activeConversationId }
+
   useEffect(() => {
-    if (!user || open) return
+    if (!user) return
     const refreshUnread = async () => {
+      const { open: chatOpen, activeConversationId: activeId } = chatStateRef.current
       const conversations = (await fetch('/api/messages/direct', { cache: 'no-store' }).then(
         (response) => (response.ok ? response.json() : [])
       )) as Conversation[]
       const unread = await Promise.all(
         conversations.map(async (conversation) => {
+          // Skip the active conversation while the chat is open — its read
+          // state is being persisted and the badge is already cleared.
+          if (chatOpen && conversation.id === activeId) return null
           const messages = await fetch(`/api/messages/direct/${conversation.id}?limit=50`, {
             cache: 'no-store',
           }).then((response) => (response.ok ? response.json() : { messages: [] }))
@@ -123,10 +133,12 @@ export function FloatingChat({
             user_id: string
             last_read_message_id: string | null
           }[]
-          const participantState = readStates.find((state) => state.user_id !== userId)
-          const lastReadIndex = participantState?.last_read_message_id
+          // Unread = messages from the other participant that appear AFTER
+          // MY last-read position, so use the current user's read state.
+          const myReadState = readStates.find((state) => state.user_id === userId)
+          const lastReadIndex = myReadState?.last_read_message_id
             ? (messages.messages as Message[]).findIndex(
-                (message) => message.id === participantState.last_read_message_id
+                (message) => message.id === myReadState.last_read_message_id
               )
             : -1
           const count = Math.max(
@@ -145,13 +157,22 @@ export function FloatingChat({
     void refreshUnread()
     const interval = window.setInterval(() => void refreshUnread(), 3000)
     return () => window.clearInterval(interval)
-  }, [user, userId, open])
+  }, [user, userId])
 
   useEffect(() => {
     const handleOpen = () => setOpen(true)
     window.addEventListener(openEventName, handleOpen)
     return () => window.removeEventListener(openEventName, handleOpen)
   }, [openEventName])
+
+  // Clear the unread badge for the active conversation as soon as it is
+  // opened — the read state is persisted server-side right after.
+  useEffect(() => {
+    if (!open || !activeConversationId) return
+    setUnreadConversations((current) =>
+      current.filter((conversation) => conversation.id !== activeConversationId)
+    )
+  }, [open, activeConversationId])
 
   useEffect(() => {
     if (!activeConversationId) return

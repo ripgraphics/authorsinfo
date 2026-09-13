@@ -526,32 +526,62 @@ export function FloatingChat({
       ) : null}
       <div className="floating-chat__launcher-stack relative">
         <div className="floating-chat__unread-stack absolute bottom-full right-0 mb-3 flex flex-col items-end gap-2">
-          {unreadConversations.map((conversation) => {
-            const friend = friendById.get(conversation.participant_id)
-            return (
-              <button
-                key={conversation.id}
-                type="button"
-                className="floating-chat__unread-conversation relative rounded-full shadow-lg"
-                onClick={() => {
-                  setOpen(true)
-                  setActiveConversationId(conversation.id)
-                }}
-                aria-label={`Open ${friend?.name || 'conversation'}, ${conversation.unread_count} unread messages`}
-              >
-                <Avatar
-                  src={friend?.avatar_url ?? undefined}
-                  name={friend?.name ?? ''}
-                  alt={friend?.name || 'Friend'}
-                  size="sm"
-                  className="floating-chat__unread-avatar ring-2 ring-background"
-                />
-                <span className="floating-chat__unread-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
-                  {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
-                </span>
-              </button>
-            )
-          })}
+          {/* Minimized conversation avatar — clicking it reopens the chat */}
+          {!open && activeConversationId && activeFriend ? (
+            <button
+              type="button"
+              className="floating-chat__minimized-conversation relative rounded-full shadow-lg"
+              onClick={() => setOpen(true)}
+              aria-label={`Open chat with ${activeFriend.name || 'friend'}`}
+              title={`Chat with ${activeFriend.name || 'friend'}`}
+            >
+              <Avatar
+                src={activeFriend.avatar_url ?? undefined}
+                name={activeFriend.name ?? ''}
+                alt={activeFriend.name || 'Friend'}
+                size="sm"
+                className="floating-chat__minimized-avatar ring-2 ring-background"
+              />
+              {(() => {
+                const unread = unreadConversations.find(
+                  (conversation) => conversation.id === activeConversationId
+                )
+                return unread && unread.unread_count > 0 ? (
+                  <span className="floating-chat__unread-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
+                    {unread.unread_count > 99 ? '99+' : unread.unread_count}
+                  </span>
+                ) : null
+              })()}
+            </button>
+          ) : null}
+          {unreadConversations
+            .filter((conversation) => open || conversation.id !== activeConversationId)
+            .map((conversation) => {
+              const friend = friendById.get(conversation.participant_id)
+              return (
+                <button
+                  key={conversation.id}
+                  type="button"
+                  className="floating-chat__unread-conversation relative rounded-full shadow-lg"
+                  onClick={() => {
+                    setOpen(true)
+                    setActiveConversationId(conversation.id)
+                  }}
+                  aria-label={`Open ${friend?.name || 'conversation'}, ${conversation.unread_count} unread messages`}
+                >
+                  <Avatar
+                    src={friend?.avatar_url ?? undefined}
+                    name={friend?.name ?? ''}
+                    alt={friend?.name || 'Friend'}
+                    size="sm"
+                    className="floating-chat__unread-avatar ring-2 ring-background"
+                  />
+                  <span className="floating-chat__unread-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
+                    {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+                  </span>
+                </button>
+              )
+            })}
         </div>
         <Button
           type="button"

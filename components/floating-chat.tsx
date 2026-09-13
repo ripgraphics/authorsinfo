@@ -61,6 +61,13 @@ export function FloatingChat({
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
+  const messageEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (open && activeConversationId && messages.length > 0) {
+      messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }
+  }, [open, activeConversationId, messages.length])
 
   useEffect(() => {
     const storedOpen = window.sessionStorage.getItem('authorsinfo:floating-chat:open')
@@ -272,18 +279,6 @@ export function FloatingChat({
       {open ? (
         <section className="floating-chat__panel flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
           <header className="floating-chat__header flex items-center gap-3 border-b bg-primary px-4 py-3 text-primary-foreground">
-            {activeConversationId ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="floating-chat__back text-inherit"
-                onClick={() => setActiveConversationId(null)}
-                aria-label="Back to conversations"
-              >
-                ←
-              </Button>
-            ) : null}
             {activeFriend ? (
               <EntityHoverCard
                 type="user"
@@ -308,36 +303,32 @@ export function FloatingChat({
             <span className="floating-chat__title min-w-0 flex-1 truncate font-semibold">
               {activeFriend?.name || 'Chat'}
             </span>
-            {activeConversationId ? (
+            <div className="floating-chat__chat-icons flex shrink-0 items-center gap-0.5">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="floating-chat__call text-inherit"
-                aria-label="Start audio call"
+                className="floating-chat__call h-7 w-7 rounded-full p-0 text-inherit hover:bg-primary-foreground/20"
+                aria-label="Audio call"
                 title="Audio call"
               >
                 <Phone className="h-4 w-4" />
               </Button>
-            ) : null}
-            {activeConversationId ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="floating-chat__video text-inherit"
-                aria-label="Start video call"
+                className="floating-chat__video h-7 w-7 rounded-full p-0 text-inherit hover:bg-primary-foreground/20"
+                aria-label="Video call"
                 title="Video call"
               >
                 <Video className="h-4 w-4" />
               </Button>
-            ) : null}
-            <div className="floating-chat__window-actions flex shrink-0 items-center gap-1">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="floating-chat__minimize text-inherit"
+                className="floating-chat__minimize h-7 w-7 rounded-full p-0 text-inherit hover:bg-primary-foreground/20"
                 onClick={() => setOpen(false)}
                 aria-label="Minimize chat"
                 title="Minimize chat"
@@ -352,7 +343,7 @@ export function FloatingChat({
                 size="sm"
                 variant="ghost"
                 positioned={false}
-                className="floating-chat__close text-inherit"
+                className="floating-chat__dismiss h-7 w-7 rounded-full p-0 text-inherit hover:bg-primary-foreground/20"
               />
             </div>
           </header>
@@ -388,10 +379,10 @@ export function FloatingChat({
                           />
                         ) : null}
                         <div
-                          className={`floating-chat__message max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
+                          className={`floating-chat__message max-w-[82%] rounded-xl px-3 py-2 text-sm shadow-sm ${
                             message.sender_id === userId
-                              ? 'floating-chat__message--sent ml-auto bg-primary text-primary-foreground rounded-br-md'
-                              : 'floating-chat__message--received mr-auto bg-muted text-foreground rounded-bl-md'
+                              ? 'floating-chat__message--sent ml-auto bg-blue-500 text-white rounded-br-lg rounded-tl-lg rounded-tr-md'
+                              : 'floating-chat__message--received mr-auto bg-gray-200 text-gray-800 rounded-bl-lg rounded-br-md rounded-tl-md rounded-tr-lg'
                           }`}
                         >
                           {message.deleted_at ? <em>Message deleted</em> : message.body}
@@ -419,6 +410,11 @@ export function FloatingChat({
                 {!loadingMessages && messages.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No messages yet.</p>
                 ) : null}
+                <div
+                  ref={messageEndRef}
+                  className="floating-chat__message-end"
+                  aria-hidden="true"
+                />
               </div>
               <form className="floating-chat__composer flex gap-2 border-t p-3" onSubmit={send}>
                 <Input

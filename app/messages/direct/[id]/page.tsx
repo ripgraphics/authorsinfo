@@ -2,8 +2,7 @@
 'use client'
 
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Phone, Send, Video } from 'lucide-react'
-import Link from 'next/link'
+import { Phone, Send, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createBrowserClient } from '@supabase/ssr'
@@ -33,6 +32,12 @@ interface CallCapability {
 
 type Props = { params: Promise<{ id: string }> }
 
+const formatMessageTime = (value: string) =>
+  new Date(value).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+
+const formatMessageDate = (value: string) =>
+  new Date(value).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+
 export default function DirectMessagePage({ params }: Props) {
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [messages, setMessages] = useState<DirectMessage[]>([])
@@ -53,6 +58,13 @@ export default function DirectMessagePage({ params }: Props) {
   const realtimeChannel = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
+  const messageEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!loading && messages.length > 0) {
+      messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }
+  }, [loading, messages.length])
 
   useEffect(() => {
     const client = createBrowserClient<Database>(
@@ -284,23 +296,9 @@ export default function DirectMessagePage({ params }: Props) {
 
   return (
     <main className="direct-message-page mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col p-4 md:p-6">
-      <header className="direct-message-page__header mb-4 flex items-center gap-3">
-        <Button
-          asChild
-          variant="ghost"
-          size="icon"
-          className="direct-message-page__back-button"
-          aria-label="Back to messages"
-        >
-          <Link href="/messages" className="direct-message-page__back-link">
-            <ArrowLeft className="direct-message-page__back-icon h-5 w-5" />
-          </Link>
-        </Button>
+      <header className="direct-message-page__header mb-4 flex items-center gap-3 bg-blue-500 p-3 rounded-t-lg">
         <div className="direct-message-page__heading">
-          <h1 className="direct-message-page__title text-2xl font-bold">Private conversation</h1>
-          <p className="direct-message-page__description text-sm text-muted-foreground">
-            End-to-end participant access controlled by your account
-          </p>
+          <h1 className="direct-message-page__title text-xl font-bold text-white">Chat</h1>
         </div>
         <div className="direct-message-page__call-actions ml-auto flex gap-2">
           <Button
@@ -310,14 +308,12 @@ export default function DirectMessagePage({ params }: Props) {
             className="direct-message-page__audio-call"
             onClick={() => void startCall('audio')}
             disabled={!callCapability?.ready}
-            aria-label="Start audio call"
+            aria-label="Audio call"
             title={
-              callCapability?.ready
-                ? 'Start audio call'
-                : callCapability?.reason || 'Calls unavailable'
+              callCapability?.ready ? 'Audio call' : callCapability?.reason || 'Calls unavailable'
             }
           >
-            <Phone className="direct-message-page__audio-call-icon h-4 w-4" />
+            <Phone className="direct-message-page__audio-call-icon h-4 w-4 text-white" />
           </Button>
           <Button
             type="button"
@@ -326,14 +322,12 @@ export default function DirectMessagePage({ params }: Props) {
             className="direct-message-page__video-call"
             onClick={() => void startCall('video')}
             disabled={!callCapability?.ready}
-            aria-label="Start video call"
+            aria-label="Video call"
             title={
-              callCapability?.ready
-                ? 'Start video call'
-                : callCapability?.reason || 'Calls unavailable'
+              callCapability?.ready ? 'Video call' : callCapability?.reason || 'Calls unavailable'
             }
           >
-            <Video className="direct-message-page__video-call-icon h-4 w-4" />
+            <Video className="direct-message-page__video-call-icon h-4 w-4 text-white" />
           </Button>
         </div>
       </header>
@@ -367,95 +361,128 @@ export default function DirectMessagePage({ params }: Props) {
               No messages yet.
             </p>
           ) : null}
-          {messages.map((message) => (
-            <article
-              key={message.id}
-              className="direct-message-page__message rounded-md bg-muted p-3"
-            >
-              {message.deleted_at ? (
-                <p className="direct-message-page__message-body text-sm italic text-muted-foreground">
-                  Message deleted
-                </p>
-              ) : editingMessageId === message.id ? (
-                <div className="direct-message-page__edit-form flex gap-2">
-                  <Input
-                    value={editingBody}
-                    onChange={(event) => setEditingBody(event.target.value)}
-                    className="direct-message-page__edit-input"
-                    aria-label="Edit message"
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="direct-message-page__edit-save"
-                    onClick={() => void editMessage(message)}
+          {messages.map((message) => {
+            const isCurrentUser = message.sender_id === currentUserId
+            const messageIndex = messages.findIndex((item) => item.id === message.id)
+            const previousMessage = messages[messageIndex - 1]
+            const showDate =
+              messageIndex === 0 ||
+              new Date(previousMessage.created_at).toDateString() !==
+                new Date(message.created_at).toDateString()
+
+            return (
+              <div key={message.id} className="direct-message-page__message">
+                {showDate && (
+                  <div className="direct-message-page__message-date mx-auto mb-2 w-fit rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                    {formatMessageDate(message.created_at)}
+                  </div>
+                )}
+                <div
+                  className={`direct-message-page__message-content flex ${isCurrentUser ? 'justify-end' : 'justify-start'} gap-2`}
+                >
+                  <div
+                    className={`direct-message-page__message-bubble max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
+                      message.deleted_at
+                        ? 'direct-message-page__message-bubble--deleted bg-muted italic text-muted-foreground'
+                        : isCurrentUser
+                          ? 'direct-message-page__message-bubble--sent bg-blue-500 text-white'
+                          : 'direct-message-page__message-bubble--received bg-gray-200 text-gray-800'
+                    }`}
                   >
-                    Save
-                  </Button>
+                    {message.deleted_at ? (
+                      <em>Message deleted</em>
+                    ) : editingMessageId === message.id ? (
+                      <div className="direct-message-page__edit-form flex gap-2">
+                        <Input
+                          value={editingBody}
+                          onChange={(event) => setEditingBody(event.target.value)}
+                          className="direct-message-page__edit-input h-8 flex-1 rounded-full bg-white text-gray-800"
+                          aria-label="Edit message"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="direct-message-page__edit-save rounded-full"
+                          onClick={() => void editMessage(message)}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    ) : (
+                      message.body
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <p className="direct-message-page__message-body whitespace-pre-wrap break-words">
-                  {message.body}
-                </p>
-              )}
-              {!message.deleted_at &&
-              message.sender_id === currentUserId &&
-              editingMessageId !== message.id ? (
-                <div className="direct-message-page__message-actions mt-2 flex gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="direct-message-page__edit-button"
-                    onClick={() => {
-                      setEditingMessageId(message.id)
-                      setEditingBody(message.body)
-                    }}
+                <div
+                  className={`direct-message-page__message-time text-[10px] ${isCurrentUser ? 'text-right' : 'text-left'} text-gray-500`}
+                >
+                  {formatMessageTime(message.created_at)}
+                </div>
+                {!message.deleted_at ? (
+                  <div
+                    className={`direct-message-page__message-actions flex gap-1 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    Edit
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="direct-message-page__delete-button"
-                    onClick={() => void deleteMessage(message)}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="direct-message-page__edit-button h-6 rounded-full px-2 text-xs"
+                      onClick={() => {
+                        setEditingMessageId(message.id)
+                        setEditingBody(message.body)
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="direct-message-page__delete-button h-6 rounded-full px-2 text-xs"
+                      onClick={() => void deleteMessage(message)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                ) : null}
+                {!message.deleted_at ? (
+                  <div
+                    className={`direct-message-page__reactions flex gap-1 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    Delete
-                  </Button>
-                </div>
-              ) : null}
-              {!message.deleted_at ? (
-                <div className="direct-message-page__reactions mt-2 flex gap-1">
-                  {['❤️', '😂', '👍'].map((emoji) => {
-                    const messageReactions = reactions[message.id] ?? []
-                    const count = messageReactions.filter((item) => item.reaction === emoji).length
-                    const active = messageReactions.some(
-                      (item) => item.reaction === emoji && item.user_id === currentUserId
-                    )
-                    return (
-                      <Button
-                        key={emoji}
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className={`direct-message-page__reaction-toggle ${
-                          active ? 'direct-message-page__reaction-toggle--active' : ''
-                        }`}
-                        onClick={() => void toggleReaction(message, emoji)}
-                        aria-label={`React with ${emoji}`}
-                      >
-                        {emoji} {count > 0 ? count : ''}
-                      </Button>
-                    )
-                  })}
-                </div>
-              ) : null}
-              <time className="direct-message-page__message-time mt-1 block text-xs text-muted-foreground">
-                {new Date(message.created_at).toLocaleString()}
-              </time>
-            </article>
-          ))}
+                    {['❤️', '😂', '👍'].map((emoji) => {
+                      const messageReactions = reactions[message.id] ?? []
+                      const count = messageReactions.filter(
+                        (item) => item.reaction === emoji
+                      ).length
+                      const active = messageReactions.some(
+                        (item) => item.reaction === emoji && item.user_id === currentUserId
+                      )
+                      return (
+                        <Button
+                          key={emoji}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className={`direct-message-page__reaction-toggle h-6 rounded-full px-2 text-xs ${
+                            active ? 'direct-message-page__reaction-toggle--active bg-blue-100' : ''
+                          }`}
+                          onClick={() => void toggleReaction(message, emoji)}
+                          aria-label={`React with ${emoji}`}
+                        >
+                          {emoji} {count > 0 ? count : ''}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            )
+          })}
+          <div
+            ref={messageEndRef}
+            className="direct-message-page__message-end"
+            aria-hidden="true"
+          />
         </div>
         {error ? (
           <p className="direct-message-page__error px-4 pb-2 text-sm text-destructive">{error}</p>

@@ -40,7 +40,7 @@ export function CloseButton({
       onClick={onClick}
       className={cn(
         positioned && 'absolute top-2 right-2',
-        'p-1.5 rounded-full transition-all duration-200',
+        'inline-flex items-center justify-center p-1.5 rounded-full transition-all duration-200',
         'focus:outline-none',
         variantClasses[variant],
         className

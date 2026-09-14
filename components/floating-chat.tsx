@@ -63,11 +63,44 @@ export function FloatingChat({
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
   const messageEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  // Tracks the message count seen on the previous render for this
+  // conversation. On initial load (or conversation switch) the list jumps
+  // straight to the newest message; only genuinely new messages after
+  // that smooth-scroll into view.
+  const lastMessageCountRef = useRef(0)
+  const lastConversationRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (open && activeConversationId && messages.length > 0) {
-      messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    if (!open || !activeConversationId || messages.length === 0) return
+
+    const isNewConversation = lastConversationRef.current !== activeConversationId
+    const isInitialLoad = isNewConversation || lastMessageCountRef.current === 0
+    const hasNewMessage = messages.length > lastMessageCountRef.current
+
+    lastConversationRef.current = activeConversationId
+    lastMessageCountRef.current = messages.length
+
+    const scrollToBottom = (behavior: ScrollBehavior) => {
+      const container = messagesContainerRef.current
+      if (container) {
+        // Scroll the container itself — robust against late-loading
+        // avatars/images shifting content after scrollIntoView runs.
+        container.scrollTo({ top: container.scrollHeight, behavior })
+      } else {
+        messageEndRef.current?.scrollIntoView({ behavior, block: 'end' })
+      }
     }
+
+    // Initial open: jump instantly to the newest message — no animation
+    // through the whole history. New messages afterwards: smooth scroll.
+    if (isInitialLoad) {
+      scrollToBottom('auto')
+      // Re-assert once fonts/avatars settle so we end exactly at bottom.
+      const raf = window.requestAnimationFrame(() => scrollToBottom('auto'))
+      return () => window.cancelAnimationFrame(raf)
+    }
+    if (hasNewMessage) scrollToBottom('smooth')
   }, [open, activeConversationId, messages.length])
 
   useEffect(() => {
@@ -185,6 +218,10 @@ export function FloatingChat({
 
   useEffect(() => {
     if (!activeConversationId) return
+    // Clear the previous conversation's messages immediately so the
+    // window does not briefly show stale messages while the new ones load.
+    setMessages([])
+    lastMessageCountRef.current = 0
     setLoadingMessages(true)
     void fetch(`/api/messages/direct/${activeConversationId}?limit=50`, { cache: 'no-store' })
       .then((response) => response.json())
@@ -357,16 +394,8 @@ export function FloatingChat({
               {activeFriend?.name || 'Chat'}
             </span>
             <div className="floating-chat__chat-icons flex shrink-0 items-center gap-0.5">
-              <IconButton
-                icon={Phone}
-                label="Audio call"
-                className="floating-chat__call"
-              />
-              <IconButton
-                icon={Video}
-                label="Video call"
-                className="floating-chat__video"
-              />
+              <IconButton icon={Phone} label="Audio call" className="floating-chat__call" />
+              <IconButton icon={Video} label="Video call" className="floating-chat__video" />
               <IconButton
                 icon={Minus}
                 label="Minimize chat"
@@ -386,7 +415,10 @@ export function FloatingChat({
           </header>
           {activeConversationId ? (
             <>
-              <div className="floating-chat__messages flex-1 space-y-2 overflow-y-auto p-3">
+              <div
+                ref={messagesContainerRef}
+                className="floating-chat__messages flex-1 space-y-2 overflow-y-auto p-3"
+              >
                 {loadingMessages ? (
                   <p className="text-sm text-muted-foreground">Loading...</p>
                 ) : null}

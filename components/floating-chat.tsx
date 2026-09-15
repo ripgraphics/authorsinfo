@@ -1,8 +1,8 @@
 /* eslint-disable descriptive-classname/require-semantic-classname */
 'use client'
 
-import { FormEvent, useEffect, useRef, useState } from 'react'
-import { MessageCircle, Minus, Send, Phone, Video, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { MessageCircle, Minus, Phone, Video, X } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
@@ -10,7 +10,7 @@ import { broadcastChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { IconButton } from '@/components/ui/icon-button'
-import { Input } from '@/components/ui/input'
+import { ChatComposer } from '@/components/chat-composer'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 
 interface Conversation {
@@ -55,7 +55,6 @@ export function FloatingChat({
   const [friends, setFriends] = useState<Friend[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
-  const [draft, setDraft] = useState('')
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [unreadConversations, setUnreadConversations] = useState<UnreadConversation[]>([])
   const [recipientReadMessageId, setRecipientReadMessageId] = useState<string | null>(null)
@@ -318,37 +317,36 @@ export function FloatingChat({
     setActiveConversationId(conversation.id)
   }
 
-  const send = async (event: FormEvent) => {
-    event.preventDefault()
-    if (!activeConversationId || !draft.trim()) return
-    const body = draft.trim()
+  const send = async (body: string): Promise<boolean> => {
+    if (!activeConversationId || !body.trim()) return false
+    const trimmedBody = body.trim()
     // Optimistic update: show the message immediately, replace with the
     // server response (or remove on failure) without waiting on realtime.
     const optimisticId = `optimistic-${Date.now()}`
     const optimisticMessage: Message = {
       id: optimisticId,
       sender_id: userId ?? '',
-      body,
+      body: trimmedBody,
       created_at: new Date().toISOString(),
       deleted_at: null,
     }
     setMessages((current) => [...current, optimisticMessage])
-    setDraft('')
     try {
       const response = await fetch(`/api/messages/direct/${activeConversationId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body }),
+        body: JSON.stringify({ body: trimmedBody }),
       })
       if (!response.ok) throw new Error('Send failed')
       const saved = (await response.json()) as Message
       setMessages((current) =>
         current.map((message) => (message.id === optimisticId ? saved : message))
       )
+      return true
     } catch {
-      // Roll back the optimistic message and restore the draft
+      // Roll back the optimistic message; returning false keeps the draft.
       setMessages((current) => current.filter((message) => message.id !== optimisticId))
-      setDraft(body)
+      return false
     }
   }
 
@@ -394,22 +392,34 @@ export function FloatingChat({
               {activeFriend?.name || 'Chat'}
             </span>
             <div className="floating-chat__chat-icons flex shrink-0 items-center gap-0.5">
-              <IconButton icon={Phone} label="Audio call" className="floating-chat__call" />
-              <IconButton icon={Video} label="Video call" className="floating-chat__video" />
+              <IconButton
+                icon={Phone}
+                label="Audio call"
+                tone="theme"
+                className="floating-chat__call [&_svg]:size-5"
+              />
+              <IconButton
+                icon={Video}
+                label="Video call"
+                tone="theme"
+                className="floating-chat__video [&_svg]:size-5"
+              />
               <IconButton
                 icon={Minus}
                 label="Minimize chat"
+                tone="theme"
                 onClick={() => setOpen(false)}
-                className="floating-chat__minimize"
+                className="floating-chat__minimize [&_svg]:size-5"
               />
               <IconButton
                 icon={X}
                 label="Close"
+                tone="theme"
                 onClick={() => {
                   setOpen(false)
                   setActiveConversationId(null)
                 }}
-                className="floating-chat__dismiss"
+                className="floating-chat__dismiss [&_svg]:size-5"
               />
             </div>
           </header>
@@ -450,8 +460,8 @@ export function FloatingChat({
                         <div
                           className={`floating-chat__message max-w-[82%] rounded-xl px-3 py-2 text-sm shadow-sm ${
                             message.sender_id === userId
-                              ? 'floating-chat__message--sent ml-auto bg-blue-500 text-white rounded-br-lg rounded-tl-lg rounded-tr-md'
-                              : 'floating-chat__message--received mr-auto bg-gray-200 text-gray-800 rounded-bl-lg rounded-br-md rounded-tl-md rounded-tr-lg'
+                              ? 'floating-chat__message--sent ml-auto bg-app-theme-blue text-primary-foreground rounded-br-lg rounded-tl-lg rounded-tr-md'
+                              : 'floating-chat__message--received mr-auto bg-muted text-foreground rounded-bl-lg rounded-br-md rounded-tl-md rounded-tr-lg'
                           }`}
                         >
                           {message.deleted_at ? <em>Message deleted</em> : message.body}
@@ -485,22 +495,16 @@ export function FloatingChat({
                   aria-hidden="true"
                 />
               </div>
-              <form className="floating-chat__composer flex gap-2 border-t p-3" onSubmit={send}>
-                <Input
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Type a message"
-                  aria-label="Floating chat message"
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={!draft.trim()}
-                  aria-label="Send floating chat message"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
+              <ChatComposer
+                conversationId={activeConversationId}
+                onSend={(body) => send(body)}
+                placeholder="Type a message"
+                ariaLabel="Floating chat message"
+                className="floating-chat__composer border-t p-3"
+                textareaClassName="floating-chat__composer-textarea"
+                sendButtonClassName="floating-chat__send"
+                sendButtonLabel="Send floating chat message"
+              />
             </>
           ) : (
             <div className="floating-chat__conversation-list flex-1 overflow-y-auto p-3">

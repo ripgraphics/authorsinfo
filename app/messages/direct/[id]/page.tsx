@@ -1,10 +1,11 @@
 /* eslint-disable descriptive-classname/require-semantic-classname */
 'use client'
 
-import { FormEvent, useEffect, useRef, useState } from 'react'
-import { Phone, Send, Video } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Phone, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ChatComposer } from '@/components/chat-composer'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 
@@ -43,7 +44,6 @@ export default function DirectMessagePage({ params }: Props) {
   const [messages, setMessages] = useState<DirectMessage[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [loadingOlder, setLoadingOlder] = useState(false)
-  const [body, setBody] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -209,9 +209,8 @@ export default function DirectMessagePage({ params }: Props) {
     await loadReactions(conversationId, [message.id])
   }
 
-  const sendMessage = async (event: FormEvent) => {
-    event.preventDefault()
-    if (!conversationId || !body.trim() || sending) return
+  const sendMessage = async (body: string): Promise<boolean> => {
+    if (!conversationId || !body.trim() || sending) return false
     setSending(true)
     setError(null)
     const trimmedBody = body.trim()
@@ -228,7 +227,6 @@ export default function DirectMessagePage({ params }: Props) {
       deleted_at: null,
     }
     setMessages((current) => [...current, optimisticMessage])
-    setBody('')
     try {
       const response = await fetch(`/api/messages/direct/${conversationId}`, {
         method: 'POST',
@@ -240,10 +238,11 @@ export default function DirectMessagePage({ params }: Props) {
       setMessages((current) =>
         current.map((message) => (message.id === optimisticId ? (data as DirectMessage) : message))
       )
+      return true
     } catch {
       setMessages((current) => current.filter((message) => message.id !== optimisticId))
-      setBody(trimmedBody)
       setError('Unable to send message.')
+      return false
     } finally {
       setSending(false)
     }
@@ -261,8 +260,7 @@ export default function DirectMessagePage({ params }: Props) {
     setCallMessage(response.ok ? 'Call started.' : data.error || 'Unable to start call.')
   }
 
-  const broadcastTyping = (value: string) => {
-    setBody(value)
+  const broadcastTyping = () => {
     if (!conversationId) return
     void realtimeChannel.current?.send({
       type: 'broadcast',
@@ -511,32 +509,25 @@ export default function DirectMessagePage({ params }: Props) {
             {callMessage}
           </p>
         ) : null}
-        <form
-          onSubmit={sendMessage}
-          className="direct-message-page__composer flex gap-2 border-t p-4"
-        >
+        <div className="direct-message-page__composer-wrapper border-t p-4">
           <span className="direct-message-page__presence text-xs text-muted-foreground">
             {onlineUsers > 1 ? 'Online' : 'Offline'}
           </span>
-          <Input
-            value={body}
-            onChange={(event) => broadcastTyping(event.target.value)}
+          <ChatComposer
+            conversationId={conversationId}
+            onSend={(body) => {
+              broadcastTyping()
+              return sendMessage(body)
+            }}
             placeholder="Write a message"
-            maxLength={10000}
+            ariaLabel="Message body"
             disabled={sending || !conversationId}
-            className="direct-message-page__input"
-            aria-label="Message body"
+            className="direct-message-page__composer"
+            textareaClassName="direct-message-page__input"
+            sendButtonClassName="direct-message-page__send"
+            sendButtonLabel="Send message"
           />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={sending || !body.trim() || !conversationId}
-            className="direct-message-page__send"
-            aria-label="Send message"
-          >
-            <Send className="direct-message-page__send-icon h-4 w-4" />
-          </Button>
-        </form>
+        </div>
       </section>
     </main>
   )

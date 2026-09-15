@@ -32,8 +32,9 @@ export interface IconButtonProps {
    * Color tone for the icon and hover background.
    * - inherit: uses the parent's text color (for colored headers)
    * - muted: standard muted foreground on default background
+   * - theme: standard app button theme (primary background, theme blue on hover)
    */
-  tone?: 'inherit' | 'muted'
+  tone?: 'inherit' | 'muted' | 'theme'
   /** Optional badge content (e.g. unread count) rendered top-right */
   badge?: ReactNode
   /** Additional classes merged onto the button */
@@ -51,6 +52,7 @@ const sizeMap = {
 const toneMap = {
   inherit: 'text-inherit hover:bg-primary-foreground/20',
   muted: 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+  theme: 'bg-primary text-primary-foreground hover:bg-app-theme-blue hover:text-primary-foreground',
 } as const
 
 export function IconButton({

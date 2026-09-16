@@ -16,7 +16,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <PageHeader />
+      <PageHeader showChatLauncher={!isDirectMessageRoute} />
       <PageContainer>{children}</PageContainer>
       {isDirectMessageRoute ? null : <FloatingChat />}
     </>

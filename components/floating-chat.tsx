@@ -12,6 +12,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ChatComposer } from '@/components/chat-composer'
 import { ConversationRail } from '@/components/conversation-rail'
+import { ParticipantDetailsPanel } from '@/components/participant-details-panel'
 import { DirectMessageList } from '@/components/direct-message-list'
 import { ConversationHeader } from '@/components/conversation-header'
 
@@ -499,6 +500,7 @@ export function FloatingChat({
             </div>
           )}
           </div>
+          {fullPage ? <ParticipantDetailsPanel participant={activeFriend ?? null} /> : null}
           </div>
         </section>
       ) : null}

@@ -45,13 +45,19 @@ interface PageHeaderProps {
   title?: string
   description?: string
   children?: React.ReactNode
+  showChatLauncher?: boolean
 }
 
 export function PageHeaderHeading({ children }: { children?: React.ReactNode }) {
   return <h1 className="text-3xl font-bold tracking-tight">{children}</h1>
 }
 
-export function PageHeader({ title, description, children }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  children,
+  showChatLauncher = true,
+}: PageHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [searchOpen, setSearchOpen] = useState(false)
@@ -109,19 +115,21 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
 
           <FriendRequestNotification />
 
-          <IconButton
-            icon={MessageSquare}
-            label={
-              unreadChatTotal > 0
-                ? `Open chat, ${unreadChatTotal} unread messages`
-                : 'Open chat'
-            }
-            size="lg"
-            tone="muted"
-            badge={unreadChatTotal > 0 ? (unreadChatTotal > 99 ? '99+' : unreadChatTotal) : null}
-            className="page-header__messages-btn hidden sm:flex"
-            onClick={() => window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))}
-          />
+          {showChatLauncher ? (
+            <IconButton
+              icon={MessageSquare}
+              label={
+                unreadChatTotal > 0
+                  ? `Open chat, ${unreadChatTotal} unread messages`
+                  : 'Open chat'
+              }
+              size="lg"
+              tone="muted"
+              badge={unreadChatTotal > 0 ? (unreadChatTotal > 99 ? '99+' : unreadChatTotal) : null}
+              className="page-header__messages-btn hidden sm:flex"
+              onClick={() => window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))}
+            />
+          ) : null}
 
           {/* User avatar dropdown, only if logged in */}
           {!loading && user ? (

@@ -56,6 +56,12 @@ export interface ChatComposerProps {
    * restored so the user's text is not lost.
    */
   onSend: (body: string) => boolean | Promise<boolean> | void
+  /**
+   * Called when the user types in the textarea. Use this to broadcast typing
+   * events to other participants. The composer does NOT debounce this — the
+   * caller should debounce if needed.
+   */
+  onTyping?: () => void
   /** Placeholder text for the textarea. */
   placeholder?: string
   /** Accessible label for the textarea. */
@@ -77,6 +83,7 @@ export interface ChatComposerProps {
 export function ChatComposer({
   conversationId,
   onSend,
+  onTyping,
   placeholder = 'Type a message',
   ariaLabel = 'Chat message',
   disabled = false,
@@ -126,6 +133,7 @@ export function ChatComposer({
   const updateDraft = (value: string) => {
     setDraft(value)
     writeDraft(conversationId, value)
+    onTyping?.()
   }
 
   const submit = async (event: FormEvent) => {

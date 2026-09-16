@@ -6,6 +6,8 @@ import { Phone, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ChatComposer } from '@/components/chat-composer'
+import { TypingIndicator } from '@/components/typing-indicator'
+import { useTypingIndicator } from '@/hooks/use-typing-indicator'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 
@@ -50,7 +52,6 @@ export default function DirectMessagePage({ params }: Props) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
   const [editingBody, setEditingBody] = useState('')
-  const [typingUsers, setTypingUsers] = useState<string[]>([])
   const [onlineUsers, setOnlineUsers] = useState(0)
   const [reactions, setReactions] = useState<Record<string, DirectReaction[]>>({})
   const [callCapability, setCallCapability] = useState<CallCapability | null>(null)
@@ -59,6 +60,12 @@ export default function DirectMessagePage({ params }: Props) {
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
   const messageEndRef = useRef<HTMLDivElement>(null)
+
+  // Typing indicator hook
+  const { typingUserNames, broadcastTyping: broadcastTypingEvent } = useTypingIndicator({
+    conversationId,
+    currentUserId,
+  })
 
   useEffect(() => {
     if (!loading && messages.length > 0) {
@@ -140,15 +147,6 @@ export default function DirectMessagePage({ params }: Props) {
           )
         }
       )
-      .on('broadcast', { event: 'typing' }, ({ payload }) => {
-        if (payload?.user_id === currentUserId) return
-        setTypingUsers((current) =>
-          current.includes(payload?.user_id) ? current : [...current, payload?.user_id]
-        )
-        window.setTimeout(() => {
-          setTypingUsers((current) => current.filter((userId) => userId !== payload?.user_id))
-        }, 2000)
-      })
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState()
         setOnlineUsers(Object.keys(state).length)
@@ -260,15 +258,6 @@ export default function DirectMessagePage({ params }: Props) {
     setCallMessage(response.ok ? 'Call started.' : data.error || 'Unable to start call.')
   }
 
-  const broadcastTyping = () => {
-    if (!conversationId) return
-    void realtimeChannel.current?.send({
-      type: 'broadcast',
-      event: 'typing',
-      payload: { user_id: currentUserId },
-    })
-  }
-
   const loadOlderMessages = async () => {
     if (!conversationId || !nextCursor || loadingOlder) return
     setLoadingOlder(true)
@@ -363,11 +352,10 @@ export default function DirectMessagePage({ params }: Props) {
               {loadingOlder ? 'Loading...' : 'Load older messages'}
             </Button>
           ) : null}
-          {typingUsers.length > 0 ? (
-            <p className="direct-message-page__typing text-sm text-muted-foreground">
-              Someone is typing...
-            </p>
-          ) : null}
+          <TypingIndicator
+            typingUserNames={typingUserNames}
+            className="direct-message-page__typing"
+          />
           {loading ? (
             <p className="direct-message-page__loading text-sm text-muted-foreground">
               Loading messages...
@@ -515,10 +503,8 @@ export default function DirectMessagePage({ params }: Props) {
           </span>
           <ChatComposer
             conversationId={conversationId}
-            onSend={(body) => {
-              broadcastTyping()
-              return sendMessage(body)
-            }}
+            onSend={sendMessage}
+            onTyping={broadcastTypingEvent}
             placeholder="Write a message"
             ariaLabel="Message body"
             disabled={sending || !conversationId}

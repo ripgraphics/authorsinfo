@@ -7,10 +7,12 @@ import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
 import { broadcastChatUnreadTotal } from '@/hooks/use-chat-unread'
+import { useTypingIndicator } from '@/hooks/use-typing-indicator'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { IconButton } from '@/components/ui/icon-button'
 import { ChatComposer } from '@/components/chat-composer'
+import { TypingIndicator } from '@/components/typing-indicator'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 
 interface Conversation {
@@ -69,6 +71,12 @@ export function FloatingChat({
   // that smooth-scroll into view.
   const lastMessageCountRef = useRef(0)
   const lastConversationRef = useRef<string | null>(null)
+
+  // Typing indicator hook
+  const { typingUserNames, broadcastTyping: broadcastTypingEvent } = useTypingIndicator({
+    conversationId: activeConversationId,
+    currentUserId: userId,
+  })
 
   useEffect(() => {
     if (!open || !activeConversationId || messages.length === 0) return
@@ -489,6 +497,10 @@ export function FloatingChat({
                 {!loadingMessages && messages.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No messages yet.</p>
                 ) : null}
+                <TypingIndicator
+                  typingUserNames={typingUserNames}
+                  className="floating-chat__typing"
+                />
                 <div
                   ref={messageEndRef}
                   className="floating-chat__message-end"
@@ -498,6 +510,7 @@ export function FloatingChat({
               <ChatComposer
                 conversationId={activeConversationId}
                 onSend={(body) => send(body)}
+                onTyping={broadcastTypingEvent}
                 placeholder="Type a message"
                 ariaLabel="Floating chat message"
                 className="floating-chat__composer border-t p-3"

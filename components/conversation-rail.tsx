@@ -28,6 +28,8 @@ export interface ConversationRailProps {
   onSelectContact?: (contactId: string) => void
   searchValue?: string
   onSearchChange?: (value: string) => void
+  filter?: 'all' | 'unread' | 'friends'
+  onFilterChange?: (filter: 'all' | 'unread' | 'friends') => void
   title?: string
   description?: string
   className?: string
@@ -41,6 +43,8 @@ export function ConversationRail({
   onSelectContact,
   searchValue = '',
   onSearchChange,
+  filter = 'all',
+  onFilterChange,
   title = 'Chats',
   description = 'Recent conversations',
   className = '',
@@ -60,6 +64,22 @@ export function ConversationRail({
             aria-label="Search chats"
             className="mt-3 h-9"
           />
+        ) : null}
+        {onFilterChange ? (
+          <div className="conversation-rail__filters mt-3 flex gap-1" role="tablist" aria-label="Chat filters">
+            {(['all', 'unread', 'friends'] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="tab"
+                aria-selected={filter === option}
+                className={`rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors ${filter === option ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                onClick={() => onFilterChange(option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
         ) : null}
       </div>
       <div className="conversation-rail__list max-h-[calc(100vh-13rem)] overflow-y-auto p-2">

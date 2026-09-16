@@ -65,6 +65,7 @@ export function FloatingChat({
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [unreadConversations, setUnreadConversations] = useState<UnreadConversation[]>([])
   const [conversationSearch, setConversationSearch] = useState('')
+  const [conversationFilter, setConversationFilter] = useState<'all' | 'unread' | 'friends'>('all')
   const [mobileConversationOpen, setMobileConversationOpen] = useState(Boolean(initialConversationId))
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
@@ -385,6 +386,12 @@ export function FloatingChat({
         `${friend.name ?? ''} ${friend.email ?? ''}`.toLowerCase().includes(normalizedSearch)
       )
     : friends
+  const visibleRailItems = conversationFilter === 'unread'
+    ? filteredRailItems.filter((item) => Boolean(item.unreadCount))
+    : conversationFilter === 'friends'
+      ? filteredRailItems.filter((item) => Boolean(item.participant))
+      : filteredRailItems
+  const visibleContacts = conversationFilter === 'unread' ? [] : filteredFriends
 
   return (
     <div
@@ -418,16 +425,18 @@ export function FloatingChat({
           <div className={fullPage ? 'flex min-h-0 min-w-0 flex-1' : 'contents'}>
             {fullPage ? (
               <ConversationRail
-                items={filteredRailItems}
+                items={visibleRailItems}
                 activeConversationId={activeConversationId}
                 onSelect={(conversationId) => {
                   setActiveConversationId(conversationId)
                   setMobileConversationOpen(true)
                 }}
-                contacts={filteredFriends}
+                contacts={visibleContacts}
                 onSelectContact={(friendId) => void openConversation(friendId)}
                 searchValue={conversationSearch}
                 onSearchChange={setConversationSearch}
+                filter={conversationFilter}
+                onFilterChange={setConversationFilter}
               />
             ) : null}
           <div className={`${fullPage ? 'flex min-w-0 flex-1 flex-col' : 'contents'} ${fullPage && !mobileConversationOpen ? 'hidden md:flex' : ''}`}>

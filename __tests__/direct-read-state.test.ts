@@ -21,15 +21,19 @@ function query(result: { data: unknown; error: unknown }) {
   return {
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
+    lte: jest.fn().mockReturnThis(),
+    neq: jest.fn().mockReturnThis(),
     maybeSingle: jest.fn().mockResolvedValue(result),
     then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve),
     upsert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
     single: jest.fn().mockResolvedValue(result),
   }
 }
 
 let conversations: ReturnType<typeof query>
 let readStates: ReturnType<typeof query>
+let messages: ReturnType<typeof query>
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -38,9 +42,11 @@ beforeEach(() => {
     data: { conversation_id: conversationId, user_id: userId, last_read_message_id: messageId },
     error: null,
   })
+  messages = query({ data: { id: messageId, created_at: '2026-09-16T12:00:00.000Z' }, error: null })
   mockFrom.mockImplementation((table: string) => {
     if (table === 'direct_conversations') return conversations
     if (table === 'direct_conversation_read_state') return readStates
+    if (table === 'direct_conversation_messages') return messages
     throw new Error(`Unexpected table ${table}`)
   })
   mockRequireUser.mockResolvedValue({
@@ -67,6 +73,10 @@ test('loads read state only for an authorized participant', async () => {
 
 test('upserts read state using the authenticated owner', async () => {
   expect((await POST(request({ last_read_message_id: messageId }), context)).status).toBe(200)
+  expect(messages.update).toHaveBeenCalledWith({
+    read_at: expect.any(String),
+    read_by: userId,
+  })
   expect(readStates.upsert).toHaveBeenCalledWith({
     conversation_id: conversationId,
     user_id: userId,

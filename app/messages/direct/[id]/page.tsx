@@ -10,6 +10,7 @@ import { TypingIndicator } from '@/components/typing-indicator'
 import { useTypingIndicator } from '@/hooks/use-typing-indicator'
 import { supabaseClient } from '@/lib/supabase/client'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import { formatChatTimestamp } from '@/lib/utils/dateUtils'
 
 interface DirectMessage {
   id: string
@@ -19,6 +20,8 @@ interface DirectMessage {
   created_at: string
   edited_at: string | null
   deleted_at: string | null
+  read_at?: string | null
+  read_by?: string | null
 }
 
 interface DirectReaction {
@@ -34,9 +37,6 @@ interface CallCapability {
 }
 
 type Props = { params: Promise<{ id: string }> }
-
-const formatMessageTime = (value: string) =>
-  new Date(value).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 
 const formatMessageDate = (value: string) =>
   new Date(value).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
@@ -429,7 +429,7 @@ export default function DirectMessagePage({ params }: Props) {
                 <div
                   className={`direct-message-page__message-time text-[10px] ${isCurrentUser ? 'text-right' : 'text-left'} text-gray-500`}
                 >
-                  {formatMessageTime(message.created_at)}
+                    {formatChatTimestamp(message.created_at)}
                 </div>
                 {!message.deleted_at ? (
                   <div

@@ -15,6 +15,7 @@ import { ChatComposer } from '@/components/chat-composer'
 import { TypingIndicator } from '@/components/typing-indicator'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { formatChatTimestamp } from '@/lib/utils/dateUtils'
 
 interface Conversation {
   id: string
@@ -38,6 +39,8 @@ interface Message {
   body: string
   created_at: string
   deleted_at: string | null
+  read_at?: string | null
+  read_by?: string | null
 }
 
 export interface FloatingChatProps {
@@ -47,8 +50,6 @@ export interface FloatingChatProps {
 export function FloatingChat({
   openEventName = 'authorsinfo:open-floating-chat',
 }: FloatingChatProps) {
-  const formatMessageTime = (value: string) =>
-    new Date(value).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
   const formatMessageDate = (value: string) =>
     new Date(value).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
   const { user, loading: authLoading } = useAuth()
@@ -60,8 +61,6 @@ export function FloatingChat({
   const [messages, setMessages] = useState<Message[]>([])
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [unreadConversations, setUnreadConversations] = useState<UnreadConversation[]>([])
-  const [recipientReadMessageId, setRecipientReadMessageId] = useState<string | null>(null)
-  const [recipientReadAt, setRecipientReadAt] = useState<string | null>(null)
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
@@ -236,19 +235,6 @@ export function FloatingChat({
       .then((response) => response.json())
       .then(async (data) => {
         setMessages((data.messages ?? []) as Message[])
-        const readStates = (await fetch(`/api/messages/direct/${activeConversationId}/read-state`, {
-          cache: 'no-store',
-        }).then((response) => (response.ok ? response.json() : []))) as {
-          user_id: string
-          last_read_message_id: string | null
-          last_read_at: string | null
-        }[]
-        setRecipientReadMessageId(
-          readStates.find((state) => state.user_id !== userId)?.last_read_message_id ?? null
-        )
-        setRecipientReadAt(
-          readStates.find((state) => state.user_id !== userId)?.last_read_at ?? null
-        )
         const latestMessage = (data.messages as Message[]).at(-1)
         if (latestMessage) {
           await fetch(`/api/messages/direct/${activeConversationId}/read-state`, {
@@ -484,12 +470,9 @@ export function FloatingChat({
                       <div
                         className={`floating-chat__message-time mt-1 text-[10px] text-muted-foreground ${message.sender_id === userId ? 'text-right' : 'text-left'}`}
                       >
-                        {formatMessageTime(message.created_at)}
+                        {formatChatTimestamp(message.created_at)}
                       </div>
-                      {message.sender_id === userId &&
-                      index === messages.length - 1 &&
-                      recipientReadMessageId === message.id &&
-                      recipientReadAt ? (
+                        {message.sender_id === userId && message.read_at && message.read_by ? (
                         <div className="floating-chat__seen-receipt mt-0.5 flex justify-end">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -505,11 +488,7 @@ export function FloatingChat({
                             </TooltipTrigger>
                             <TooltipContent>
                               Seen by {activeFriend?.name || 'recipient'} at{' '}
-                              {new Date(recipientReadAt).toLocaleString([], {
-                                weekday: 'long',
-                                hour: 'numeric',
-                                minute: '2-digit',
-                              })}
+                              {formatChatTimestamp(message.read_at)}
                             </TooltipContent>
                           </Tooltip>
                         </div>

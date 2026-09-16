@@ -61,6 +61,34 @@ export function formatDateTime(date: string | Date | number): string {
 }
 
 /**
+ * Formats chat timestamps as a weekday for recent messages and a full date
+ * once the message is at least seven days old.
+ */
+export function formatChatTimestamp(date: string | Date | number): string {
+  const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
+  if (isNaN(dateObj.getTime())) return 'Invalid Date'
+
+  const isRecent = Date.now() - dateObj.getTime() < 7 * 24 * 60 * 60 * 1000
+  if (isRecent) {
+    return dateObj.toLocaleDateString('en-US', {
+      weekday: 'long',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+  }
+
+  return dateObj.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+/**
  * Formats a date string or Date object to relative time: "2 hours ago", "3 days ago"
  * @param date - Date string, Date object, or timestamp
  * @returns Relative time string

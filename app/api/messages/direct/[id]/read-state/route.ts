@@ -10,6 +10,8 @@ type DirectContext = { params: Promise<{ id: string }> }
 interface ReadStateQuery {
   select(columns: string): ReadStateQuery
   eq(column: string, value: string): ReadStateQuery
+  lte(column: string, value: string): ReadStateQuery
+  neq(column: string, value: string): ReadStateQuery
   maybeSingle(): Promise<{ data: unknown; error: unknown }>
   then<TResult1 = { data: unknown[] | null; error: unknown }, TResult2 = never>(
     onfulfilled?:
@@ -18,11 +20,14 @@ interface ReadStateQuery {
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2>
   upsert(value: Record<string, string | null>): ReadStateQuery
+  update(value: Record<string, string | null>): ReadStateQuery
   single(): Promise<{ data: unknown; error: unknown }>
 }
 
 interface ReadStateClient {
-  from(table: 'direct_conversations' | 'direct_conversation_read_state'): ReadStateQuery
+  from(
+    table: 'direct_conversations' | 'direct_conversation_read_state' | 'direct_conversation_messages'
+  ): ReadStateQuery
 }
 
 function getClient(context: AuthenticatedRoute): ReadStateClient {
@@ -76,6 +81,31 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
     }
     const denied = await authorize(authentication.context, id)
     if (denied) return denied
+    const cursorMessageId = input.data.last_read_message_id
+    if (cursorMessageId) {
+      const { data: cursorMessage, error: cursorError } = await getClient(authentication.context)
+        .from('direct_conversation_messages')
+        .select('id, created_at')
+        .eq('id', cursorMessageId)
+        .eq('conversation_id', id)
+        .maybeSingle()
+      if (cursorError) throw cursorError
+      const cursor = cursorMessage as { created_at?: string } | null
+      if (!cursor?.created_at) {
+        return NextResponse.json({ error: 'Read message not found' }, { status: 400 })
+      }
+
+      const { error: messageReadError } = await getClient(authentication.context)
+        .from('direct_conversation_messages')
+        .update({
+          read_at: new Date().toISOString(),
+          read_by: authentication.context.user.id,
+        })
+        .eq('conversation_id', id)
+        .lte('created_at', cursor.created_at)
+        .neq('sender_id', authentication.context.user.id)
+      if (messageReadError) throw messageReadError
+    }
     const { data, error } = await getClient(authentication.context)
       .from('direct_conversation_read_state')
       .upsert({

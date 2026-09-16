@@ -85,7 +85,9 @@ export async function GET(request: NextRequest, { params }: DirectContext) {
 
     const messageQuery = getDirectClient(authentication.context)
       .from('direct_conversation_messages')
-      .select('id, conversation_id, sender_id, body, created_at, edited_at, deleted_at')
+      .select(
+        'id, conversation_id, sender_id, body, created_at, edited_at, deleted_at, read_at, read_by'
+      )
       .eq('conversation_id', id)
       .order('created_at', { ascending: false })
       .limit(input.data.limit)
@@ -131,7 +133,7 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
         sender_id: authentication.context.user.id,
         body: input.data.body,
       })
-      .select('id, conversation_id, sender_id, body, created_at')
+      .select('id, conversation_id, sender_id, body, created_at, read_at, read_by')
       .single()
     if (error) throw error
 

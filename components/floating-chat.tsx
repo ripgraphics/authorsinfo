@@ -390,7 +390,7 @@ export function FloatingChat({
     <div
       className={
         fullPage
-          ? 'floating-chat floating-chat--full-page mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-7xl p-4 md:p-6'
+          ? 'floating-chat floating-chat--full-page flex h-[calc(100vh-4rem)] w-full'
           : 'floating-chat fixed bottom-5 right-5 z-50 flex items-end gap-3'
       }
     >
@@ -398,7 +398,7 @@ export function FloatingChat({
         <section
           className={
             fullPage
-              ? 'floating-chat__panel floating-chat__panel--full-page relative flex min-h-[calc(100vh-8rem)] w-full flex-col overflow-hidden rounded-xl border bg-background shadow-2xl'
+              ? 'floating-chat__panel floating-chat__panel--full-page relative flex h-full min-h-0 w-full flex-col overflow-hidden border-0 bg-background shadow-none'
               : 'floating-chat__panel relative flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl'
           }
         >

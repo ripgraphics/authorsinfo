@@ -504,7 +504,7 @@ export function FloatingChat({
           </div>
         </section>
       ) : null}
-      <div className="floating-chat__launcher-stack relative">
+      {!fullPage ? <div className="floating-chat__launcher-stack relative">
         <div className="floating-chat__unread-stack absolute bottom-full right-0 mb-3 flex flex-col items-end gap-2">
           {/* Minimized conversation avatar — clicking it reopens the chat */}
           {!open && activeConversationId && activeFriend ? (
@@ -572,7 +572,7 @@ export function FloatingChat({
         >
           <MessageCircle className="h-6 w-6" />
         </Button>
-      </div>
+      </div> : null}
     </div>
   )
 }

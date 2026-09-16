@@ -261,7 +261,12 @@ export function FriendRequestNotification() {
         />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent
+        align="end"
+        side="bottom"
+        avoidCollisions={false}
+        className="w-80"
+      >
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Friend Requests</span>
           {pendingCount > 0 && (

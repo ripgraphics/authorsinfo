@@ -1,6 +1,6 @@
 'use client'
 
-import { Minus, Phone, Video, X } from 'lucide-react'
+import { ArrowLeft, Minus, Phone, Video, X } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { IconButton } from '@/components/ui/icon-button'
 
@@ -14,10 +14,12 @@ export interface ConversationHeaderProps {
   presenceLabel?: string
   showMinimize?: boolean
   showClose?: boolean
+  showBack?: boolean
   onAudioCall?: () => void
   onVideoCall?: () => void
   onMinimize?: () => void
   onClose?: () => void
+  onBack?: () => void
   className?: string
 }
 
@@ -26,14 +28,17 @@ export function ConversationHeader({
   presenceLabel,
   showMinimize = false,
   showClose = false,
+  showBack = false,
   onAudioCall,
   onVideoCall,
   onMinimize,
   onClose,
+  onBack,
   className = '',
 }: ConversationHeaderProps) {
   return (
     <header className={`conversation-header flex items-center gap-3 border-b bg-primary px-4 py-3 text-primary-foreground ${className}`}>
+      {showBack ? <IconButton icon={ArrowLeft} label="Back to conversations" tone="theme" onClick={onBack} className="conversation-header__back md:hidden [&_svg]:size-5" /> : null}
       {participant ? (
         <Avatar
           src={participant.avatar_url ?? undefined}

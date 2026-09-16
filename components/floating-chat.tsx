@@ -63,6 +63,8 @@ export function FloatingChat({
   const [messages, setMessages] = useState<Message[]>([])
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [unreadConversations, setUnreadConversations] = useState<UnreadConversation[]>([])
+  const [conversationSearch, setConversationSearch] = useState('')
+  const [mobileConversationOpen, setMobileConversationOpen] = useState(Boolean(initialConversationId))
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
@@ -113,7 +115,10 @@ export function FloatingChat({
   useEffect(() => {
     if (fullPage) {
       setOpen(true)
-      if (initialConversationId) setActiveConversationId(initialConversationId)
+      if (initialConversationId) {
+        setActiveConversationId(initialConversationId)
+        setMobileConversationOpen(true)
+      }
       return
     }
     const storedOpen = window.sessionStorage.getItem('authorsinfo:floating-chat:open')
@@ -370,6 +375,15 @@ export function FloatingChat({
     participant: friendById.get(conversation.participant_id) ?? null,
     unreadCount: unreadConversations.find((item) => item.id === conversation.id)?.unread_count,
   }))
+  const normalizedSearch = conversationSearch.trim().toLowerCase()
+  const filteredRailItems = normalizedSearch
+    ? railItems.filter((item) => item.participant?.name?.toLowerCase().includes(normalizedSearch))
+    : railItems
+  const filteredFriends = normalizedSearch
+    ? friends.filter((friend) =>
+        `${friend.name ?? ''} ${friend.email ?? ''}`.toLowerCase().includes(normalizedSearch)
+      )
+    : friends
 
   return (
     <div
@@ -392,6 +406,8 @@ export function FloatingChat({
             presenceLabel={open && activeConversationId ? 'Active conversation' : undefined}
             showMinimize={!fullPage}
             showClose={!fullPage}
+            showBack={fullPage}
+            onBack={() => setMobileConversationOpen(false)}
             onMinimize={() => setOpen(false)}
             onClose={() => {
               setOpen(false)
@@ -401,12 +417,19 @@ export function FloatingChat({
           <div className={fullPage ? 'flex min-h-0 min-w-0 flex-1' : 'contents'}>
             {fullPage ? (
               <ConversationRail
-                items={railItems}
+                items={filteredRailItems}
                 activeConversationId={activeConversationId}
-                onSelect={setActiveConversationId}
+                onSelect={(conversationId) => {
+                  setActiveConversationId(conversationId)
+                  setMobileConversationOpen(true)
+                }}
+                contacts={filteredFriends}
+                onSelectContact={(friendId) => void openConversation(friendId)}
+                searchValue={conversationSearch}
+                onSearchChange={setConversationSearch}
               />
             ) : null}
-          <div className={fullPage ? 'flex min-w-0 flex-1 flex-col' : 'contents'}>
+          <div className={`${fullPage ? 'flex min-w-0 flex-1 flex-col' : 'contents'} ${fullPage && !mobileConversationOpen ? 'hidden md:flex' : ''}`}>
           {activeConversationId ? (
             <>
               <DirectMessageList

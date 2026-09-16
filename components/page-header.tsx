@@ -40,7 +40,6 @@ import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 import { useChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { IconButton } from '@/components/ui/icon-button'
 import { usePathname } from 'next/navigation'
-import { NotificationControl } from '@/components/notifications/notification-control'
 
 interface PageHeaderProps {
   title?: string
@@ -109,8 +108,6 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
           </Button>
 
           <FriendRequestNotification />
-
-          <NotificationControl />
 
           <IconButton
             icon={MessageSquare}

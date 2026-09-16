@@ -58,6 +58,7 @@ export default function DirectMessagePage({ params }: Props) {
   const [callMessage, setCallMessage] = useState<string | null>(null)
   const realtimeChannel = useRef<RealtimeChannel | null>(null)
   const messageEndRef = useRef<HTMLDivElement>(null)
+  const messageListRef = useRef<HTMLDivElement>(null)
   // Kept in a ref so the realtime subscription effect never has to re-run
   // (and tear down the websocket) when the current user resolves.
   const currentUserIdRef = useRef<string | null>(null)
@@ -70,7 +71,13 @@ export default function DirectMessagePage({ params }: Props) {
 
   useEffect(() => {
     if (!loading && messages.length > 0) {
-      messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      const messageList = messageListRef.current
+      if (!messageList) return
+      const distanceFromBottom =
+        messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight
+      if (distanceFromBottom < 160) {
+        messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      }
     }
   }, [loading, messages.length])
 
@@ -340,8 +347,11 @@ export default function DirectMessagePage({ params }: Props) {
         </div>
       </header>
 
-      <section className="direct-message-page__thread flex flex-1 flex-col rounded-lg border">
-        <div className="direct-message-page__message-list flex-1 space-y-3 overflow-y-auto p-4">
+      <section className="direct-message-page__thread relative flex h-[calc(100vh-10rem)] max-h-[calc(100vh-10rem)] min-h-0 flex-1 flex-col rounded-lg border">
+        <div
+          ref={messageListRef}
+          className="direct-message-page__message-list min-h-0 flex-1 space-y-3 overflow-y-auto p-4 pb-5"
+        >
           {nextCursor ? (
             <Button
               type="button"
@@ -354,10 +364,6 @@ export default function DirectMessagePage({ params }: Props) {
               {loadingOlder ? 'Loading...' : 'Load older messages'}
             </Button>
           ) : null}
-          <TypingIndicator
-            typingUserNames={typingUserNames}
-            className="direct-message-page__typing"
-          />
           {loading ? (
             <p className="direct-message-page__loading text-sm text-muted-foreground">
               Loading messages...
@@ -489,6 +495,12 @@ export default function DirectMessagePage({ params }: Props) {
             ref={messageEndRef}
             className="direct-message-page__message-end"
             aria-hidden="true"
+          />
+        </div>
+        <div className="direct-message-page__typing-overlay pointer-events-none absolute bottom-[5.5rem] left-4 right-4 z-10">
+          <TypingIndicator
+            typingUserNames={typingUserNames}
+            className="direct-message-page__typing rounded-md bg-background/95 px-2 py-1 shadow-sm"
           />
         </div>
         {error ? (

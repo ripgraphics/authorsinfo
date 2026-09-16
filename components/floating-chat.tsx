@@ -373,7 +373,7 @@ export function FloatingChat({
   return (
     <div className="floating-chat fixed bottom-5 right-5 z-50 flex items-end gap-3">
       {open ? (
-        <section className="floating-chat__panel flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
+        <section className="floating-chat__panel relative flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
           <header className="floating-chat__header flex items-center gap-3 border-b bg-primary px-4 py-3 text-primary-foreground">
             {activeFriend ? (
               <EntityHoverCard
@@ -497,14 +497,16 @@ export function FloatingChat({
                 {!loadingMessages && messages.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No messages yet.</p>
                 ) : null}
-                <TypingIndicator
-                  typingUserNames={typingUserNames}
-                  className="floating-chat__typing"
-                />
                 <div
                   ref={messageEndRef}
                   className="floating-chat__message-end"
                   aria-hidden="true"
+                />
+              </div>
+              <div className="floating-chat__typing-overlay pointer-events-none absolute bottom-16 left-3 right-3 z-10">
+                <TypingIndicator
+                  typingUserNames={typingUserNames}
+                  className="floating-chat__typing rounded-md bg-background/95 px-2 py-1 shadow-sm"
                 />
               </div>
               <ChatComposer

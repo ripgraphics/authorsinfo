@@ -257,6 +257,7 @@ export function FriendRequestNotification() {
           tone="muted"
           badge={pendingCount > 0 ? (pendingCount > 9 ? '9+' : pendingCount) : null}
           className="friend-request-notification__trigger"
+          onClick={() => setIsOpen(true)}
         />
       </DropdownMenuTrigger>
 

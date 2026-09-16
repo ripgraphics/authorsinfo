@@ -28,6 +28,10 @@ interface ReadStateClient {
   from(
     table: 'direct_conversations' | 'direct_conversation_read_state' | 'direct_conversation_messages'
   ): ReadStateQuery
+  rpc(name: 'mark_direct_messages_read', args: Record<string, string>): Promise<{
+    data: unknown
+    error: unknown
+  }>
 }
 
 function getClient(context: AuthenticatedRoute): ReadStateClient {
@@ -81,29 +85,14 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
     }
     const denied = await authorize(authentication.context, id)
     if (denied) return denied
-    const cursorMessageId = input.data.last_read_message_id
-    if (cursorMessageId) {
-      const { data: cursorMessage, error: cursorError } = await getClient(authentication.context)
-        .from('direct_conversation_messages')
-        .select('id, created_at')
-        .eq('id', cursorMessageId)
-        .eq('conversation_id', id)
-        .maybeSingle()
-      if (cursorError) throw cursorError
-      const cursor = cursorMessage as { created_at?: string } | null
-      if (!cursor?.created_at) {
-        return NextResponse.json({ error: 'Read message not found' }, { status: 400 })
-      }
-
-      const { error: messageReadError } = await getClient(authentication.context)
-        .from('direct_conversation_messages')
-        .update({
-          read_at: new Date().toISOString(),
-          read_by: authentication.context.user.id,
-        })
-        .eq('conversation_id', id)
-        .lte('created_at', cursor.created_at)
-        .neq('sender_id', authentication.context.user.id)
+    if (input.data.last_read_message_id) {
+      const { error: messageReadError } = await getClient(authentication.context).rpc(
+        'mark_direct_messages_read',
+        {
+          target_conversation_id: id,
+          target_message_id: input.data.last_read_message_id,
+        }
+      )
       if (messageReadError) throw messageReadError
     }
     const { data, error } = await getClient(authentication.context)

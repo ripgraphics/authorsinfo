@@ -9,12 +9,17 @@ interface AvatarProps {
   src?: string
   alt?: string
   name?: string
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'receipt' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   linkToProfile?: boolean
   className?: string
 }
 
 const sizeMap = {
+  receipt: {
+    container: 'w-3.5 h-3.5',
+    icon: 'h-2 w-2',
+    img: 14,
+  },
   xs: {
     container: 'w-8 h-8',
     icon: 'h-4 w-4',

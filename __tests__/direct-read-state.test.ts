@@ -15,6 +15,7 @@ const userId = '11111111-1111-4111-8111-111111111111'
 const conversationId = '22222222-2222-4222-8222-222222222222'
 const messageId = '33333333-3333-4333-8333-333333333333'
 const mockFrom = jest.fn()
+  const mockRpc = jest.fn()
 const mockRequireUser = jest.mocked(requireUser)
 
 function query(result: { data: unknown; error: unknown }) {
@@ -37,6 +38,7 @@ let messages: ReturnType<typeof query>
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockRpc.mockResolvedValue({ data: null, error: null })
   conversations = query({ data: { id: conversationId }, error: null })
   readStates = query({
     data: { conversation_id: conversationId, user_id: userId, last_read_message_id: messageId },
@@ -51,7 +53,7 @@ beforeEach(() => {
   })
   mockRequireUser.mockResolvedValue({
     ok: true,
-    context: { user: { id: userId }, supabase: { from: mockFrom } },
+    context: { user: { id: userId }, supabase: { from: mockFrom, rpc: mockRpc } },
   } as unknown as Awaited<ReturnType<typeof requireUser>>)
 })
 
@@ -73,9 +75,9 @@ test('loads read state only for an authorized participant', async () => {
 
 test('upserts read state using the authenticated owner', async () => {
   expect((await POST(request({ last_read_message_id: messageId }), context)).status).toBe(200)
-  expect(messages.update).toHaveBeenCalledWith({
-    read_at: expect.any(String),
-    read_by: userId,
+  expect(mockRpc).toHaveBeenCalledWith('mark_direct_messages_read', {
+    target_conversation_id: conversationId,
+    target_message_id: messageId,
   })
   expect(readStates.upsert).toHaveBeenCalledWith({
     conversation_id: conversationId,

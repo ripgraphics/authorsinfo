@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircle, Minus, Phone, Video, X } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
@@ -10,12 +10,10 @@ import { broadcastChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { useTypingIndicator } from '@/hooks/use-typing-indicator'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { IconButton } from '@/components/ui/icon-button'
 import { ChatComposer } from '@/components/chat-composer'
-import { TypingIndicator } from '@/components/typing-indicator'
-import { EntityHoverCard } from '@/components/entity-hover-cards'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { formatChatTimestamp } from '@/lib/utils/dateUtils'
+import { ConversationRail } from '@/components/conversation-rail'
+import { DirectMessageList } from '@/components/direct-message-list'
+import { ConversationHeader } from '@/components/conversation-header'
 
 interface Conversation {
   id: string
@@ -45,26 +43,29 @@ interface Message {
 
 export interface FloatingChatProps {
   openEventName?: string
+  fullPage?: boolean
+  initialConversationId?: string | null
 }
 
 export function FloatingChat({
   openEventName = 'authorsinfo:open-floating-chat',
+  fullPage = false,
+  initialConversationId = null,
 }: FloatingChatProps) {
-  const formatMessageDate = (value: string) =>
-    new Date(value).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
   const { user, loading: authLoading } = useAuth()
   const userId = user?.id ?? null
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(fullPage)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [friends, setFriends] = useState<Friend[]>([])
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(
+    initialConversationId
+  )
   const [messages, setMessages] = useState<Message[]>([])
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [unreadConversations, setUnreadConversations] = useState<UnreadConversation[]>([])
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
-  const messageEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   // Tracks the message count seen on the previous render for this
   // conversation. On initial load (or conversation switch) the list jumps
@@ -95,8 +96,6 @@ export function FloatingChat({
         // Scroll the container itself — robust against late-loading
         // avatars/images shifting content after scrollIntoView runs.
         container.scrollTo({ top: container.scrollHeight, behavior })
-      } else {
-        messageEndRef.current?.scrollIntoView({ behavior, block: 'end' })
       }
     }
 
@@ -112,13 +111,18 @@ export function FloatingChat({
   }, [open, activeConversationId, messages.length])
 
   useEffect(() => {
+    if (fullPage) {
+      setOpen(true)
+      if (initialConversationId) setActiveConversationId(initialConversationId)
+      return
+    }
     const storedOpen = window.sessionStorage.getItem('authorsinfo:floating-chat:open')
     const storedConversation = window.sessionStorage.getItem(
       'authorsinfo:floating-chat:conversation'
     )
     if (storedOpen === 'true') setOpen(true)
     if (storedConversation) setActiveConversationId(storedConversation)
-  }, [])
+  }, [fullPage, initialConversationId])
 
   useEffect(() => {
     window.sessionStorage.setItem('authorsinfo:floating-chat:open', String(open))
@@ -361,156 +365,59 @@ export function FloatingChat({
           ?.participant_id ?? ''
       )
     : null
+  const railItems = conversations.map((conversation) => ({
+    id: conversation.id,
+    participant: friendById.get(conversation.participant_id) ?? null,
+    unreadCount: unreadConversations.find((item) => item.id === conversation.id)?.unread_count,
+  }))
 
   return (
-    <div className="floating-chat fixed bottom-5 right-5 z-50 flex items-end gap-3">
+    <div
+      className={
+        fullPage
+          ? 'floating-chat floating-chat--full-page mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-7xl p-4 md:p-6'
+          : 'floating-chat fixed bottom-5 right-5 z-50 flex items-end gap-3'
+      }
+    >
       {open ? (
-        <section className="floating-chat__panel relative flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
-          <header className="floating-chat__header flex items-center gap-3 border-b bg-primary px-4 py-3 text-primary-foreground">
-            {activeFriend ? (
-              <EntityHoverCard
-                type="user"
-                entity={{
-                  id: activeFriend.id,
-                  name: activeFriend.name || activeFriend.email || 'Friend',
-                  avatar_url: activeFriend.avatar_url || undefined,
-                }}
-                showActions={false}
-              >
-                <Avatar
-                  src={activeFriend.avatar_url ?? undefined}
-                  name={activeFriend.name ?? ''}
-                  alt={activeFriend.name ?? 'Friend'}
-                  size="xs"
-                  className="floating-chat__participant-avatar cursor-pointer ring-2 ring-primary-foreground/40"
-                />
-              </EntityHoverCard>
-            ) : (
-              <MessageCircle className="floating-chat__header-icon h-5 w-5" />
-            )}
-            <span className="floating-chat__title min-w-0 flex-1 truncate font-semibold">
-              {activeFriend?.name || 'Chat'}
-            </span>
-            <div className="floating-chat__chat-icons flex shrink-0 items-center gap-0.5">
-              <IconButton
-                icon={Phone}
-                label="Audio call"
-                tone="theme"
-                className="floating-chat__call [&_svg]:size-5"
+        <section
+          className={
+            fullPage
+              ? 'floating-chat__panel floating-chat__panel--full-page relative flex min-h-[calc(100vh-8rem)] w-full flex-col overflow-hidden rounded-xl border bg-background shadow-2xl'
+              : 'floating-chat__panel relative flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl'
+          }
+        >
+          <ConversationHeader
+            participant={activeFriend ?? null}
+            presenceLabel={open && activeConversationId ? 'Active conversation' : undefined}
+            showMinimize={!fullPage}
+            showClose={!fullPage}
+            onMinimize={() => setOpen(false)}
+            onClose={() => {
+              setOpen(false)
+              setActiveConversationId(null)
+            }}
+          />
+          <div className={fullPage ? 'flex min-h-0 min-w-0 flex-1' : 'contents'}>
+            {fullPage ? (
+              <ConversationRail
+                items={railItems}
+                activeConversationId={activeConversationId}
+                onSelect={setActiveConversationId}
               />
-              <IconButton
-                icon={Video}
-                label="Video call"
-                tone="theme"
-                className="floating-chat__video [&_svg]:size-5"
-              />
-              <IconButton
-                icon={Minus}
-                label="Minimize chat"
-                tone="theme"
-                onClick={() => setOpen(false)}
-                className="floating-chat__minimize [&_svg]:size-5"
-              />
-              <IconButton
-                icon={X}
-                label="Close"
-                tone="theme"
-                onClick={() => {
-                  setOpen(false)
-                  setActiveConversationId(null)
-                }}
-                className="floating-chat__dismiss [&_svg]:size-5"
-              />
-            </div>
-          </header>
+            ) : null}
+          <div className={fullPage ? 'flex min-w-0 flex-1 flex-col' : 'contents'}>
           {activeConversationId ? (
             <>
-              <div
+              <DirectMessageList
                 ref={messagesContainerRef}
-                className="floating-chat__messages flex-1 space-y-2 overflow-y-auto p-3"
-              >
-                {loadingMessages ? (
-                  <p className="text-sm text-muted-foreground">Loading...</p>
-                ) : null}
-                {messages.map((message, index) => {
-                  const previousMessage = messages[index - 1]
-                  const showDate =
-                    !previousMessage ||
-                    new Date(previousMessage.created_at).toDateString() !==
-                      new Date(message.created_at).toDateString()
-                  return (
-                    <div key={message.id} className="floating-chat__message-group">
-                      {showDate ? (
-                        <div className="floating-chat__date-separator my-3 text-center text-[11px] text-muted-foreground">
-                          {formatMessageDate(message.created_at)}
-                        </div>
-                      ) : null}
-                      <div
-                        className={`floating-chat__message-row flex items-end gap-2 ${message.sender_id === userId ? 'justify-end' : 'justify-start'}`}
-                      >
-                        {message.sender_id !== userId ? (
-                          <Avatar
-                            src={activeFriend?.avatar_url ?? undefined}
-                            name={activeFriend?.name ?? ''}
-                            alt={activeFriend?.name ?? 'Friend'}
-                            size="xs"
-                            className="floating-chat__message-avatar"
-                          />
-                        ) : null}
-                        <div
-                          className={`floating-chat__message max-w-[82%] rounded-xl px-3 py-2 text-sm shadow-sm ${
-                            message.sender_id === userId
-                              ? 'floating-chat__message--sent ml-auto bg-app-theme-blue text-primary-foreground rounded-br-lg rounded-tl-lg rounded-tr-md'
-                              : 'floating-chat__message--received mr-auto bg-muted text-foreground rounded-bl-lg rounded-br-md rounded-tl-md rounded-tr-lg'
-                          }`}
-                        >
-                          {message.deleted_at ? <em>Message deleted</em> : message.body}
-                        </div>
-                      </div>
-                      <div
-                        className={`floating-chat__message-time mt-1 text-[10px] text-muted-foreground ${message.sender_id === userId ? 'text-right' : 'text-left'}`}
-                      >
-                        {formatChatTimestamp(message.created_at)}
-                      </div>
-                        {message.sender_id === userId && message.read_at && message.read_by ? (
-                        <div className="floating-chat__seen-receipt mt-0.5 flex justify-end">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-flex h-3.5 w-3.5 cursor-help">
-                                <Avatar
-                                  src={activeFriend?.avatar_url ?? undefined}
-                                  name={activeFriend?.name ?? ''}
-                                  alt="Seen by recipient"
-                                  size="receipt"
-                                  className="floating-chat__seen-avatar border shadow-none"
-                                />
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Seen by {activeFriend?.name || 'recipient'} at{' '}
-                              {formatChatTimestamp(message.read_at)}
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      ) : null}
-                    </div>
-                  )
-                })}
-                {!loadingMessages && messages.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No messages yet.</p>
-                ) : null}
-                <div
-                  ref={messageEndRef}
-                  className="floating-chat__message-end"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="floating-chat__typing-overlay pointer-events-none absolute bottom-16 left-3 right-3 z-10">
-                <TypingIndicator
-                  typingUserNames={typingUserNames}
-                  className="floating-chat__typing rounded-md bg-background/95 px-2 py-1 shadow-sm"
-                />
-              </div>
+                messages={messages}
+                currentUserId={userId}
+                participant={activeFriend ?? null}
+                typingUserNames={typingUserNames}
+                loading={loadingMessages}
+                className="floating-chat__messages"
+              />
               <ChatComposer
                 conversationId={activeConversationId}
                 onSend={(body) => send(body)}
@@ -568,6 +475,8 @@ export function FloatingChat({
               ))}
             </div>
           )}
+          </div>
+          </div>
         </section>
       ) : null}
       <div className="floating-chat__launcher-stack relative">

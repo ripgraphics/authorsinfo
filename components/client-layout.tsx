@@ -8,6 +8,7 @@ import { FloatingChat } from '@/components/floating-chat'
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAdminRoute = pathname?.startsWith('/admin')
+  const isDirectMessageRoute = pathname?.startsWith('/messages/direct/')
 
   if (isAdminRoute) {
     return <>{children}</>
@@ -17,7 +18,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     <>
       <PageHeader />
       <PageContainer>{children}</PageContainer>
-      <FloatingChat />
+      {isDirectMessageRoute ? null : <FloatingChat />}
     </>
   )
 }

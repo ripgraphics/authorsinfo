@@ -1,19 +1,19 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/types/database'
-import { useDebounce } from '@/hooks/use-debounce'
+import type { RealtimeChannel } from '@supabase/supabase-js'
+import { supabaseClient } from '@/lib/supabase/client'
 
 /**
  * Hook for managing typing indicator state in real-time chat.
  *
  * Features:
- * - Broadcasts typing events when the user types (debounced to avoid spam)
+ * - Broadcasts typing events while the user types (throttled to avoid spam)
  * - Listens for typing events from other users
+ * - Resolves user IDs to display names (falls back to "Someone")
  * - Automatically clears typing status after a timeout (default: 3 seconds)
  * - Filters out the current user's own typing events
- * - Works with any Supabase Realtime channel
+ * - Uses the shared singleton Supabase browser client (no websocket churn)
  *
  * Usage:
  * ```tsx
@@ -25,7 +25,7 @@ import { useDebounce } from '@/hooks/use-debounce'
  */
 
 const TYPING_TIMEOUT_MS = 3000
-const TYPING_DEBOUNCE_MS = 300
+const TYPING_THROTTLE_MS = 300
 
 export interface UseTypingIndicatorOptions {
   /** The conversation ID to broadcast/listen on. */
@@ -37,7 +37,7 @@ export interface UseTypingIndicatorOptions {
 }
 
 export interface UseTypingIndicatorResult {
-  /** Names (IDs) of users currently typing (excluding the current user). */
+  /** Display names of users currently typing (excluding the current user). */
   typingUserNames: string[]
   /** Call this when the user types to broadcast a typing event. */
   broadcastTyping: () => void
@@ -49,20 +49,11 @@ export function useTypingIndicator({
   timeoutMs = TYPING_TIMEOUT_MS,
 }: UseTypingIndicatorOptions): UseTypingIndicatorResult {
   const [typingUsers, setTypingUsers] = useState<string[]>([])
-  const channelRef = useRef<ReturnType<
-    ReturnType<typeof createBrowserClient<Database>>['channel']
-  > | null>(null)
+  const [displayNames, setDisplayNames] = useState<Record<string, string>>({})
+  const channelRef = useRef<RealtimeChannel | null>(null)
   const timeoutRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
-
-  // Create the Supabase client once
-  const clientRef = useRef<ReturnType<typeof createBrowserClient<Database>> | null>(null)
-  if (!clientRef.current) {
-    clientRef.current = createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-  }
-  const client = clientRef.current
+  // IDs we've already attempted to resolve, so we don't refetch on every event.
+  const resolvedIdsRef = useRef<Set<string>>(new Set())
 
   // Subscribe to typing events for the conversation
   useEffect(() => {
@@ -71,7 +62,7 @@ export function useTypingIndicator({
     // Copy timeout refs to a local variable for cleanup
     const currentTimeouts = timeoutRefs.current
 
-    const channel = client
+    const channel = supabaseClient
       .channel(`typing-${conversationId}`)
       .on('broadcast', { event: 'typing' }, ({ payload }) => {
         const userId = payload?.user_id as string | undefined
@@ -100,27 +91,86 @@ export function useTypingIndicator({
 
     return () => {
       channelRef.current = null
-      void client.removeChannel(channel)
+      void supabaseClient.removeChannel(channel)
       // Clear all pending timeouts
       currentTimeouts.forEach((timeout) => clearTimeout(timeout))
       currentTimeouts.clear()
     }
-  }, [conversationId, currentUserId, client, timeoutMs])
+  }, [conversationId, currentUserId, timeoutMs])
 
-  // Broadcast typing event (debounced to avoid spam)
-  const rawBroadcastTyping = useCallback(() => {
+  // Resolve any unknown typing user IDs to display names.
+  useEffect(() => {
+    const unknownIds = typingUsers.filter((id) => !resolvedIdsRef.current.has(id))
+    if (unknownIds.length === 0) return
+
+    unknownIds.forEach((id) => resolvedIdsRef.current.add(id))
+
+    let active = true
+    void supabaseClient
+      .from('users')
+      .select('id, name')
+      .in('id', unknownIds)
+      .then(({ data }) => {
+        if (!active || !data) return
+        setDisplayNames((current) => {
+          const next = { ...current }
+          for (const row of data as Array<{ id: string; name: string | null }>) {
+            if (row.name) next[row.id] = row.name
+          }
+          return next
+        })
+      })
+
+    return () => {
+      active = false
+    }
+  }, [typingUsers])
+
+  // Broadcast typing event, throttled so a typing burst sends at most one
+  // event per TYPING_THROTTLE_MS instead of one per keystroke.
+  const lastSentRef = useRef(0)
+  const trailingRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const broadcastTyping = useCallback(() => {
     if (!conversationId || !currentUserId) return
-    void channelRef.current?.send({
-      type: 'broadcast',
-      event: 'typing',
-      payload: { user_id: currentUserId },
-    })
+
+    const send = () => {
+      lastSentRef.current = Date.now()
+      void channelRef.current?.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { user_id: currentUserId },
+      })
+    }
+
+    const elapsed = Date.now() - lastSentRef.current
+    if (elapsed >= TYPING_THROTTLE_MS) {
+      send()
+      return
+    }
+
+    if (!trailingRef.current) {
+      trailingRef.current = setTimeout(
+        () => {
+          trailingRef.current = null
+          send()
+        },
+        TYPING_THROTTLE_MS - elapsed
+      )
+    }
   }, [conversationId, currentUserId])
 
-  const broadcastTyping = useDebounce(rawBroadcastTyping, TYPING_DEBOUNCE_MS)
+  useEffect(
+    () => () => {
+      if (trailingRef.current) clearTimeout(trailingRef.current)
+    },
+    []
+  )
+
+  const typingUserNames = typingUsers.map((id) => displayNames[id] ?? 'Someone')
 
   return {
-    typingUserNames: typingUsers,
+    typingUserNames,
     broadcastTyping,
   }
 }

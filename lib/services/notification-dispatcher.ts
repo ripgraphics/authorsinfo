@@ -23,7 +23,14 @@ export class NotificationDispatcher {
    */
   static async dispatch(payload: CreateNotificationPayload): Promise<Notification | null> {
     try {
-      // Create the notification
+      // Only columns that actually exist on public.notifications are written.
+      // Source metadata is folded into the `data` jsonb payload so we never
+      // reference columns the schema does not have.
+      const data: Record<string, unknown> = { ...(payload.data ?? {}) }
+      if (payload.source_user_id) data.source_user_id = payload.source_user_id
+      if (payload.source_type) data.source_type = payload.source_type
+      if (payload.source_id) data.source_id = payload.source_id
+
       const { data: notification, error: createError } = await supabase
         .from('notifications')
         .insert([
@@ -32,11 +39,7 @@ export class NotificationDispatcher {
             type: payload.type,
             title: payload.title,
             message: payload.message,
-            data: payload.data || null,
-            source_user_id: payload.source_user_id || null,
-            source_type: payload.source_type || null,
-            source_id: payload.source_id || null,
-            sent_in_app: true,
+            data: Object.keys(data).length > 0 ? data : null,
           },
         ])
         .select()
@@ -47,12 +50,12 @@ export class NotificationDispatcher {
         return null;
       }
 
-      // Get user preferences
+      // Get user preferences (optional; missing prefs fall back to defaults)
       const { data: preferences } = await supabase
         .from('notification_preferences')
         .select('*')
         .eq('user_id', payload.recipient_id)
-        .single();
+        .maybeSingle();
 
       // Determine which channels to use
       const shouldSendEmail = await this.shouldSendNotification(

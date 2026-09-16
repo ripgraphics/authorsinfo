@@ -5,7 +5,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Trash2, Check, Archive } from 'lucide-react';
+import { Trash2, Check } from 'lucide-react';
 import { ReusableModal } from '@/components/ui/reusable-modal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +32,6 @@ export function NotificationCenter({
     fetchNotifications,
     markAsRead,
     markAllAsRead,
-    archiveNotification,
     deleteNotification,
   } = useNotificationStore();
 
@@ -89,10 +88,6 @@ export function NotificationCenter({
     await markAsRead(id);
   };
 
-  const handleArchive = async (id: string) => {
-    await archiveNotification(id);
-  };
-
   const handleDelete = async (id: string) => {
     await deleteNotification(id);
   };
@@ -140,15 +135,6 @@ export function NotificationCenter({
             Mark Read
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleArchive(notification.id)}
-          className="text-xs"
-        >
-          <Archive className="h-3 w-3 mr-1" />
-          Archive
-        </Button>
         <Button
           variant="ghost"
           size="sm"

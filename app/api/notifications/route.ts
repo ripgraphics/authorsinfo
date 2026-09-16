@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
     // Parse query parameters
     const typeFilter = searchParams.get('type');
     const readFilter = searchParams.get('read');
-    const archiveFilter = searchParams.get('archived') === 'true';
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
     const offset = parseInt(searchParams.get('offset') || '0');
     const sortField = (searchParams.get('sort') || 'created_at') as 'created_at' | 'updated_at';
@@ -87,9 +86,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (!archiveFilter) {
-      query = query.is('archived_at', null).is('dismissed_at', null);
-    }
+    // Note: the live `notifications` table has no archived_at/dismissed_at
+    // columns, so the archived filter is a no-op here.
 
     // Apply sorting and pagination
     query = query

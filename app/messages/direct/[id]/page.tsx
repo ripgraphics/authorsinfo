@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input'
 import { ChatComposer } from '@/components/chat-composer'
 import { TypingIndicator } from '@/components/typing-indicator'
 import { useTypingIndicator } from '@/hooks/use-typing-indicator'
-import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/types/database'
+import { supabaseClient } from '@/lib/supabase/client'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface DirectMessage {
   id: string
@@ -56,10 +56,11 @@ export default function DirectMessagePage({ params }: Props) {
   const [reactions, setReactions] = useState<Record<string, DirectReaction[]>>({})
   const [callCapability, setCallCapability] = useState<CallCapability | null>(null)
   const [callMessage, setCallMessage] = useState<string | null>(null)
-  const realtimeChannel = useRef<ReturnType<
-    ReturnType<typeof createBrowserClient<Database>>['channel']
-  > | null>(null)
+  const realtimeChannel = useRef<RealtimeChannel | null>(null)
   const messageEndRef = useRef<HTMLDivElement>(null)
+  // Kept in a ref so the realtime subscription effect never has to re-run
+  // (and tear down the websocket) when the current user resolves.
+  const currentUserIdRef = useRef<string | null>(null)
 
   // Typing indicator hook
   const { typingUserNames, broadcastTyping: broadcastTypingEvent } = useTypingIndicator({
@@ -74,11 +75,10 @@ export default function DirectMessagePage({ params }: Props) {
   }, [loading, messages.length])
 
   useEffect(() => {
-    const client = createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    void client.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null))
+    void supabaseClient.auth.getUser().then(({ data }) => {
+      currentUserIdRef.current = data.user?.id ?? null
+      setCurrentUserId(data.user?.id ?? null)
+    })
   }, [])
 
   useEffect(() => {
@@ -126,10 +126,7 @@ export default function DirectMessagePage({ params }: Props) {
 
   useEffect(() => {
     if (!conversationId) return
-    const client = createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const client = supabaseClient
     const channel = client
       .channel(`direct-conversation-${conversationId}`)
       .on(
@@ -152,8 +149,9 @@ export default function DirectMessagePage({ params }: Props) {
         setOnlineUsers(Object.keys(state).length)
       })
       .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED' && currentUserId) {
-          await channel.track({ user_id: currentUserId })
+        const userId = currentUserIdRef.current
+        if (status === 'SUBSCRIBED' && userId) {
+          await channel.track({ user_id: userId })
         }
       })
     realtimeChannel.current = channel
@@ -161,11 +159,15 @@ export default function DirectMessagePage({ params }: Props) {
       realtimeChannel.current = null
       void client.removeChannel(channel)
     }
-  }, [conversationId, currentUserId])
+  }, [conversationId])
 
   useEffect(() => {
     const newestMessage = messages.at(-1)
     if (!conversationId || !newestMessage) return
+    // Skip optimistic rows: their IDs are not UUIDs, so the read-state API
+    // (which validates a UUID) rejects them with a 400. The effect re-runs
+    // once the server row replaces the optimistic entry.
+    if (newestMessage.id.startsWith('optimistic-')) return
     void fetch(`/api/messages/direct/${conversationId}/read-state`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

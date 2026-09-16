@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabaseClient } from '@/lib/supabase/client';
 import type {
   Notification,
   NotificationPreferences,
@@ -12,6 +13,12 @@ import type {
   UpdatePreferencePayload,
   CreatePushSubscriptionPayload,
 } from '@/types/notifications';
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabaseClient.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 interface NotificationStoreState {
   // Notifications
@@ -39,7 +46,6 @@ interface NotificationStoreState {
   fetchNotifications: (options?: NotificationFilterOptions) => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  archiveNotification: (id: string) => Promise<void>;
   dismissNotification: (id: string) => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
 
@@ -111,9 +117,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
           }
 
           const response = await fetch(`/api/notifications?${queryParams.toString()}`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
-            },
+            headers: await getAuthHeaders(),
           });
 
           if (!response.ok) {
@@ -143,7 +147,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+              ...(await getAuthHeaders()),
             },
             body: JSON.stringify({ read_at: new Date().toISOString() }),
           });
@@ -170,14 +174,14 @@ export const useNotificationStore = create<NotificationStoreState>()(
         try {
           const state = get();
           const updates = state.notifications.map((n) =>
-            fetch(`/api/notifications/${n.id}`, {
+            getAuthHeaders().then((authHeaders) => fetch(`/api/notifications/${n.id}`, {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+                ...authHeaders,
               },
               body: JSON.stringify({ read_at: new Date().toISOString() }),
-            })
+            }))
           );
 
           await Promise.all(updates);
@@ -193,31 +197,6 @@ export const useNotificationStore = create<NotificationStoreState>()(
         }
       },
 
-      // Archive notification
-      archiveNotification: async (id: string) => {
-        try {
-          const response = await fetch(`/api/notifications/${id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
-            },
-            body: JSON.stringify({ archived_at: new Date().toISOString() }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to archive notification');
-          }
-
-          const state = get();
-          set({
-            notifications: state.notifications.filter((n) => n.id !== id),
-          });
-        } catch (error) {
-          console.error('Error archiving notification:', error);
-        }
-      },
-
       // Dismiss notification
       dismissNotification: async (id: string) => {
         try {
@@ -225,7 +204,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+              ...(await getAuthHeaders()),
             },
             body: JSON.stringify({ dismissed_at: new Date().toISOString() }),
           });
@@ -249,7 +228,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
           const response = await fetch(`/api/notifications/${id}`, {
             method: 'DELETE',
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+              ...(await getAuthHeaders()),
             },
           });
 
@@ -273,7 +252,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
         try {
           const response = await fetch('/api/notifications/preferences', {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+              ...(await getAuthHeaders()),
             },
           });
 
@@ -304,7 +283,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+              ...(await getAuthHeaders()),
             },
             body: JSON.stringify(updates),
           });
@@ -339,7 +318,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
 
           const response = await fetch(`/api/notifications/push?${params.toString()}`, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+              ...(await getAuthHeaders()),
             },
           });
 
@@ -370,7 +349,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+              ...(await getAuthHeaders()),
             },
             body: JSON.stringify(payload),
           });
@@ -412,7 +391,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
             {
               method: 'DELETE',
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+                ...(await getAuthHeaders()),
               },
             }
           );
@@ -440,7 +419,7 @@ export const useNotificationStore = create<NotificationStoreState>()(
             {
               method: 'DELETE',
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('sb-access-token')}`,
+                ...(await getAuthHeaders()),
               },
             }
           );

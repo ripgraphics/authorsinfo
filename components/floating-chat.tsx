@@ -481,8 +481,7 @@ export function FloatingChat({
                                   src={activeFriend?.avatar_url ?? undefined}
                                   name={activeFriend?.name ?? ''}
                                   alt="Seen by recipient"
-                                  className="floating-chat__seen-avatar border shadow-none"
-                                  style={{ width: 14, height: 14 }}
+                                  className="floating-chat__seen-avatar h-3.5 w-3.5 border shadow-none"
                                 />
                               </span>
                             </TooltipTrigger>

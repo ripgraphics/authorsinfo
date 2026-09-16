@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add the first production-oriented private messaging vertical slice without weakening the existing group-chat boundary.
+Evolve private messaging into a close functional clone of the Facebook Messenger web experience without weakening the existing group-chat boundary.
 
 ## Scope
 
@@ -48,4 +48,4 @@ The first implementation uses the existing Supabase route-client and error handl
 - Calls intentionally remain unavailable until an administrator configures the provider values at `/admin/call-settings` and explicitly enables calls. The backend is ready for a WebRTC signaling implementation; no media server is started by Next.js routes.
 - Added 10 focused route-contract tests; the full Jest suite passes 93 tests and the production build completes successfully.
 
-This milestone is a real private-messaging foundation with durable read state and message lifecycle controls, not Facebook parity. Attachments, typing/presence, receipts, notifications, moderation, retention, calls, E2EE, and two-account browser testing remain release gates for later phases.
+This document records the messaging foundation. The current product requirement is Facebook/Messenger parity for the core web messaging workflows. The reusable parity plan in `docs/MESSENGER_CLONE_REUSABLE_COMPONENT_PLAN.md` supersedes the earlier statement that parity was out of scope. Two-account live browser verification remains a release gate.

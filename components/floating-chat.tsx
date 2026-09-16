@@ -14,6 +14,7 @@ import { IconButton } from '@/components/ui/icon-button'
 import { ChatComposer } from '@/components/chat-composer'
 import { TypingIndicator } from '@/components/typing-indicator'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface Conversation {
   id: string
@@ -60,6 +61,7 @@ export function FloatingChat({
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [unreadConversations, setUnreadConversations] = useState<UnreadConversation[]>([])
   const [recipientReadMessageId, setRecipientReadMessageId] = useState<string | null>(null)
+  const [recipientReadAt, setRecipientReadAt] = useState<string | null>(null)
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
@@ -239,9 +241,13 @@ export function FloatingChat({
         }).then((response) => (response.ok ? response.json() : []))) as {
           user_id: string
           last_read_message_id: string | null
+          last_read_at: string | null
         }[]
         setRecipientReadMessageId(
           readStates.find((state) => state.user_id !== userId)?.last_read_message_id ?? null
+        )
+        setRecipientReadAt(
+          readStates.find((state) => state.user_id !== userId)?.last_read_at ?? null
         )
         const latestMessage = (data.messages as Message[]).at(-1)
         if (latestMessage) {
@@ -474,23 +480,40 @@ export function FloatingChat({
                         >
                           {message.deleted_at ? <em>Message deleted</em> : message.body}
                         </div>
-                        {message.sender_id === userId &&
-                        index === messages.length - 1 &&
-                        recipientReadMessageId === message.id ? (
-                          <Avatar
-                            src={activeFriend?.avatar_url ?? undefined}
-                            name={activeFriend?.name ?? ''}
-                            alt="Seen by recipient"
-                            size="xs"
-                            className="floating-chat__seen-avatar"
-                          />
-                        ) : null}
                       </div>
                       <div
                         className={`floating-chat__message-time mt-1 text-[10px] text-muted-foreground ${message.sender_id === userId ? 'text-right' : 'text-left'}`}
                       >
                         {formatMessageTime(message.created_at)}
                       </div>
+                      {message.sender_id === userId &&
+                      index === messages.length - 1 &&
+                      recipientReadMessageId === message.id &&
+                      recipientReadAt ? (
+                        <div className="floating-chat__seen-receipt mt-0.5 flex justify-end">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex h-3.5 w-3.5 cursor-help">
+                                <Avatar
+                                  src={activeFriend?.avatar_url ?? undefined}
+                                  name={activeFriend?.name ?? ''}
+                                  alt="Seen by recipient"
+                                  className="floating-chat__seen-avatar border shadow-none"
+                                  style={{ width: 14, height: 14 }}
+                                />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Seen by {activeFriend?.name || 'recipient'} at{' '}
+                              {new Date(recipientReadAt).toLocaleString([], {
+                                weekday: 'long',
+                                hour: 'numeric',
+                                minute: '2-digit',
+                              })}
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      ) : null}
                     </div>
                   )
                 })}

@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { nextErrorResponse } from '@/lib/error-handler'
+import { deliverPushJob, isPushDeliveryConfigured, type PushDeliveryJob } from '@/lib/services/push-delivery'
 
 const requestSchema = z.object({ limit: z.number().int().min(1).max(200).optional() }).strict()
 const completionSchema = z.object({
@@ -29,6 +30,9 @@ export async function POST(request: NextRequest) {
     if (!url || !serviceRoleKey) {
       return NextResponse.json({ error: 'Push worker is not configured' }, { status: 503 })
     }
+    if (!isPushDeliveryConfigured()) {
+      return NextResponse.json({ error: 'Push delivery provider is not configured' }, { status: 503 })
+    }
 
     const supabase = createClient(url, serviceRoleKey)
     const { data, error } = await supabase.rpc('claim_notification_push_jobs', {
@@ -36,7 +40,20 @@ export async function POST(request: NextRequest) {
     })
     if (error) throw error
 
-    return NextResponse.json({ jobs: data ?? [] }, {
+    const jobs = (data ?? []) as PushDeliveryJob[]
+    const results = await Promise.all(jobs.map(async (job) => {
+      const result = await deliverPushJob(job)
+      const { error: completionError } = await supabase.rpc('complete_notification_push_job', {
+        p_job_id: job.id,
+        p_succeeded: result.succeeded,
+        p_error: result.error ?? null,
+        p_retry_seconds: result.retrySeconds ?? 300,
+      })
+      if (completionError) throw completionError
+      return { id: job.id, succeeded: result.succeeded }
+    }))
+
+    return NextResponse.json({ jobs, results }, {
       headers: { 'Cache-Control': 'no-store' },
     })
   } catch (error) {

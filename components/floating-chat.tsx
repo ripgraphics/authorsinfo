@@ -108,8 +108,9 @@ export function FloatingChat({
   const manuallyUnreadConversationIdsRef = useRef(new Set<string>())
   const [conversationSearch, setConversationSearch] = useState('')
   const [conversationFilter, setConversationFilter] = useState<
-    'all' | 'unread' | 'friends' | 'archived'
+    'all' | 'unread' | 'groups' | 'communities'
   >('all')
+  const [compactOptionsOpen, setCompactOptionsOpen] = useState(false)
   const [mobileConversationOpen, setMobileConversationOpen] = useState(Boolean(initialConversationId))
   const conversationsRef = useRef<MessengerConversation[]>([])
   const channelRef = useRef<ReturnType<
@@ -1136,15 +1137,15 @@ export function FloatingChat({
         `${friend.name ?? ''} ${friend.email ?? ''}`.toLowerCase().includes(normalizedSearch)
       )
     : friends
-  const filteredByArchive = conversationFilter === 'archived'
-    ? filteredRailItems.filter((item) => archivedConversationIds.has(item.id))
-    : filteredRailItems.filter((item) => !archivedConversationIds.has(item.id))
+  const filteredByArchive = filteredRailItems.filter((item) => !archivedConversationIds.has(item.id))
   const visibleRailItems = conversationFilter === 'unread'
     ? filteredByArchive.filter((item) => Boolean(item.unreadCount))
-    : conversationFilter === 'friends'
-      ? filteredByArchive.filter((item) => Boolean(item.participant))
+    : conversationFilter === 'groups'
+      ? filteredByArchive.filter((item) => conversations.find((conversation) => conversation.id === item.id)?.kind === 'messenger_group')
+      : conversationFilter === 'communities'
+        ? []
       : filteredByArchive
-  const visibleContacts = conversationFilter === 'unread' || conversationFilter === 'archived' ? [] : filteredFriends
+  const visibleContacts = conversationFilter === 'unread' || conversationFilter === 'groups' || conversationFilter === 'communities' ? [] : filteredFriends
 
   return (
     <div
@@ -1212,7 +1213,7 @@ export function FloatingChat({
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Chats</h2>
                 <div className="flex items-center gap-1">
-                  <Button type="button" variant="ghost" size="icon" aria-label="More chat options" className="rounded-full">
+                  <Button type="button" variant="ghost" size="icon" aria-label="More chat options" className="rounded-full" onClick={() => setCompactOptionsOpen((current) => !current)}>
                     <MoreHorizontal className="h-5 w-5" />
                   </Button>
                   <Button type="button" variant="ghost" size="icon" aria-label="See all in Messenger" className="rounded-full" onClick={() => router.push('/messages')}>
@@ -1222,13 +1223,19 @@ export function FloatingChat({
                     <Pencil className="h-4 w-4" />
                   </Button>
                 </div>
+                {compactOptionsOpen ? (
+                  <div role="menu" aria-label="Messenger options" className="absolute right-3 top-12 z-10 w-48 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg">
+                    <button type="button" role="menuitem" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-accent" onClick={() => { setConversationFilter('unread'); setCompactOptionsOpen(false) }}>Show unread chats</button>
+                    <button type="button" role="menuitem" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-accent" onClick={() => { router.push('/messages'); setCompactOptionsOpen(false) }}>Open Messenger settings</button>
+                  </div>
+                ) : null}
               </div>
               <div className="relative mt-2">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input value={conversationSearch} onChange={(event) => setConversationSearch(event.target.value)} placeholder="Search Messenger" aria-label="Search Messenger" className="h-9 rounded-full bg-muted pl-9" />
               </div>
               <div className="mt-2 flex gap-1" role="tablist" aria-label="Messenger categories">
-                {(['all', 'unread', 'friends', 'archived'] as const).map((option) => (
+                {(['all', 'unread', 'groups', 'communities'] as const).map((option) => (
                   <button key={option} type="button" role="tab" aria-selected={conversationFilter === option} onClick={() => setConversationFilter(option)} className={`rounded-full px-3 py-1.5 text-xs font-medium capitalize ${conversationFilter === option ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                     {option === 'all' ? 'All' : option}
                   </button>
@@ -1365,10 +1372,27 @@ export function FloatingChat({
             </>
           ) : (
             <div className="floating-chat__conversation-list flex-1 overflow-y-auto p-3">
+              {messageRequests.some((request) => request.status === 'pending') ? (
+                <div className="mb-3 rounded-lg border bg-muted/30 p-3" aria-label="New message request">
+                  <div className="flex items-center gap-3">
+                    <Avatar name="Message request" alt="Message request" size="xs" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">New message request</p>
+                      <p className="truncate text-xs text-muted-foreground">Review your pending message request</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <Button type="button" size="sm" onClick={() => void updateMessageRequest(messageRequests.find((request) => request.status === 'pending')?.id ?? '', 'accept')}>Accept</Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => void updateMessageRequest(messageRequests.find((request) => request.status === 'pending')?.id ?? '', 'decline')}>Decline</Button>
+                  </div>
+                </div>
+              ) : null}
               <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
                 Recent chats
               </p>
-              {conversations.map((conversation) => {
+              {visibleRailItems.map((item) => {
+                const conversation = conversations.find((candidate) => candidate.id === item.id)
+                if (!conversation) return null
                 const friend = friendById.get(conversation.participantId ?? '')
                 return (
                   <button
@@ -1389,8 +1413,13 @@ export function FloatingChat({
                       alt={friend?.name ?? 'Friend'}
                       size="xs"
                     />
-                    <span className="truncate text-sm font-medium">
-                      {friend?.name || 'Private conversation'}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">{friend?.name || conversation.title || 'Private conversation'}</span>
+                      {conversation.latestMessagePreview ? <span className="block truncate text-xs text-muted-foreground">{conversation.latestMessagePreview}</span> : null}
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end gap-1">
+                      {conversation.latestMessageAt ? <span className="text-[10px] text-muted-foreground">{new Date(conversation.latestMessageAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span> : null}
+                      {item.unreadCount ? <span className="h-2 w-2 rounded-full bg-primary" aria-label={`${item.unreadCount} unread`} /> : null}
                     </span>
                   </button>
                 )
@@ -1421,6 +1450,11 @@ export function FloatingChat({
             </div>
           )}
           </div>
+          {!activeConversationId && compactInbox ? (
+            <button type="button" className="border-t bg-background px-3 py-3 text-center text-sm font-semibold text-primary hover:bg-muted" onClick={() => router.push('/messages')}>
+              See all in Messenger
+            </button>
+          ) : null}
           {fullPage ? (
             <ParticipantDetailsPanel
               participant={activeParticipant ?? null}
@@ -1476,7 +1510,7 @@ export function FloatingChat({
       {!fullPage && !compactInbox ? <div className="floating-chat__launcher-stack relative">
         <div className="floating-chat__unread-stack absolute bottom-full right-0 mb-3 flex flex-col items-end gap-2">
           {/* Minimized conversation avatar — clicking it reopens the chat */}
-          {minimizedConversationIds.map((minimizedId) => {
+          {minimizedConversationIds.filter((minimizedId) => minimizedId !== activeConversationId).map((minimizedId) => {
             const minimizedConversation = conversations.find((conversation) => conversation.id === minimizedId)
             const friend = friendById.get(minimizedConversation?.participantId ?? '')
             if (!friend) return null

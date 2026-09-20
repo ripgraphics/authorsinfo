@@ -32,8 +32,8 @@ export interface ConversationRailProps {
   onSelectContact?: (contactId: string) => void
   searchValue?: string
   onSearchChange?: (value: string) => void
-  filter?: 'all' | 'unread' | 'friends' | 'archived'
-  onFilterChange?: (filter: 'all' | 'unread' | 'friends' | 'archived') => void
+  filter?: 'all' | 'unread' | 'groups' | 'communities'
+  onFilterChange?: (filter: 'all' | 'unread' | 'groups' | 'communities') => void
   title?: string
   description?: string
   mobileVisible?: boolean
@@ -83,7 +83,7 @@ export function ConversationRail({
         ) : null}
         {onFilterChange ? (
           <div className="conversation-rail__filters mt-3 flex gap-1" role="tablist" aria-label="Chat filters">
-            {(['all', 'unread', 'friends', 'archived'] as const).map((option) => (
+            {(['all', 'unread', 'groups', 'communities'] as const).map((option) => (
               <button
                 key={option}
                 type="button"

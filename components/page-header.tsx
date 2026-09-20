@@ -40,6 +40,7 @@ import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 import { useChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { IconButton } from '@/components/ui/icon-button'
 import { usePathname } from 'next/navigation'
+import { clearAllCache } from '@/lib/request-utils'
 
 interface PageHeaderProps {
   title?: string
@@ -72,8 +73,16 @@ export function PageHeader({
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
-    await supabase.auth.signOut()
-    router.push('/login')
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.warn('Remote logout failed; continuing to login.', error)
+    } finally {
+      clearAllCache()
+      window.localStorage.clear()
+      window.sessionStorage.clear()
+      router.push('/login')
+    }
   }
 
   return (
@@ -113,9 +122,9 @@ export function PageHeader({
             <span className="sr-only">Search</span>
           </Button>
 
-          <FriendRequestNotification />
+          {!loading && user ? <FriendRequestNotification /> : null}
 
-          {showChatLauncher ? (
+          {showChatLauncher && !loading && user ? (
             <IconButton
               icon={MessageSquare}
               label={

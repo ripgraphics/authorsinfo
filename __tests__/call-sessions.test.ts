@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { POST } from '@/app/api/messages/calls/[id]/route'
+import { GET, PATCH, POST } from '@/app/api/messages/calls/[id]/route'
 import { requireUser } from '@/lib/auth/require-auth'
 
 jest.mock('@/lib/auth/require-auth', () => ({ requireUser: jest.fn() }))
@@ -86,6 +86,16 @@ function callRequest(mediaType: 'audio' | 'video' = 'audio') {
   })
 }
 
+function callSessionRequest(method: 'GET' | 'PATCH', body?: Record<string, string>) {
+  return new NextRequest(`http://localhost/api/messages/calls/${callId}`, {
+    method,
+    ...(body ? {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    } : {}),
+  })
+}
+
 test('rejects call creation when calls are disabled', async () => {
   const response = await POST(callRequest())
 
@@ -93,17 +103,23 @@ test('rejects call creation when calls are disabled', async () => {
   expect(calls.insert).not.toHaveBeenCalled()
 })
 
-test('rejects call creation when TURN is missing but enabled', async () => {
+test('allows direct call creation when TURN and external signaling are missing', async () => {
   setProviderSettings({
     calls_enabled: 'true',
     turn_url: null,
-    signaling_server_url: 'wss://signal.example.com',
+    signaling_server_url: null,
   })
 
   const response = await POST(callRequest())
 
-  expect(response.status).toBe(503)
-  expect(calls.insert).not.toHaveBeenCalled()
+  expect(response.status).toBe(201)
+  expect(calls.insert).toHaveBeenCalledWith({
+    conversation_id: conversationId,
+    initiator_id: userId,
+    recipient_id: otherUserId,
+    media_type: 'audio',
+    status: 'ringing',
+  })
 })
 
 test('creates a call when fully configured and enabled', async () => {
@@ -137,4 +153,29 @@ test('denies non-participants from starting calls', async () => {
 
   expect(response.status).toBe(403)
   expect(calls.insert).not.toHaveBeenCalled()
+})
+
+test('denies non-participants from reading a call session', async () => {
+  mockRequireUser.mockResolvedValue({
+    ok: true,
+    context: { user: { id: '99999999-9999-4999-8999-999999999999' }, supabase: { from: mockFrom } },
+  } as unknown as Awaited<ReturnType<typeof requireUser>>)
+
+  const response = await GET(callSessionRequest('GET'), { params: Promise.resolve({ id: callId }) })
+
+  expect(response.status).toBe(403)
+})
+
+test('denies non-participants from updating a call session', async () => {
+  mockRequireUser.mockResolvedValue({
+    ok: true,
+    context: { user: { id: '99999999-9999-4999-8999-999999999999' }, supabase: { from: mockFrom } },
+  } as unknown as Awaited<ReturnType<typeof requireUser>>)
+
+  const response = await PATCH(
+    callSessionRequest('PATCH', { status: 'ended' }),
+    { params: Promise.resolve({ id: callId }) }
+  )
+
+  expect(response.status).toBe(403)
 })

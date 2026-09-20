@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { MessageSquare } from 'lucide-react'
 import { ResponsiveActionButton } from '@/components/ui/responsive-action-button'
 import { useToast } from '@/hooks/use-toast'
+import { getDirectMessengerRoute } from '@/lib/messaging/routes'
 
 export interface MessageButtonProps {
   targetUserId?: string
@@ -36,10 +37,6 @@ export function MessageButton({
   const [loading, setLoading] = useState(false)
 
   const openConversation = async () => {
-    if (onClick) {
-      onClick()
-      return
-    }
     if ((!targetUserId && !targetUserPermalink) || loading) return
     setLoading(true)
     try {
@@ -60,7 +57,8 @@ export function MessageButton({
         return
       }
       onConversationCreated?.(data.id)
-      router.push(`/messages/direct/${data.id}`)
+      onClick?.()
+      router.push(getDirectMessengerRoute(data.id))
     } catch {
       toast({ title: 'Unable to open messages', description: 'Please try again.' })
     } finally {

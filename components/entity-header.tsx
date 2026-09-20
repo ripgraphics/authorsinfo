@@ -72,6 +72,7 @@ export interface EntityHeaderProps {
   onFollow?: () => void
   isFollowing?: boolean
   isMessageable?: boolean
+  messageTargetUserId?: string | null
   isEditable?: boolean
   entityId?: string
   targetType?: 'user' | 'book' | 'author' | 'publisher' | 'group'
@@ -197,6 +198,7 @@ export function EntityHeader({
   onFollow: _onFollow,
   isFollowing: _isFollowing = false,
   isMessageable = true,
+  messageTargetUserId,
   isEditable = false,
   entityId,
   targetType,
@@ -1061,9 +1063,11 @@ export function EntityHeader({
               />
             )}
             {/* Message button - shown by default when isMessageable is true, but not for own profile */}
-            {isMessageable && !(entityType === 'user' && user?.id === entityId) && (
+            {isMessageable &&
+              (entityType === 'user' || Boolean(messageTargetUserId)) &&
+              !(entityType === 'user' && user?.id === entityId) && (
               <MessageButton
-                targetUserId={entityId!}
+                targetUserId={messageTargetUserId ?? entityId}
                 compact={isCompact}
                 variant="default"
                 size="sm"

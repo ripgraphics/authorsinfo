@@ -8,7 +8,7 @@ import { supabaseAdmin } from '@/lib/supabase/server'
  * Ensure a default Member role exists for a group
  * Returns the role ID, or null if creation failed
  */
-async function ensureDefaultMemberRole(groupId: string): Promise<number | null> {
+async function ensureDefaultMemberRole(groupId: string): Promise<string | null> {
   try {
     // OPTIMIZED: Single query instead of 2
     // Order by is_default DESC to get default role first, then fallback to any role
@@ -449,7 +449,7 @@ export async function joinGroup(groupId: string): Promise<MemberActionResult> {
     // Check if member already exists
     const { data: existingMember } = await supabaseAdmin
       .from('group_members')
-      .select('id, status')
+      .select('group_id, user_id, status, role_id, joined_at')
       .eq('group_id', groupId)
       .eq('user_id', user.id)
       .single()
@@ -512,7 +512,7 @@ export async function joinGroup(groupId: string): Promise<MemberActionResult> {
     // Insert member (select only basic fields - relationships may not be configured)
     const { data: member, error } = await (supabaseAdmin.from('group_members') as any)
       .insert([filteredPayload])
-      .select('id, user_id, group_id, role, joined_at, is_moderator, last_activity')
+      .select('group_id, user_id, role_id, status, joined_at')
       .single()
 
     if (error) {

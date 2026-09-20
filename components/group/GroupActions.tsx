@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/ui/use-toast'
+import { consumePendingToast, setPendingToast, useToast } from '@/components/ui/use-toast'
 import { Loader2, UserPlus, Heart } from 'lucide-react'
 import { FollowButton } from '@/components/follow-button'
 import { joinGroup } from '@/app/actions/groups/manage-members'
@@ -31,6 +31,11 @@ export function GroupActions({
   const actionsContainerRef = useRef<HTMLDivElement>(null)
   const isCompact = useButtonOverflow(actionsContainerRef, 350, false)
 
+  useEffect(() => {
+    const pendingToast = consumePendingToast()
+    if (pendingToast) toast(pendingToast)
+  }, [toast])
+
   const handleJoin = async () => {
     setIsJoining(true)
     try {
@@ -48,13 +53,15 @@ export function GroupActions({
       }
 
       // Show toast with sufficient delay to ensure it's visible before reload
-      toast({
+      const successToast = {
         title: 'Success',
         description:
           result.member?.status === 'pending'
             ? `Your request to join ${groupName} has been submitted and is pending approval`
             : `You have joined ${groupName}`,
-      })
+      }
+      setPendingToast(successToast)
+      toast(successToast)
 
       // Call callback or reload after a delay to allow toast to display
       if (onJoinChange) {

@@ -98,6 +98,23 @@ async function authorizeConversation(context: AuthenticatedRoute, conversationId
   return conversation
 }
 
+async function loadAuthorizedCall(context: AuthenticatedRoute, callId: string) {
+  const { data, error } = await getClient(context)
+    .from('call_sessions')
+    .select(
+      'id, conversation_id, initiator_id, recipient_id, media_type, status, started_at, ended_at, end_reason, created_at'
+    )
+    .eq('id', callId)
+    .maybeSingle()
+  if (error) throw error
+  const call = data as CallSessionRow | null
+  if (!call) return NextResponse.json({ error: 'Call not found' }, { status: 404 })
+  if (![call.initiator_id, call.recipient_id].includes(context.user.id)) {
+    return NextResponse.json({ error: 'Call access denied' }, { status: 403 })
+  }
+  return call
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authentication = await requireUser()
@@ -176,10 +193,13 @@ export async function PATCH(request: NextRequest, { params }: CallContext) {
       updates.end_reason = input.data.end_reason ?? null
     }
 
+    const authorizedCall = await loadAuthorizedCall(authentication.context, id)
+    if (authorizedCall instanceof NextResponse) return authorizedCall
+
     const { data, error } = await getClient(authentication.context)
       .from('call_sessions')
       .update(updates)
-      .eq('id', id)
+      .eq('id', authorizedCall.id)
       .select(
         'id, conversation_id, initiator_id, recipient_id, media_type, status, started_at, ended_at, end_reason, created_at'
       )
@@ -202,17 +222,12 @@ export async function GET(_: NextRequest, { params }: CallContext) {
       return NextResponse.json({ error: 'Invalid call request' }, { status: 400 })
     }
 
-    const { data, error } = await getClient(authentication.context)
-      .from('call_sessions')
-      .select(
-        'id, conversation_id, initiator_id, recipient_id, media_type, status, started_at, ended_at, end_reason, created_at'
-      )
-      .eq('id', id)
-      .maybeSingle()
-    if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Call not found' }, { status: 404 })
+    const authorizedCall = await loadAuthorizedCall(authentication.context, id)
+    if (authorizedCall instanceof NextResponse) return authorizedCall
 
-    return NextResponse.json(data, { headers: { 'Cache-Control': 'private, no-store' } })
+    return NextResponse.json(authorizedCall, {
+      headers: { 'Cache-Control': 'private, no-store' },
+    })
   } catch (error) {
     return nextErrorResponse(error, 'Unable to load call', 500, false)
   }

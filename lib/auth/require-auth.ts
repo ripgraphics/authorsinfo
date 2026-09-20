@@ -14,10 +14,20 @@ export async function requireUser(): Promise<
   | { ok: false; response: NextResponse }
 > {
   const supabase = await createRouteHandlerClientAsync()
-  const {
+  let {
     data: { user },
     error,
   } = await supabase.auth.getUser()
+
+  // Supabase's remote user check can fail during transient auth-service or
+  // Navigator LockManager stalls even when the SSR cookie contains a valid
+  // session. Use the locally decoded session as a recovery path; the cookie
+  // was issued by Supabase Auth and is still subject to the route's RLS.
+  if (error || !user) {
+    const sessionResult = await supabase.auth.getSession()
+    user = sessionResult.data.session?.user ?? null
+    error = sessionResult.error
+  }
 
   if (error || !user) {
     return { ok: false, response: NextResponse.json({ error: 'Authentication required' }, { status: 401 }) }

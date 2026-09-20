@@ -21,6 +21,12 @@ type ConversationRow = {
   last_message_at?: string | null
 }
 
+type LatestMessageRow = {
+  conversation_id: string
+  body: string
+  created_at: string
+}
+
 interface ConversationQueryResult {
   data: ConversationRow | null
   error: unknown
@@ -30,6 +36,8 @@ interface ConversationQuery {
   select(columns: string): ConversationQuery
   eq(column: string, value: string): ConversationQuery
   order(column: string, options: { ascending: boolean }): ConversationQuery
+  in(column: string, values: string[]): ConversationQuery
+  limit(value: number): ConversationQuery
   maybeSingle(): Promise<ConversationQueryResult>
   single(): Promise<ConversationQueryResult>
   insert(value: Record<string, string>): ConversationQuery
@@ -45,7 +53,7 @@ interface ConversationQuery {
 }
 
 interface ConversationSupabaseClient {
-  from(table: 'direct_conversations' | 'users'): ConversationQuery
+  from(table: 'direct_conversations' | 'direct_conversation_messages' | 'users' | 'user_friends' | 'direct_message_requests'): ConversationQuery
 }
 
 function getConversationClient(context: AuthenticatedRoute): ConversationSupabaseClient {
@@ -63,12 +71,33 @@ export async function GET() {
       .order('last_message_at', { ascending: false })
     if (error) throw error
 
-    const conversations = (data ?? []).map((conversation) => ({
+    const conversationRows = data ?? []
+    const conversationIds = conversationRows.map((conversation) => conversation.id)
+    const latestMessagesByConversation = new Map<string, LatestMessageRow>()
+    if (conversationIds.length > 0) {
+      const { data: latestMessages, error: latestMessagesError } = await getConversationClient(
+        authentication.context
+      )
+        .from('direct_conversation_messages')
+        .select('conversation_id, body, created_at')
+        .in('conversation_id', conversationIds)
+        .order('created_at', { ascending: false })
+        .limit(conversationIds.length * 100)
+      if (latestMessagesError) throw latestMessagesError
+      for (const message of (latestMessages ?? []) as unknown as LatestMessageRow[]) {
+        if (!latestMessagesByConversation.has(message.conversation_id)) {
+          latestMessagesByConversation.set(message.conversation_id, message)
+        }
+      }
+    }
+
+    const conversations = conversationRows.map((conversation) => ({
       ...conversation,
       participant_id:
         conversation.user_low_id === authentication.context.user.id
           ? conversation.user_high_id
           : conversation.user_low_id,
+      last_message_preview: latestMessagesByConversation.get(conversation.id)?.body ?? null,
     }))
     return NextResponse.json(conversations, {
       headers: { 'Cache-Control': 'private, no-store' },
@@ -119,7 +148,35 @@ export async function POST(request: NextRequest) {
       .eq('user_high_id', userHighId)
       .maybeSingle()
     if (existing.error) throw existing.error
-    if (existing.data) return NextResponse.json(existing.data)
+    if (existing.data) {
+      const requestState = await supabase
+        .from('direct_message_requests')
+        .select('status, requester_id, recipient_id')
+        .eq('conversation_id', existing.data.id)
+        .maybeSingle()
+      if (requestState.error) throw requestState.error
+      return NextResponse.json({
+        ...existing.data,
+        ...(requestState.data
+          ? { ...requestState.data, request_status: (requestState.data as { status?: string }).status }
+          : {}),
+      })
+    }
+
+    const friendship = await supabase
+      .from('user_friends')
+      .select('status')
+      .eq('user_id', userLowId)
+      .eq('friend_id', userHighId)
+      .maybeSingle()
+    if (friendship.error) throw friendship.error
+    const reverseFriendship = await supabase
+      .from('user_friends')
+      .select('status')
+      .eq('user_id', userHighId)
+      .eq('friend_id', userLowId)
+      .maybeSingle()
+    if (reverseFriendship.error) throw reverseFriendship.error
 
     const created = await supabase
       .from('direct_conversations')
@@ -127,6 +184,27 @@ export async function POST(request: NextRequest) {
       .select('id, user_low_id, user_high_id')
       .single()
     if (created.error) throw created.error
+
+    const friendshipStatus = (friendship.data as { status?: string } | null)?.status
+      ?? (reverseFriendship.data as { status?: string } | null)?.status
+    if (friendshipStatus !== 'accepted') {
+      const requestRecord = await supabase
+        .from('direct_message_requests')
+        .insert({
+          conversation_id: created.data?.id ?? '',
+          requester_id: authentication.context.user.id,
+          recipient_id: targetUserId,
+          status: 'pending',
+        })
+        .select('status, requester_id, recipient_id')
+        .single()
+      if (requestRecord.error) throw requestRecord.error
+      return NextResponse.json({
+        ...created.data,
+        ...requestRecord.data,
+        request_status: (requestRecord.data as { status?: string }).status,
+      }, { status: 201 })
+    }
 
     return NextResponse.json(created.data, { status: 201 })
   } catch (error) {

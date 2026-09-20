@@ -24,6 +24,26 @@ test('keeps calls unavailable until enabled and providers are configured', () =>
   ).toMatchObject({ ready: true, enabled: true, turnConfigured: true, signalingConfigured: true })
 })
 
+test('supports provider-free direct WebRTC mode when calls are enabled', () => {
+  expect(
+    computeCallProviderStatus({
+      turn_provider: null,
+      turn_url: null,
+      turn_username: null,
+      stun_url: null,
+      signaling_server_url: null,
+      calls_enabled: 'true',
+    })
+  ).toMatchObject({
+    ready: true,
+    enabled: true,
+    turnConfigured: false,
+    signalingConfigured: false,
+    mode: 'direct',
+    signalingTransport: 'supabase-realtime',
+  })
+})
+
 test('redacts call credentials from admin responses', () => {
   expect(
     redactCallSettings({

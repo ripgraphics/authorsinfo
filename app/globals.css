@@ -168,11 +168,9 @@ body {
   overflow: hidden !important;
 }
 
-/* Global close button styles for all modals and hover cards */
+/* Shared close button styles for modal and hover-card primitives only. */
 .close-button,
-[class*="close-button"],
-button[class*="close"],
-button[class*="close-button"] {
+[data-close-button] {
   background-color: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
   position: absolute !important;
@@ -185,16 +183,12 @@ button[class*="close-button"] {
 }
 
 .close-button:hover,
-[class*="close-button"]:hover,
-button[class*="close"]:hover,
-button[class*="close-button"]:hover {
+[data-close-button]:hover {
   background-color: hsl(var(--secondary)) !important;
 }
 
 .close-button:focus,
-[class*="close-button"]:focus,
-button[class*="close"]:focus,
-button[class*="close-button"]:focus {
+[data-close-button]:focus {
   outline: none !important;
 }
 

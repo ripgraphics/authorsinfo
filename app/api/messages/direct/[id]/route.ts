@@ -12,7 +12,13 @@ const historySchema = z
     before: z.string().datetime().optional(),
   })
   .strict()
-const messageSchema = z.object({ body: z.string().trim().min(1).max(10000) }).strict()
+const messageSchema = z
+  .object({
+    body: z.string().trim().min(1).max(10000),
+    reply_to_message_id: identifier.nullable().optional(),
+    mention_user_ids: z.array(identifier).max(10).default([]),
+  })
+  .strict()
 
 type DirectContext = { params: Promise<{ id: string }> }
 
@@ -24,6 +30,7 @@ type MessageRow = {
   sender_id: string
   body: string
   created_at?: string
+  reply_to_message_id?: string | null
 }
 
 interface DirectQueryResult<T> {
@@ -39,7 +46,7 @@ interface DirectQuery {
   limit(value: number): DirectQuery
   maybeSingle(): Promise<{ data: ConversationRow | null; error: unknown }>
   single(): Promise<DirectQueryResult<MessageRow>>
-  insert(value: Record<string, string>): DirectQuery
+  insert(value: Record<string, string | string[]>): DirectQuery
   then<TResult1 = DirectQueryResult<MessageRow[]>, TResult2 = never>(
     onfulfilled?:
       ((value: DirectQueryResult<MessageRow[]>) => TResult1 | PromiseLike<TResult1>) | null,
@@ -86,7 +93,7 @@ export async function GET(request: NextRequest, { params }: DirectContext) {
     const messageQuery = getDirectClient(authentication.context)
       .from('direct_conversation_messages')
       .select(
-        'id, conversation_id, sender_id, body, created_at, edited_at, deleted_at, read_at, read_by'
+        'id, conversation_id, sender_id, body, created_at, edited_at, deleted_at, read_at, read_by, reply_to_message_id, mention_user_ids'
       )
       .eq('conversation_id', id)
       .order('created_at', { ascending: false })
@@ -126,14 +133,34 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
     const access = await authorizeConversation(authentication.context, id)
     if (access instanceof NextResponse) return access
 
+    if (input.data.reply_to_message_id) {
+      const { data: parent, error: parentError } = await getDirectClient(authentication.context)
+        .from('direct_conversation_messages')
+        .select('id')
+        .eq('id', input.data.reply_to_message_id)
+        .eq('conversation_id', id)
+        .maybeSingle()
+      if (parentError) throw parentError
+      if (!parent) return NextResponse.json({ error: 'Reply message not found' }, { status: 404 })
+    }
+
+    const allowedMentionIds = new Set([access.user_low_id, access.user_high_id])
+    if (input.data.mention_user_ids.some((mentionId) => !allowedMentionIds.has(mentionId))) {
+      return NextResponse.json({ error: 'Invalid message mention' }, { status: 400 })
+    }
+
     const { data, error } = await getDirectClient(authentication.context)
       .from('direct_conversation_messages')
       .insert({
         conversation_id: id,
         sender_id: authentication.context.user.id,
         body: input.data.body,
+        ...(input.data.reply_to_message_id
+          ? { reply_to_message_id: input.data.reply_to_message_id }
+          : {}),
+        mention_user_ids: input.data.mention_user_ids,
       })
-      .select('id, conversation_id, sender_id, body, created_at, read_at, read_by')
+      .select('id, conversation_id, sender_id, body, created_at, read_at, read_by, reply_to_message_id, mention_user_ids')
       .single()
     if (error) throw error
 
@@ -156,6 +183,21 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
           source_id: id,
           data: { conversation_id: id, message_id: sentMessage.id },
         })
+        await Promise.all(
+          input.data.mention_user_ids
+            .filter((mentionedUserId) => mentionedUserId !== authentication.context.user.id)
+            .filter((mentionedUserId, index, ids) => ids.indexOf(mentionedUserId) === index)
+            .map((mentionedUserId) => NotificationDispatcher.dispatch({
+              recipient_id: mentionedUserId,
+              type: 'mention',
+              title: 'You were mentioned in a message',
+              message: input.data.body.slice(0, 100),
+              source_user_id: authentication.context.user.id,
+              source_type: 'direct_conversation',
+              source_id: id,
+              data: { conversation_id: id, message_id: sentMessage.id },
+            }))
+        )
       })
     }
 

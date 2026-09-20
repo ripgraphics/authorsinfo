@@ -255,17 +255,20 @@ async function getGroupDiscussions(groupId: string) {
 async function getGroupActivities(groupId: string) {
   try {
     const { data: activities, error } = await supabaseAdmin
-      .from('activities')
+      .from('activity_stream')
       .select(
         `
         id,
         activity_type,
         created_at,
-        data,
-        user_id
+        metadata,
+        user_id,
+        entity_id,
+        entity_type
       `
       )
-      .eq('group_id', groupId)
+      .eq('entity_id', groupId)
+      .eq('entity_type', 'group')
       .order('created_at', { ascending: false })
       .limit(20)
 
@@ -284,6 +287,7 @@ async function getGroupActivities(groupId: string) {
         if (!userError && userData.user) {
           activitiesWithDetails.push({
             ...activity,
+            data: activity.metadata,
             user: {
               id: userData.user.id,
               name:
@@ -300,6 +304,7 @@ async function getGroupActivities(groupId: string) {
         // Add activity with fallback data
         activitiesWithDetails.push({
           ...activity,
+          data: activity.metadata,
           user: {
             id: activity.user_id,
             name: 'Unknown User',

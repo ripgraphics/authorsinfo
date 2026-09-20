@@ -1,6 +1,8 @@
 export interface CallProviderStatus {
   enabled: boolean
   ready: boolean
+  mode: 'direct' | 'provider'
+  signalingTransport: 'supabase-realtime' | 'external-server'
   reason: string | null
   turnConfigured: boolean
   signalingConfigured: boolean
@@ -22,22 +24,26 @@ const REQUIRED_KEYS = ['turn_url', 'signaling_server_url'] as const
 
 export function computeCallProviderStatus(settings: CallProviderSettings): CallProviderStatus {
   const enabled = settings.calls_enabled === 'true'
-  const turnConfigured = REQUIRED_KEYS.every((key) =>
-    Boolean(settings[key] && settings[key].trim())
-  )
+  const turnConfigured = Boolean(settings.turn_url && settings.turn_url.trim())
   const signalingConfigured = Boolean(
     settings.signaling_server_url && settings.signaling_server_url.trim()
   )
-  const ready = enabled && turnConfigured && signalingConfigured
+  const providerConfigured = turnConfigured && signalingConfigured
+  const partiallyConfigured = turnConfigured !== signalingConfigured
+  const mode = providerConfigured ? 'provider' : 'direct'
+  const signalingTransport = providerConfigured ? 'external-server' : 'supabase-realtime'
+  const ready = enabled && !partiallyConfigured
 
   let reason: string | null = null
   if (!enabled) reason = 'Calls are disabled by the administrator.'
-  else if (!turnConfigured) reason = 'TURN server is not configured.'
-  else if (!signalingConfigured) reason = 'Signaling server is not configured.'
+  else if (partiallyConfigured && !turnConfigured) reason = 'TURN server is not configured.'
+  else if (partiallyConfigured && !signalingConfigured) reason = 'Signaling server is not configured.'
 
   return {
     enabled,
     ready,
+    mode,
+    signalingTransport,
     reason,
     turnConfigured,
     signalingConfigured,

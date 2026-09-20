@@ -1,6 +1,7 @@
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { requireUser } from '@/lib/auth/require-auth'
 
 // Cache duration for user data (5 minutes)
 const CACHE_DURATION = 300
@@ -178,19 +179,10 @@ export async function POST(request: Request) {
   try {
     const supabase = await createRouteHandlerClientAsync()
 
-    // Get current user - use getUser() to authenticate with Supabase Auth server
-    let user = null
-    let userError = null
-
-    try {
-      const result = await getUserWithRetry(supabase)
-      user = result.data?.user || null
-      userError = result.error || null
-    } catch (error) {
-      // Catch any unexpected errors from getUser()
-      console.warn('Unexpected error calling getUser():', error)
-      userError = error as any
-    }
+    // Reuse the app auth boundary, including its local-session recovery path.
+    const authentication = await requireUser()
+    const user = authentication.ok ? authentication.context.user : null
+    const userError = authentication.ok ? null : new Error('No authenticated user')
 
     // If there's an error OR no user, return 401 (not logged in)
     // This handles both cases: errors during auth check and simply no user
@@ -230,9 +222,20 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .single()
 
-    if (userDataError) {
-      console.error('Error fetching user:', userDataError)
-      return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
+    if (userDataError) console.warn('User profile enrichment unavailable:', userDataError)
+
+    const safeUserData = (userData as {
+      id?: string
+      email?: string | null
+      name?: string | null
+      created_at?: string | null
+      permalink?: string | null
+    } | null) ?? {
+      id: user.id,
+      email: user.email ?? null,
+      name: (user.user_metadata?.name as string | undefined) ?? user.email ?? null,
+      created_at: user.created_at ?? null,
+      permalink: null,
     }
 
     // Get profile for role and avatar_image_id
@@ -279,12 +282,12 @@ export async function POST(request: Request) {
     }
 
     const transformedUser = {
-      id: (userData as any).id,
-      email: (userData as any).email || 'No email',
-      name: (userData as any).name || 'Unknown User',
-      created_at: (userData as any).created_at,
+      id: safeUserData.id ?? user.id,
+      email: safeUserData.email || user.email || 'No email',
+      name: safeUserData.name || user.email || 'Unknown User',
+      created_at: safeUserData.created_at,
       role: userRole,
-      permalink: (userData as any).permalink,
+      permalink: safeUserData.permalink,
       avatar_url: avatarUrl,
     }
 

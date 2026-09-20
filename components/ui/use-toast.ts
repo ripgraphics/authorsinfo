@@ -166,6 +166,27 @@ function toast({ ...props }: Toast) {
   }
 }
 
+const SESSION_TOAST_KEY = 'authorsinfo:pending-toast'
+
+export function setPendingToast(props: Toast): void {
+  try {
+    window.sessionStorage.setItem(SESSION_TOAST_KEY, JSON.stringify(props))
+  } catch {
+    // Session storage may be unavailable; the in-memory toast still works.
+  }
+}
+
+export function consumePendingToast(): Toast | null {
+  try {
+    const value = window.sessionStorage.getItem(SESSION_TOAST_KEY)
+    if (!value) return null
+    window.sessionStorage.removeItem(SESSION_TOAST_KEY)
+    return JSON.parse(value) as Toast
+  } catch {
+    return null
+  }
+}
+
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 

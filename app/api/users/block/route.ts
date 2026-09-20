@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(unauthorizedError(), { status: 401 })
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => null)
     const blockedUserId: string | undefined = body?.user_id
     if (!blockedUserId) {
       return NextResponse.json(badRequestError('user_id is required'), { status: 400 })
@@ -57,7 +57,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(unauthorizedError(), { status: 401 })
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => null)
     const blockedUserId: string | undefined = body?.user_id
     if (!blockedUserId) {
       return NextResponse.json(badRequestError('user_id is required'), { status: 400 })

@@ -137,8 +137,15 @@ export function useAuth() {
     isInitialized.current = true
 
     try {
-      const userData = await fetchUserData()
-      debouncedSetUser(userData && userData.name ? userData : null)
+      const { data: authData } = await safeGetUser()
+      if (authData.user) {
+        debouncedSetUser(authData.user as UserWithRole)
+        void fetchUserData().then((userData) => {
+          if (userData) debouncedSetUser(userData)
+        }).catch(() => undefined)
+      } else {
+        debouncedSetUser(null)
+      }
     } catch (err: any) {
       // Check if this is a session missing error (normal for public users)
       const errorName = err?.name || err?.constructor?.name || ''
@@ -173,19 +180,10 @@ export function useAuth() {
       }
 
       if (session?.user) {
-        try {
-          const userData = await fetchUserData()
-          if (userData && userData.name) {
-            debouncedSetUser(userData)
-          } else {
-            // User data is null or invalid - clear user state
-            debouncedSetUser(null)
-          }
-        } catch (err) {
-          console.error('❌ CRITICAL: Failed to fetch user data after all retries:', err)
-          // Don't set user - let the error be visible so it can be fixed
-          debouncedSetUser(null)
-        }
+        debouncedSetUser(session.user as UserWithRole)
+        void fetchUserData().then((userData) => {
+          if (userData) debouncedSetUser(userData)
+        }).catch(() => undefined)
       } else {
         // Clear user on logout or when no session exists (normal for public users)
         debouncedSetUser(null)

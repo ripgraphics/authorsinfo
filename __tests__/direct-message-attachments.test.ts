@@ -6,8 +6,8 @@ import { requireUser } from '@/lib/auth/require-auth'
 
 jest.mock('@/lib/auth/require-auth', () => ({ requireUser: jest.fn() }))
 jest.mock('@/lib/error-handler', () => ({
-  nextErrorResponse: jest.fn(() =>
-    NextResponse.json({ error: 'Operation failed' }, { status: 500 })
+  nextErrorResponse: jest.fn((error: unknown) =>
+    NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 })
   ),
 }))
 
@@ -71,7 +71,7 @@ beforeEach(() => {
     ok: true,
     context: {
       user: { id: userId },
-      supabase: { from: mockFrom, storage: mockStorage },
+      supabase: { from: mockFrom, storage: { from: mockStorage } },
     },
   } as unknown as Awaited<ReturnType<typeof requireUser>>)
 })
@@ -88,6 +88,19 @@ test('lists attachments for an authorized conversation', async () => {
 
   expect(response.status).toBe(200)
   expect(attachments.eq).toHaveBeenCalledWith('message_id', messageId)
+})
+
+test('downloads an attachment only after validating its message', async () => {
+  const response = await GET(
+    new NextRequest(
+      `http://localhost/api/messages/direct/${conversationId}/attachments?message_id=${messageId}&attachment_id=${attachmentId}`
+    ),
+    context
+  )
+
+  expect(response.status).toBe(200)
+  expect(mockStorage).toHaveBeenCalledWith('direct-message-attachments')
+  expect(response.headers.get('Content-Type')).toBe('image/png')
 })
 
 test('rejects attachment requests without a message id', async () => {

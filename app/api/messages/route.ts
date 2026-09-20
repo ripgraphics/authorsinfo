@@ -51,6 +51,10 @@ interface ChatMessage {
 interface InboxConversation extends ChatChannel {
   latest_message: ChatMessage | null
   unread_count: number
+  kind: 'messenger_group'
+  title: string | null
+  latest_message_preview: string | null
+  latest_message_at: string | null
 }
 
 function getInboxClient(context: AuthenticatedRoute): InboxClient {
@@ -117,6 +121,10 @@ export async function GET() {
           const createdAt = (message as ChatMessage).created_at
           return !lastReadAt || Boolean(createdAt && createdAt > lastReadAt)
         }).length,
+        kind: 'messenger_group',
+        title: channel.name,
+        latest_message_preview: ((messages ?? [])[0] as ChatMessage)?.message ?? null,
+        latest_message_at: ((messages ?? [])[0] as ChatMessage)?.created_at ?? null,
       })
     }
 

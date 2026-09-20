@@ -91,6 +91,10 @@ test('returns only authorized group channels with their latest visible message',
         created_at: '2026-09-11T10:00:00.000Z',
       },
       unread_count: 1,
+      kind: 'messenger_group',
+      title: 'General',
+      latest_message_preview: 'Latest message',
+      latest_message_at: '2026-09-11T10:00:00.000Z',
     },
   ])
   expect(memberships.eq).toHaveBeenCalledWith('user_id', userId)

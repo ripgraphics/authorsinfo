@@ -4,7 +4,7 @@ import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
 import { nextErrorResponse } from '@/lib/error-handler'
 
 const uuid = z.string().uuid()
-const listSchema = z.object({ message_id: uuid }).strict()
+const listSchema = z.object({ message_id: uuid, attachment_id: uuid.optional() }).strict()
 type AttachmentContext = { params: Promise<{ id: string }> }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -102,6 +102,44 @@ export async function GET(request: NextRequest, { params }: AttachmentContext) {
     }
     const denied = await authorizeConversation(authentication.context, id)
     if (denied) return denied
+    if (input.data.attachment_id) {
+      const messageDenied = await authorizeMessage(
+        authentication.context,
+        id,
+        input.data.message_id
+      )
+      if (messageDenied) return messageDenied
+
+      const { data: attachment, error: attachmentError } = await getClient(
+        authentication.context
+      )
+        .from('direct_message_attachments')
+        .select('id, message_id, file_name, mime_type, file_size, storage_path, created_at')
+        .eq('id', input.data.attachment_id)
+        .eq('message_id', input.data.message_id)
+        .maybeSingle()
+      if (attachmentError) throw attachmentError
+      if (!attachment) {
+        return NextResponse.json({ error: 'Attachment not found' }, { status: 404 })
+      }
+
+      const stored = attachment as AttachmentRow
+      const download = await getClient(authentication.context)
+        .storage.from('direct-message-attachments')
+        .download(stored.storage_path)
+      if (download.error || !download.data) {
+        throw download.error ?? new Error('Attachment unavailable')
+      }
+
+      return new NextResponse(new Uint8Array(download.data), {
+        headers: {
+          'Content-Type': stored.mime_type,
+          'Content-Disposition': `attachment; filename="${encodeURIComponent(stored.file_name)}"`,
+          'Cache-Control': 'private, no-store',
+        },
+      })
+    }
+
     const messageDenied = await authorizeMessage(authentication.context, id, input.data.message_id)
     if (messageDenied) return messageDenied
 

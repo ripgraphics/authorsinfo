@@ -1,14 +1,17 @@
 import { createRequire } from 'node:module'
-import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
+import { FlatCompat } from '@eslint/eslintrc'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const require = createRequire(import.meta.url)
+const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta.url)) })
 const typescriptParser = require('@typescript-eslint/parser')
 const typescriptPlugin = require('@typescript-eslint/eslint-plugin')
 const prettierPlugin = require('eslint-plugin-prettier')
 const descriptiveClassnamePlugin = require('./eslint-plugin-descriptive-classname/index.js')
 
 export default [
-  ...nextCoreWebVitals,
+  ...compat.extends('next/core-web-vitals'),
   {
     languageOptions: {
       parser: typescriptParser,

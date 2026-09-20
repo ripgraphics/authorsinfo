@@ -2,15 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getFollowTargetType } from '@/lib/follows-server'
+import { requireUser } from '@/lib/auth/require-auth'
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-
-    // Get the current user (optional - allow viewing friends list without auth)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const authentication = await requireUser()
+    const user = authentication.ok ? authentication.context.user : null
 
     const { searchParams } = new URL(request.url)
     const targetUserId = searchParams.get('userId')

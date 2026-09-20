@@ -159,10 +159,10 @@ export default function LoginPage() {
 
       toast({ title: 'Success', description: 'You have been signed in successfully' })
 
-      // Redirect to the original page or home
-      setTimeout(() => {
-        router.push(redirectTo)
-      }, 1000)
+      // Navigate only after Supabase has persisted the session. Refreshing ensures
+      // server-rendered routes receive the newly-issued auth cookies immediately.
+      router.replace(redirectTo)
+      router.refresh()
     } catch (rawError: unknown) {
       // Avoid console.error to prevent Next.js dev overlay from triggering
       if (process.env.NODE_ENV === 'development') {

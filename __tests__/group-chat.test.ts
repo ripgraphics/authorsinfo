@@ -81,6 +81,17 @@ test('denies members without active membership', async () => {
   expect(mockFrom).not.toHaveBeenCalledWith('group_chat_messages')
 })
 
+test('denies suspended members before reading history', async () => {
+  membership.maybeSingle.mockResolvedValue({ data: null, error: null })
+  membership.eq.mockImplementation((column: string, value: string) => {
+    if (column === 'status' && value === 'active') return membership
+    return membership
+  })
+
+  expect((await GET(request(), context)).status).toBe(403)
+  expect(mockFrom).not.toHaveBeenCalledWith('group_chat_messages')
+})
+
 test('checks that the channel belongs to the requested group', async () => {
   channel.maybeSingle.mockResolvedValue({ data: null, error: null })
   expect((await GET(request(), context)).status).toBe(404)
@@ -166,6 +177,17 @@ test('does not bypass event-specific access requirements', async () => {
   await GET(request(), context)
   expect(channel.is).toHaveBeenCalledWith('event_id', null)
   expect(channel.or).toHaveBeenCalledWith('is_event_channel.is.null,is_event_channel.eq.false')
+})
+
+test('denies event channels even for active group members', async () => {
+  channel.is.mockImplementation((column: string, value: null) => {
+    if (column === 'event_id') return channel
+    return channel
+  })
+  channel.maybeSingle.mockResolvedValue({ data: null, error: null })
+
+  expect((await GET(request(), context)).status).toBe(404)
+  expect(messages.limit).not.toHaveBeenCalled()
 })
 
 test('fails closed on membership lookup errors', async () => {

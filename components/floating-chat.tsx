@@ -1,13 +1,16 @@
 /* eslint-disable descriptive-classname/require-semantic-classname */
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
+import { GiphyFetch } from '@giphy/js-fetch-api'
+import type { ChatComposerGif } from '@/components/chat-composer'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
 import { broadcastChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { useTypingIndicator } from '@/hooks/use-typing-indicator'
+import { useGroupPermissions } from '@/hooks/useGroupPermissions'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ChatComposer } from '@/components/chat-composer'
@@ -15,13 +18,28 @@ import { ConversationRail } from '@/components/conversation-rail'
 import { ParticipantDetailsPanel } from '@/components/participant-details-panel'
 import { DirectMessageList } from '@/components/direct-message-list'
 import { ConversationHeader } from '@/components/conversation-header'
+import { DirectCallPanel } from '@/components/direct-call-panel'
+import { useDirectCall } from '@/hooks/use-direct-call'
+import {
+  normalizeDirectConversation,
+  normalizeGroupConversation,
+  type DirectConversationRecord,
+  type GroupConversationRecord,
+  type MessengerConversation,
+} from '@/lib/messaging/conversation-types'
+import {
+  normalizeDirectMessage,
+  normalizeGroupMessage,
+  appendUniqueMessage,
+  type MessengerMessage,
+} from '@/lib/messaging/message-types'
+import { shouldSkipActiveUnreadRefresh } from '@/lib/messaging/unread'
+import type { MessengerRequestListItem } from '@/components/messenger-request-list'
 
-interface Conversation {
+type Conversation = DirectConversationRecord
+
+interface UnreadConversation {
   id: string
-  participant_id: string
-}
-
-interface UnreadConversation extends Conversation {
   unread_count: number
 }
 
@@ -30,16 +48,6 @@ interface Friend {
   name: string | null
   email: string | null
   avatar_url?: string | null
-}
-
-interface Message {
-  id: string
-  sender_id: string
-  body: string
-  created_at: string
-  deleted_at: string | null
-  read_at?: string | null
-  read_by?: string | null
 }
 
 export interface FloatingChatProps {
@@ -55,34 +63,69 @@ export function FloatingChat({
 }: FloatingChatProps) {
   const { user, loading: authLoading } = useAuth()
   const userId = user?.id ?? null
+  const giphyFetch = useMemo(
+    () => new GiphyFetch(process.env.NEXT_PUBLIC_GIPHY_API_KEY || 'dc6zaTOxFJmzC'),
+    []
+  )
   const [open, setOpen] = useState(fullPage)
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [conversations, setConversations] = useState<MessengerConversation[]>([])
   const [friends, setFriends] = useState<Friend[]>([])
+  const [messageRequests, setMessageRequests] = useState<MessengerRequestListItem[]>([])
+  const [groupMembers, setGroupMembers] = useState<Friend[]>([])
+  const [leavingGroup, setLeavingGroup] = useState(false)
+  const [invitingMemberId, setInvitingMemberId] = useState<string | null>(null)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     initialConversationId
   )
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<MessengerMessage[]>([])
+  const [replyingToMessageId, setReplyingToMessageId] = useState<string | null>(null)
+  const [mentionUserIds, setMentionUserIds] = useState<string[]>([])
+  const [forwardingMessage, setForwardingMessage] = useState<MessengerMessage | null>(null)
+  const [pinnedMessageIds, setPinnedMessageIds] = useState<Set<string>>(new Set())
   const [loadingMessages, setLoadingMessages] = useState(false)
+  const [messageLoadError, setMessageLoadError] = useState<string | null>(null)
+  const [conversationUnavailable, setConversationUnavailable] = useState(false)
+  const [messageLoadAttempt, setMessageLoadAttempt] = useState(0)
+  const [hasMoreMessages, setHasMoreMessages] = useState(false)
+  const [nextMessageCursor, setNextMessageCursor] = useState<string | null>(null)
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false)
+  const [connectionError, setConnectionError] = useState(false)
+  const [callCapabilityReady, setCallCapabilityReady] = useState(false)
+  const [reconnectAttempt, setReconnectAttempt] = useState(0)
+  const [activeConversationMuted, setActiveConversationMuted] = useState(false)
+  const [activeConversationArchived, setActiveConversationArchived] = useState(false)
+  const [activeConversationRestricted, setActiveConversationRestricted] = useState(false)
+  const [archivedConversationIds, setArchivedConversationIds] = useState<Set<string>>(new Set())
   const [unreadConversations, setUnreadConversations] = useState<UnreadConversation[]>([])
+  const manuallyUnreadConversationIdsRef = useRef(new Set<string>())
   const [conversationSearch, setConversationSearch] = useState('')
-  const [conversationFilter, setConversationFilter] = useState<'all' | 'unread' | 'friends'>('all')
+  const [conversationFilter, setConversationFilter] = useState<
+    'all' | 'unread' | 'friends' | 'archived'
+  >('all')
   const [mobileConversationOpen, setMobileConversationOpen] = useState(Boolean(initialConversationId))
+  const conversationsRef = useRef<MessengerConversation[]>([])
   const channelRef = useRef<ReturnType<
     ReturnType<typeof createBrowserClient<Database>>['channel']
   > | null>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const lastSentMessageIdRef = useRef<string | null>(null)
   // Tracks the message count seen on the previous render for this
   // conversation. On initial load (or conversation switch) the list jumps
   // straight to the newest message; only genuinely new messages after
   // that smooth-scroll into view.
   const lastMessageCountRef = useRef(0)
   const lastConversationRef = useRef<string | null>(null)
+  const directCall = useDirectCall({
+    conversationId: activeConversationId,
+    currentUserId: userId,
+  })
 
   // Typing indicator hook
   const { typingUserNames, broadcastTyping: broadcastTypingEvent } = useTypingIndicator({
     conversationId: activeConversationId,
     currentUserId: userId,
   })
+  conversationsRef.current = conversations
 
   useEffect(() => {
     if (!open || !activeConversationId || messages.length === 0) return
@@ -113,6 +156,30 @@ export function FloatingChat({
     }
     if (hasNewMessage) scrollToBottom('smooth')
   }, [open, activeConversationId, messages.length])
+
+  useEffect(() => {
+    if (!activeConversationId) {
+      setCallCapabilityReady(false)
+      return
+    }
+    const conversation = conversationsRef.current.find((item) => item.id === activeConversationId)
+    if (conversation?.kind !== 'direct') {
+      setCallCapabilityReady(false)
+      return
+    }
+    let active = true
+    void fetch('/api/messages/calls/capabilities', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() as Promise<{ ready?: boolean }> : null))
+      .then((capability) => {
+        if (active) setCallCapabilityReady(Boolean(capability?.ready))
+      })
+      .catch(() => {
+        if (active) setCallCapabilityReady(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [activeConversationId, conversations])
 
   useEffect(() => {
     if (fullPage) {
@@ -146,18 +213,48 @@ export function FloatingChat({
       fetch('/api/messages/direct', { cache: 'no-store' }).then((response) =>
         response.ok ? response.json() : []
       ),
+      fetch('/api/messages', { cache: 'no-store' }).then((response) =>
+        response.ok ? response.json() : []
+      ),
       fetch('/api/friends/list?limit=100', { cache: 'no-store' }).then((response) =>
         response.ok ? response.json() : { friends: [] }
       ),
-    ]).then(([conversationData, friendData]) => {
-      setConversations(conversationData as Conversation[])
+      fetch('/api/messages/requests', { cache: 'no-store' }).then((response) =>
+        response.ok ? response.json() : []
+      ),
+    ]).then(([conversationData, groupConversationData, friendData, requestData]) => {
+      const directConversations = (conversationData as Conversation[]).map(
+        normalizeDirectConversation
+      )
+      const groupConversations = (groupConversationData as GroupConversationRecord[]).map(
+        normalizeGroupConversation
+      )
+      setConversations(
+        [...directConversations, ...groupConversations].sort((left, right) =>
+          (right.latestMessageAt ?? '').localeCompare(left.latestMessageAt ?? '')
+        )
+      )
       setFriends(
         ((friendData.friends ?? []) as { friend: Friend }[])
           .map((row) => row.friend)
           .filter((friend) => Boolean(friend?.id))
       )
+      setMessageRequests((requestData as MessengerRequestListItem[]) ?? [])
     })
   }, [user])
+
+  const updateMessageRequest = async (
+    requestId: string,
+    action: 'accept' | 'decline' | 'cancel'
+  ) => {
+    const response = await fetch('/api/messages/requests', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_id: requestId, action }),
+    })
+    if (!response.ok) return
+    setMessageRequests((current) => current.filter((request) => request.id !== requestId))
+  }
 
   // Latest open/active state for the unread poll — read via ref so the
   // polling effect does not re-run (and re-fetch) when the chat window
@@ -173,10 +270,18 @@ export function FloatingChat({
         (response) => (response.ok ? response.json() : [])
       )) as Conversation[]
       const unread = await Promise.all(
-        conversations.map(async (conversation) => {
+        conversations.map(async (record) => {
+          const conversation = normalizeDirectConversation(record)
           // Skip the active conversation while the chat is open — its read
           // state is being persisted and the badge is already cleared.
-          if (chatOpen && conversation.id === activeId) return null
+          if (
+            shouldSkipActiveUnreadRefresh({
+              chatOpen,
+              conversationId: conversation.id,
+              activeConversationId: activeId,
+              manuallyUnreadConversationIds: manuallyUnreadConversationIdsRef.current,
+            })
+          ) return null
           const messages = await fetch(`/api/messages/direct/${conversation.id}?limit=50`, {
             cache: 'no-store',
           }).then((response) => (response.ok ? response.json() : { messages: [] }))
@@ -190,17 +295,17 @@ export function FloatingChat({
           // MY last-read position, so use the current user's read state.
           const myReadState = readStates.find((state) => state.user_id === userId)
           const lastReadIndex = myReadState?.last_read_message_id
-            ? (messages.messages as Message[]).findIndex(
-                (message) => message.id === myReadState.last_read_message_id
+            ? (messages.messages as Array<{ id: string }>).findIndex(
+              (message) => message.id === myReadState.last_read_message_id
               )
             : -1
           const count = Math.max(
             0,
-            (messages.messages as Message[]).filter(
+            (messages.messages as Array<{ sender_id: string; id: string }>).filter(
               (message, index) => message.sender_id !== userId && index > lastReadIndex
             ).length
           )
-          return count > 0 ? { ...conversation, unread_count: count } : null
+          return count > 0 ? { id: conversation.id, unread_count: count } : null
         })
       )
       const nextUnread = unread.filter((conversation): conversation is UnreadConversation =>
@@ -216,7 +321,11 @@ export function FloatingChat({
   }, [user, userId])
 
   useEffect(() => {
-    const handleOpen = () => setOpen(true)
+    const handleOpen = () => {
+      setOpen(true)
+      setActiveConversationId(null)
+      setMobileConversationOpen(false)
+    }
     window.addEventListener(openEventName, handleOpen)
     return () => window.removeEventListener(openEventName, handleOpen)
   }, [openEventName])
@@ -228,6 +337,7 @@ export function FloatingChat({
   unreadRef.current = unreadConversations
   useEffect(() => {
     if (!open || !activeConversationId) return
+    manuallyUnreadConversationIdsRef.current.delete(activeConversationId)
     const current = unreadRef.current
     const next = current.filter((conversation) => conversation.id !== activeConversationId)
     if (next.length === current.length) return
@@ -237,28 +347,134 @@ export function FloatingChat({
 
   useEffect(() => {
     if (!activeConversationId) return
+    const historyController = new AbortController()
     // Clear the previous conversation's messages immediately so the
     // window does not briefly show stale messages while the new ones load.
     setMessages([])
+    setReplyingToMessageId(null)
+    setMentionUserIds([])
+    setPinnedMessageIds(new Set())
+    setMessageLoadError(null)
+    setConversationUnavailable(false)
+    setConnectionError(false)
+    setActiveConversationMuted(false)
+    setActiveConversationArchived(archivedConversationIds.has(activeConversationId))
+    setActiveConversationRestricted(false)
+    setHasMoreMessages(false)
+    setNextMessageCursor(null)
     lastMessageCountRef.current = 0
     setLoadingMessages(true)
-    void fetch(`/api/messages/direct/${activeConversationId}?limit=50`, { cache: 'no-store' })
-      .then((response) => response.json())
+    const activeConversation = conversationsRef.current.find(
+      (conversation) => conversation.id === activeConversationId
+    )
+    const isGroupConversation = activeConversation?.kind === 'messenger_group'
+    const groupId = activeConversation?.groupId
+    const historyUrl = isGroupConversation && groupId
+      ? `/api/groups/${groupId}/chat?channel_id=${encodeURIComponent(activeConversationId)}`
+      : `/api/messages/direct/${activeConversationId}?limit=50`
+    const settingsUrl = isGroupConversation
+      ? `/api/messages/group/${activeConversationId}/settings`
+      : `/api/messages/direct/${activeConversationId}/settings`
+    void Promise.all([
+        fetch(settingsUrl, { cache: 'no-store' }),
+        ...(isGroupConversation
+          ? []
+          : [fetch(`/api/messages/direct/${activeConversationId}/restriction`, { cache: 'no-store' })]),
+      ])
+        .then(async ([settingsResponse, restrictionResponse]) => ({
+          settings: settingsResponse.ok ? await settingsResponse.json() : null,
+          restriction: restrictionResponse?.ok ? await restrictionResponse.json() : null,
+        }))
+        .then(({ settings, restriction }) => {
+          if (settings) {
+            setActiveConversationMuted(Boolean(settings.is_muted))
+            setActiveConversationArchived(Boolean(settings.is_archived))
+            setArchivedConversationIds((current) => {
+              const next = new Set(current)
+              if (settings.is_archived) next.add(activeConversationId)
+              else next.delete(activeConversationId)
+              return next
+            })
+          }
+          if (restriction) setActiveConversationRestricted(Boolean(restriction.restricted))
+        })
+    void fetch(historyUrl, { cache: 'no-store', signal: historyController.signal })
+      .then((response) => {
+        if (response.status === 403 || response.status === 404) {
+          setConversationUnavailable(true)
+          throw new DOMException('Conversation unavailable', 'AbortError')
+        }
+        if (!response.ok) throw new Error('Unable to load message history')
+        return response.json()
+      })
       .then(async (data) => {
-        setMessages((data.messages ?? []) as Message[])
-        const latestMessage = (data.messages as Message[]).at(-1)
+        const normalizedMessages = isGroupConversation
+          ? (data as Array<Parameters<typeof normalizeGroupMessage>[0]>).map(normalizeGroupMessage)
+          : (data.messages ?? []).map(normalizeDirectMessage)
+        if (!isGroupConversation) {
+          await Promise.all(normalizedMessages.map(async (message: MessengerMessage) => {
+            const attachmentResponse = await fetch(
+              `/api/messages/direct/${activeConversationId}/attachments?message_id=${encodeURIComponent(message.id)}`,
+              { cache: 'no-store', signal: historyController.signal }
+            )
+            if (!attachmentResponse.ok) return
+            const attachments = await attachmentResponse.json() as Array<{
+              id: string
+              file_name: string
+              mime_type: string
+              file_size: number
+            }>
+            message.attachments = attachments.map((attachment) => ({
+              id: attachment.id,
+              fileName: attachment.file_name,
+              mimeType: attachment.mime_type,
+              fileSize: attachment.file_size,
+            }))
+          }))
+        }
+        setMessages(normalizedMessages)
+        if (!isGroupConversation) {
+          const pins = await Promise.all(normalizedMessages.map(async (message: MessengerMessage) => {
+            const response = await fetch(
+              `/api/messages/direct/${activeConversationId}/pins?message_id=${encodeURIComponent(message.id)}`,
+              { cache: 'no-store', signal: historyController.signal }
+            )
+            if (!response.ok) return null
+            const pin = await response.json() as { message_id?: string } | null
+            return pin?.message_id ?? null
+          }))
+          setPinnedMessageIds(new Set(pins.filter((id): id is string => Boolean(id))))
+        }
+        setHasMoreMessages(!isGroupConversation && Boolean(data.has_more))
+        setNextMessageCursor(!isGroupConversation ? (data.next_cursor ?? null) : null)
+        const latestMessage = normalizedMessages.at(-1)
         if (latestMessage) {
-          await fetch(`/api/messages/direct/${activeConversationId}/read-state`, {
+          const readStateUrl = isGroupConversation && groupId
+            ? `/api/groups/${groupId}/chat/read-state`
+            : `/api/messages/direct/${activeConversationId}/read-state`
+          const readStateBody = isGroupConversation
+            ? { channel_id: activeConversationId, last_read_at: latestMessage.createdAt }
+            : { last_read_message_id: latestMessage.id }
+          await fetch(readStateUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ last_read_message_id: latestMessage.id }),
+            body: JSON.stringify(readStateBody),
+            signal: historyController.signal,
           })
           setUnreadConversations((current) =>
             current.filter((conversation) => conversation.id !== activeConversationId)
           )
         }
       })
-      .finally(() => setLoadingMessages(false))
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        if (historyController.signal.aborted) return
+        setMessages([])
+        setMessageLoadError('Unable to load messages. Please try again.')
+      })
+      .finally(() => {
+        if (!historyController.signal.aborted) setLoadingMessages(false)
+      })
 
     const client = createBrowserClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
@@ -271,15 +487,17 @@ export function FloatingChat({
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'direct_conversation_messages',
-          filter: `conversation_id=eq.${activeConversationId}`,
+          table: isGroupConversation ? 'group_chat_messages' : 'direct_conversation_messages',
+          filter: `${isGroupConversation ? 'channel_id' : 'conversation_id'}=eq.${activeConversationId}`,
         },
         (payload) => {
-          const message = payload.new as Message
+          const message = isGroupConversation
+            ? normalizeGroupMessage(payload.new as Parameters<typeof normalizeGroupMessage>[0])
+            : normalizeDirectMessage(payload.new as Parameters<typeof normalizeDirectMessage>[0])
           setMessages((current) =>
-            current.some((item) => item.id === message.id) ? current : [...current, message]
+            appendUniqueMessage(current, message)
           )
-          if (message.sender_id !== userId) {
+          if (message.senderId !== userId && !isGroupConversation) {
             if (open) {
               void fetch(`/api/messages/direct/${activeConversationId}/read-state`, {
                 method: 'POST',
@@ -304,13 +522,32 @@ export function FloatingChat({
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setConnectionError(false)
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          setConnectionError(true)
+        }
+      })
     channelRef.current = channel
     return () => {
+      historyController.abort()
       channelRef.current = null
       void client.removeChannel(channel)
     }
-  }, [activeConversationId, userId, open])
+  }, [activeConversationId, userId, open, messageLoadAttempt, reconnectAttempt])
+
+  useEffect(() => {
+    const activeConversation = conversations.find(
+      (conversation) => conversation.id === activeConversationId
+    )
+    if (!activeConversation?.groupId) {
+      setGroupMembers([])
+      return
+    }
+    void fetch(`/api/messages/group/${activeConversation.groupId}/members`, { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((members) => setGroupMembers(members as Friend[]))
+  }, [activeConversationId, conversations])
 
   const openConversation = async (friendId: string) => {
     const response = await fetch('/api/messages/direct', {
@@ -323,36 +560,75 @@ export function FloatingChat({
     setConversations((current) =>
       current.some((item) => item.id === conversation.id)
         ? current
-        : [...current, { id: conversation.id, participant_id: friendId }]
+        : [
+            ...current,
+            {
+              id: conversation.id,
+              kind: 'direct',
+              participantId: friendId,
+              title: null,
+              latestMessagePreview: null,
+              latestMessageAt: null,
+            },
+          ]
     )
     setActiveConversationId(conversation.id)
   }
 
   const send = async (body: string): Promise<boolean> => {
     if (!activeConversationId || !body.trim()) return false
+    const activeConversation = conversations.find(
+      (conversation) => conversation.id === activeConversationId
+    )
+    const isGroupConversation = activeConversation?.kind === 'messenger_group'
+    const groupId = activeConversation?.groupId
+    if (isGroupConversation && !groupId) return false
     const trimmedBody = body.trim()
     // Optimistic update: show the message immediately, replace with the
     // server response (or remove on failure) without waiting on realtime.
     const optimisticId = `optimistic-${Date.now()}`
-    const optimisticMessage: Message = {
+    const optimisticMessage: MessengerMessage = {
       id: optimisticId,
-      sender_id: userId ?? '',
+      senderId: userId ?? '',
       body: trimmedBody,
-      created_at: new Date().toISOString(),
-      deleted_at: null,
+      createdAt: new Date().toISOString(),
+      deletedAt: null,
+      readAt: null,
+      readBy: null,
+      mentionUserIds,
+      ...(replyingToMessageId ? { replyToMessageId: replyingToMessageId } : {}),
     }
     setMessages((current) => [...current, optimisticMessage])
     try {
-      const response = await fetch(`/api/messages/direct/${activeConversationId}`, {
+      const response = await fetch(
+        isGroupConversation
+          ? `/api/groups/${groupId}/chat`
+          : `/api/messages/direct/${activeConversationId}`,
+        {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: trimmedBody }),
-      })
+        body: JSON.stringify(
+          isGroupConversation
+            ? { channel_id: activeConversationId, message: trimmedBody }
+            : {
+                body: trimmedBody,
+                mention_user_ids: mentionUserIds,
+                ...(replyingToMessageId ? { reply_to_message_id: replyingToMessageId } : {}),
+              }
+        ),
+        }
+      )
       if (!response.ok) throw new Error('Send failed')
-      const saved = (await response.json()) as Message
+      const responseData = await response.json()
+      const saved = isGroupConversation
+        ? normalizeGroupMessage(responseData as Parameters<typeof normalizeGroupMessage>[0])
+        : normalizeDirectMessage(responseData as Parameters<typeof normalizeDirectMessage>[0])
       setMessages((current) =>
         current.map((message) => (message.id === optimisticId ? saved : message))
       )
+      lastSentMessageIdRef.current = saved.id
+      setReplyingToMessageId(null)
+      setMentionUserIds([])
       return true
     } catch {
       // Roll back the optimistic message; returning false keeps the draft.
@@ -361,21 +637,414 @@ export function FloatingChat({
     }
   }
 
-  if (authLoading || !user) return null
+  const uploadDirectAttachments = async (messageId: string, files: File[]) => {
+    if (!activeConversationId || activeConversation?.kind !== 'direct') return
+    const uploadedAttachments = await Promise.all(files.map(async (file) => {
+      const formData = new FormData()
+      formData.set('file', file)
+      formData.set('message_id', messageId)
+      const response = await fetch(`/api/messages/direct/${activeConversationId}/attachments`, {
+        method: 'POST',
+        body: formData,
+      })
+      if (!response.ok) return null
+      return await response.json() as {
+        id: string
+        file_name: string
+        mime_type: string
+        file_size: number
+      }
+    }))
+    const attachments = uploadedAttachments.filter((attachment): attachment is NonNullable<typeof attachment> => Boolean(attachment))
+    if (attachments.length) {
+      setMessages((current) => current.map((message) => message.id === messageId
+        ? {
+            ...message,
+            attachments: [
+              ...(message.attachments ?? []),
+              ...attachments.map((attachment) => ({
+                id: attachment.id,
+                fileName: attachment.file_name,
+                mimeType: attachment.mime_type,
+                fileSize: attachment.file_size,
+              })),
+            ],
+          }
+        : message
+      ))
+    }
+  }
+
+  const searchGifs = useMemo(
+    () => async (query: string): Promise<ChatComposerGif[]> => {
+      const response = query.toLowerCase() === 'trending'
+        ? await giphyFetch.trending({ offset: 0, limit: 12, rating: 'pg-13' })
+        : await giphyFetch.search(query, { offset: 0, limit: 12, rating: 'pg-13', lang: 'en' })
+      return response.data.flatMap((gif) => {
+        const url = gif.images.fixed_width?.url || gif.images.original?.url
+        return url ? [{ id: String(gif.id), title: gif.title || 'GIF', url }] : []
+      })
+    },
+    [giphyFetch]
+  )
+
+  const searchStickers = useMemo(
+    () => async (query: string): Promise<ChatComposerGif[]> => {
+      const response = await giphyFetch.search(query === 'trending' ? 'popular' : query, {
+        offset: 0,
+        limit: 12,
+        rating: 'pg-13',
+        lang: 'en',
+        type: 'stickers',
+      })
+      return response.data.flatMap((sticker) => {
+        const url = sticker.images.fixed_width?.url || sticker.images.original?.url
+        return url ? [{ id: String(sticker.id), title: sticker.title || 'Sticker', url }] : []
+      })
+    },
+    [giphyFetch]
+  )
+
+  const leaveActiveGroup = async () => {
+    const activeConversation = conversations.find(
+      (conversation) => conversation.id === activeConversationId
+    )
+    if (!activeConversation?.groupId || leavingGroup || !userId) return
+    setLeavingGroup(true)
+    try {
+      const response = await fetch(
+        `/api/messages/group/${activeConversation.groupId}/members/${userId}`,
+        { method: 'DELETE' }
+      )
+      if (!response.ok) return
+      setConversations((current) => current.filter((item) => item.id !== activeConversation.id))
+      setActiveConversationId(null)
+      setMobileConversationOpen(false)
+    } finally {
+      setLeavingGroup(false)
+    }
+  }
+
+  const activeConversationForPermissions = conversations.find(
+    (conversation) => conversation.id === activeConversationId
+  )
+  const activeGroupId =
+    activeConversationForPermissions?.kind === 'messenger_group'
+      ? activeConversationForPermissions.groupId ?? null
+      : null
+  const { hasPermission: hasGroupPermission } = useGroupPermissions(
+    activeGroupId,
+    userId ?? undefined
+  )
+  const canInviteGroupMembers = Boolean(
+    activeGroupId && hasGroupPermission('invite_members')
+  )
+  const groupMemberIds = new Set(groupMembers.map((member) => member.id))
+  const inviteCandidates = friends.filter((friend) => !groupMemberIds.has(friend.id))
+
+  const inviteGroupMember = async (memberId: string) => {
+    if (!activeGroupId || !canInviteGroupMembers || invitingMemberId) return
+    setInvitingMemberId(memberId)
+    try {
+      const response = await fetch(`/api/messages/group/${activeGroupId}/invitations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invitee_user_id: memberId }),
+      })
+      if (response.ok) {
+        setGroupMembers((current) => current.filter((member) => member.id !== memberId))
+      }
+    } finally {
+      setInvitingMemberId(null)
+    }
+  }
+
+  const editDirectMessage = async (messageId: string) => {
+    if (!activeConversationId || activeConversation?.kind !== 'direct') return
+    const message = messages.find((item) => item.id === messageId)
+    const body = window.prompt('Edit message', message?.body ?? '')?.trim()
+    if (!body || body === message?.body) return
+    const response = await fetch(
+      `/api/messages/direct/${activeConversationId}/messages/${messageId}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body }),
+      }
+    )
+    if (!response.ok) return
+    const updated = normalizeDirectMessage(
+      (await response.json()) as Parameters<typeof normalizeDirectMessage>[0]
+    )
+    setMessages((current) => current.map((item) => (item.id === messageId ? { ...item, ...updated } : item)))
+  }
+
+  const deleteDirectMessage = async (messageId: string) => {
+    if (!activeConversationId || activeConversation?.kind !== 'direct') return
+    const response = await fetch(
+      `/api/messages/direct/${activeConversationId}/messages/${messageId}`,
+      { method: 'DELETE' }
+    )
+    if (!response.ok) return
+    setMessages((current) =>
+      current.map((item) => (item.id === messageId ? { ...item, deletedAt: new Date().toISOString() } : item))
+    )
+  }
+
+  const reactToDirectMessage = async (messageId: string) => {
+    if (!activeConversationId) return
+    const isGroup = activeConversation?.kind === 'messenger_group'
+    const groupId = activeConversation?.groupId
+    if (isGroup && !groupId) return
+    await fetch(
+      isGroup
+        ? `/api/groups/${groupId}/chat/reactions`
+        : `/api/messages/direct/${activeConversationId}/reactions`,
+      {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message_id: messageId, reaction: '👍' }),
+      }
+    )
+  }
+
+  const copyDirectMessage = async (messageId: string) => {
+    const message = messages.find((item) => item.id === messageId)
+    if (!message?.body) return
+    await navigator.clipboard.writeText(message.body)
+  }
+
+  const forwardMessageToFriend = async (friendId: string) => {
+    if (!forwardingMessage) return
+    const response = await fetch('/api/messages/direct', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: friendId }),
+    })
+    if (!response.ok) return
+    const conversation = await response.json() as { id: string }
+    const sendResponse = await fetch(`/api/messages/direct/${conversation.id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: forwardingMessage.body }),
+    })
+    if (!sendResponse.ok) return
+    setForwardingMessage(null)
+    setConversations((current) => current.some((item) => item.id === conversation.id)
+      ? current
+      : [...current, {
+        id: conversation.id,
+        kind: 'direct',
+        participantId: friendId,
+        title: null,
+        latestMessagePreview: forwardingMessage.body,
+        latestMessageAt: new Date().toISOString(),
+      }])
+    setActiveConversationId(conversation.id)
+    setMobileConversationOpen(true)
+  }
+
+  const toggleDirectMessagePin = async (messageId: string) => {
+    if (!activeConversationId || activeConversation?.kind !== 'direct') return
+    const pinned = pinnedMessageIds.has(messageId)
+    const response = await fetch(`/api/messages/direct/${activeConversationId}/pins${pinned ? `?message_id=${messageId}` : ''}`, {
+      method: pinned ? 'DELETE' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      ...(pinned ? {} : { body: JSON.stringify({ message_id: messageId }) }),
+    })
+    if (!response.ok) return
+    setPinnedMessageIds((current) => {
+      const next = new Set(current)
+      if (pinned) next.delete(messageId)
+      else next.add(messageId)
+      return next
+    })
+  }
+
+  const deleteDirectMessageForMe = async (messageId: string) => {
+    if (!activeConversationId || activeConversation?.kind !== 'direct') return
+    const response = await fetch(`/api/messages/direct/${activeConversationId}/deletions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message_id: messageId }),
+    })
+    if (response.ok) setMessages((current) => current.filter((message) => message.id !== messageId))
+  }
+
+  const reportDirectMessage = async (messageId: string) => {
+    if (!activeConversationId) return
+    const reason = window.prompt('Why are you reporting this message?')?.trim()
+    if (!reason) return
+    await fetch(`/api/messages/direct/${activeConversationId}/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message_id: messageId, reason }),
+    })
+  }
+
+  const markActiveConversationUnread = async () => {
+    if (!activeConversationId || !activeConversation) return
+    const isGroupConversation = activeConversation.kind === 'messenger_group'
+    const response = await fetch(
+      isGroupConversation
+        ? `/api/groups/${activeConversation.groupId}/chat/read-state`
+        : `/api/messages/direct/${activeConversationId}/read-state`,
+      {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: isGroupConversation
+        ? JSON.stringify({ channel_id: activeConversationId, mark_unread: true })
+        : JSON.stringify({ last_read_message_id: null }),
+      }
+    )
+    if (!response.ok) return
+    manuallyUnreadConversationIdsRef.current.add(activeConversationId)
+    setUnreadConversations((current) => {
+      const existing = current.find((conversation) => conversation.id === activeConversationId)
+      if (existing) return current
+      return [...current, { id: activeConversationId, unread_count: 1 }]
+    })
+  }
+
+  const toggleActiveConversationMute = async () => {
+    if (!activeConversationId || !activeConversation) return
+    const nextMuted = !activeConversationMuted
+    const response = await fetch(
+      activeConversation.kind === 'messenger_group'
+        ? `/api/messages/group/${activeConversationId}/settings`
+        : `/api/messages/direct/${activeConversationId}/settings`,
+      {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_muted: nextMuted }),
+      }
+    )
+    if (response.ok) setActiveConversationMuted(nextMuted)
+  }
+
+  const toggleActiveConversationArchive = async () => {
+    if (!activeConversationId || !activeConversation) return
+    const nextArchived = !activeConversationArchived
+    const response = await fetch(
+      activeConversation.kind === 'messenger_group'
+        ? `/api/messages/group/${activeConversationId}/settings`
+        : `/api/messages/direct/${activeConversationId}/settings`,
+      {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_archived: nextArchived }),
+      }
+    )
+    if (!response.ok) return
+    setActiveConversationArchived(nextArchived)
+    setArchivedConversationIds((current) => {
+      const next = new Set(current)
+      if (nextArchived) next.add(activeConversationId)
+      else next.delete(activeConversationId)
+      return next
+    })
+  }
+
+  const toggleActiveConversationRestriction = async () => {
+    if (!activeConversationId || activeConversation?.kind !== 'direct') return
+    const nextRestricted = !activeConversationRestricted
+    const response = await fetch(`/api/messages/direct/${activeConversationId}/restriction`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restricted: nextRestricted }),
+    })
+    if (response.ok) setActiveConversationRestricted(nextRestricted)
+  }
+
+  const blockActiveParticipant = async () => {
+    if (!activeFriend?.id || activeConversation?.kind !== 'direct') return
+    if (!window.confirm(`Block ${activeFriend.name || 'this participant'}?`)) return
+    const response = await fetch('/api/users/block', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: activeFriend.id }),
+    })
+    if (!response.ok) return
+    setConversations((current) => current.filter((item) => item.id !== activeConversationId))
+    setActiveConversationId(null)
+    setMobileConversationOpen(false)
+  }
+
+  const replyingToMessage = messages.find((message) => message.id === replyingToMessageId)
+
+  const loadOlderMessages = async () => {
+    if (
+      !activeConversationId ||
+      activeConversation?.kind !== 'direct' ||
+      !nextMessageCursor ||
+      loadingOlderMessages
+    ) return
+    setLoadingOlderMessages(true)
+    try {
+      const response = await fetch(
+        `/api/messages/direct/${activeConversationId}?limit=50&before=${encodeURIComponent(nextMessageCursor)}`,
+        { cache: 'no-store' }
+      )
+      if (!response.ok) return
+      const data = (await response.json()) as {
+        messages?: Parameters<typeof normalizeDirectMessage>[0][]
+        has_more?: boolean
+        next_cursor?: string | null
+      }
+      const olderMessages = (data.messages ?? []).map(normalizeDirectMessage)
+      const olderPins = await Promise.all(olderMessages.map(async (message) => {
+        const response = await fetch(
+          `/api/messages/direct/${activeConversationId}/pins?message_id=${encodeURIComponent(message.id)}`,
+          { cache: 'no-store' }
+        )
+        if (!response.ok) return null
+        const pin = await response.json() as { message_id?: string } | null
+        return pin?.message_id ?? null
+      }))
+      setPinnedMessageIds((current) => new Set([
+        ...current,
+        ...olderPins.filter((id): id is string => Boolean(id)),
+      ]))
+      setMessages((current) => [
+        ...olderMessages,
+        ...current.filter((message) => !olderMessages.some((older) => older.id === message.id)),
+      ])
+      setHasMoreMessages(Boolean(data.has_more))
+      setNextMessageCursor(data.next_cursor ?? null)
+    } finally {
+      setLoadingOlderMessages(false)
+    }
+  }
+
+  if (authLoading || !user) {
+    if (!authLoading) {
+      window.sessionStorage.removeItem('authorsinfo:floating-chat:open')
+      window.sessionStorage.removeItem('authorsinfo:floating-chat:conversation')
+    }
+    return null
+  }
 
   const friendById = new Map(friends.map((friend) => [friend.id, friend]))
   const activeFriend = conversations.find(
-    (conversation) => conversation.id === activeConversationId
+    (conversation) => conversation.id === activeConversationId && conversation.kind === 'direct'
   )
     ? friendById.get(
         conversations.find((conversation) => conversation.id === activeConversationId)
-          ?.participant_id ?? ''
+          ?.participantId ?? ''
       )
     : null
+  const activeConversation = conversations.find(
+    (conversation) => conversation.id === activeConversationId
+  )
   const railItems = conversations.map((conversation) => ({
     id: conversation.id,
-    participant: friendById.get(conversation.participant_id) ?? null,
-    unreadCount: unreadConversations.find((item) => item.id === conversation.id)?.unread_count,
+    title: conversation.title,
+    participant: friendById.get(conversation.participantId ?? '') ?? null,
+    unreadCount:
+      unreadConversations.find((item) => item.id === conversation.id)?.unread_count ??
+      conversation.unreadCount,
+    lastMessagePreview: conversation.latestMessagePreview,
+    lastMessageAt: conversation.latestMessageAt,
   }))
   const normalizedSearch = conversationSearch.trim().toLowerCase()
   const filteredRailItems = normalizedSearch
@@ -386,12 +1055,15 @@ export function FloatingChat({
         `${friend.name ?? ''} ${friend.email ?? ''}`.toLowerCase().includes(normalizedSearch)
       )
     : friends
+  const filteredByArchive = conversationFilter === 'archived'
+    ? filteredRailItems.filter((item) => archivedConversationIds.has(item.id))
+    : filteredRailItems.filter((item) => !archivedConversationIds.has(item.id))
   const visibleRailItems = conversationFilter === 'unread'
-    ? filteredRailItems.filter((item) => Boolean(item.unreadCount))
+    ? filteredByArchive.filter((item) => Boolean(item.unreadCount))
     : conversationFilter === 'friends'
-      ? filteredRailItems.filter((item) => Boolean(item.participant))
-      : filteredRailItems
-  const visibleContacts = conversationFilter === 'unread' ? [] : filteredFriends
+      ? filteredByArchive.filter((item) => Boolean(item.participant))
+      : filteredByArchive
+  const visibleContacts = conversationFilter === 'unread' || conversationFilter === 'archived' ? [] : filteredFriends
 
   return (
     <div
@@ -411,16 +1083,45 @@ export function FloatingChat({
         >
           <ConversationHeader
             participant={activeFriend ?? null}
+            title={activeConversation?.title ?? (fullPage || open ? 'Messenger' : undefined)}
             presenceLabel={open && activeConversationId ? 'Active conversation' : undefined}
+            connectionLabel={connectionError ? 'Connection lost' : undefined}
             showMinimize={!fullPage}
             showClose={!fullPage}
             showBack={fullPage}
             onBack={() => setMobileConversationOpen(false)}
+            onReconnect={
+              connectionError ? () => setReconnectAttempt((attempt) => attempt + 1) : undefined
+            }
+            onMarkUnread={activeConversation ? () => void markActiveConversationUnread() : undefined}
+            onBlock={activeConversation?.kind === 'direct' ? () => void blockActiveParticipant() : undefined}
+            isMuted={activeConversationMuted}
+            onToggleMute={activeConversation ? () => void toggleActiveConversationMute() : undefined}
+            isArchived={activeConversationArchived}
+            onToggleArchive={activeConversation ? () => void toggleActiveConversationArchive() : undefined}
+            isRestricted={activeConversationRestricted}
+            onToggleRestrict={activeConversation?.kind === 'direct' ? () => void toggleActiveConversationRestriction() : undefined}
+            onAudioCall={callCapabilityReady && activeConversation?.kind === 'direct'
+              ? () => void directCall.startCall('audio')
+              : undefined}
+            onVideoCall={callCapabilityReady && activeConversation?.kind === 'direct'
+              ? () => void directCall.startCall('video')
+              : undefined}
             onMinimize={() => setOpen(false)}
             onClose={() => {
               setOpen(false)
               setActiveConversationId(null)
             }}
+          />
+          <DirectCallPanel
+            status={directCall.status}
+            mediaType={directCall.mediaType}
+            localStream={directCall.localStream}
+            remoteStream={directCall.remoteStream}
+            error={directCall.error}
+            onAccept={() => void directCall.acceptCall()}
+            onDecline={() => void directCall.declineCall()}
+            onEnd={() => void directCall.endCall()}
           />
           <div className={fullPage ? 'flex min-h-0 min-w-0 flex-1' : 'contents'}>
             {fullPage ? (
@@ -431,12 +1132,18 @@ export function FloatingChat({
                   setActiveConversationId(conversationId)
                   setMobileConversationOpen(true)
                 }}
+                mobileVisible={!mobileConversationOpen}
                 contacts={visibleContacts}
                 onSelectContact={(friendId) => void openConversation(friendId)}
                 searchValue={conversationSearch}
                 onSearchChange={setConversationSearch}
                 filter={conversationFilter}
                 onFilterChange={setConversationFilter}
+                messageRequests={messageRequests}
+                currentUserId={userId}
+                onAcceptRequest={(requestId) => void updateMessageRequest(requestId, 'accept')}
+                onDeclineRequest={(requestId) => void updateMessageRequest(requestId, 'decline')}
+                onCancelRequest={(requestId) => void updateMessageRequest(requestId, 'cancel')}
               />
             ) : null}
           <div className={`${fullPage ? 'flex min-w-0 flex-1 flex-col' : 'contents'} ${fullPage && !mobileConversationOpen ? 'hidden md:flex' : ''}`}>
@@ -449,12 +1156,82 @@ export function FloatingChat({
                 participant={activeFriend ?? null}
                 typingUserNames={typingUserNames}
                 loading={loadingMessages}
+                onEdit={activeConversation?.kind === 'direct' ? (messageId) => void editDirectMessage(messageId) : undefined}
+                onDelete={activeConversation?.kind === 'direct' ? (messageId) => void deleteDirectMessage(messageId) : undefined}
+                onReaction={(messageId) => void reactToDirectMessage(messageId)}
+                onCopy={(messageId) => void copyDirectMessage(messageId)}
+                onReport={(messageId) => void reportDirectMessage(messageId)}
+                onReply={setReplyingToMessageId}
+                onForward={(messageId) => {
+                  const message = messages.find((item) => item.id === messageId)
+                  if (message) setForwardingMessage(message)
+                }}
+                pinnedMessageIds={pinnedMessageIds}
+                onTogglePin={(messageId) => void toggleDirectMessagePin(messageId)}
+                onDeleteForMe={(messageId) => void deleteDirectMessageForMe(messageId)}
+                loadError={messageLoadError}
+                conversationUnavailable={conversationUnavailable}
+                onBackToInbox={() => {
+                  setActiveConversationId(null)
+                  setMobileConversationOpen(false)
+                }}
+                onRetry={() => {
+                  setMessageLoadError(null)
+                  setMessageLoadAttempt((attempt) => attempt + 1)
+                }}
+                hasMore={hasMoreMessages && activeConversation?.kind === 'direct'}
+                loadingOlder={loadingOlderMessages}
+                onLoadOlder={() => void loadOlderMessages()}
                 className="floating-chat__messages"
               />
               <ChatComposer
                 conversationId={activeConversationId}
                 onSend={(body) => send(body)}
                 onTyping={broadcastTypingEvent}
+                mentionCandidates={friends.map((friend) => ({ id: friend.id, name: friend.name }))}
+                onMentionIdsChange={setMentionUserIds}
+                emojiOptions={['😀', '😂', '😍', '👍', '❤️', '🎉', '😢', '😮', '😡', '🙏']}
+                gifSearch={searchGifs}
+                onGifSelected={async (gif) => {
+                  const response = await fetch(gif.url)
+                  const blob = await response.blob()
+                  const file = new File([blob], `${gif.id}.gif`, { type: 'image/gif' })
+                  const sent = await send(`GIF: ${gif.title}`)
+                  if (sent && lastSentMessageIdRef.current) {
+                    await uploadDirectAttachments(lastSentMessageIdRef.current, [file])
+                  }
+                }}
+                stickerSearch={searchStickers}
+                onStickerSelected={async (sticker) => {
+                  const response = await fetch(sticker.url)
+                  const blob = await response.blob()
+                  const file = new File([blob], `${sticker.id}.webp`, { type: blob.type || 'image/webp' })
+                  const sent = await send(`Sticker: ${sticker.title}`)
+                  if (sent && lastSentMessageIdRef.current) {
+                    await uploadDirectAttachments(lastSentMessageIdRef.current, [file])
+                  }
+                }}
+                onVoiceNoteSelected={async (file) => {
+                  const sent = await send('Voice message')
+                  if (sent && lastSentMessageIdRef.current) {
+                    await uploadDirectAttachments(lastSentMessageIdRef.current, [file])
+                  }
+                }}
+                onFilesSelected={async (files) => {
+                  const body = files.map((file) => file.name).join(', ')
+                  if (!body) return
+                  const sent = await send(`Shared files: ${body}`)
+                  if (sent && lastSentMessageIdRef.current) {
+                    await uploadDirectAttachments(lastSentMessageIdRef.current, files)
+                  }
+                }}
+                replyContext={replyingToMessage ? {
+                  authorName: replyingToMessage.senderId === userId
+                    ? 'yourself'
+                    : activeFriend?.name || 'participant',
+                  body: replyingToMessage.body,
+                } : null}
+                onCancelReply={() => setReplyingToMessageId(null)}
                 placeholder="Type a message"
                 ariaLabel="Floating chat message"
                 className="floating-chat__composer border-t p-3"
@@ -469,7 +1246,7 @@ export function FloatingChat({
                 Recent chats
               </p>
               {conversations.map((conversation) => {
-                const friend = friendById.get(conversation.participant_id)
+                const friend = friendById.get(conversation.participantId ?? '')
                 return (
                   <button
                     key={conversation.id}
@@ -509,7 +1286,55 @@ export function FloatingChat({
             </div>
           )}
           </div>
-          {fullPage ? <ParticipantDetailsPanel participant={activeFriend ?? null} /> : null}
+          {fullPage ? (
+            <ParticipantDetailsPanel
+              participant={activeFriend ?? null}
+              members={groupMembers}
+              groupTitle={activeConversation?.kind === 'messenger_group' ? activeConversation.title : null}
+              description={activeConversation?.kind === 'messenger_group' ? 'Group conversation' : undefined}
+              canLeave={activeConversation?.kind === 'messenger_group'}
+              onLeave={() => void leaveActiveGroup()}
+              leaving={leavingGroup}
+              canInvite={canInviteGroupMembers}
+              inviteCandidates={inviteCandidates}
+              onInviteMember={(memberId) => void inviteGroupMember(memberId)}
+              invitingMemberId={invitingMemberId}
+              canMarkUnread={Boolean(activeConversation)}
+              onMarkUnread={() => void markActiveConversationUnread()}
+              canBlock={activeConversation?.kind === 'direct'}
+              onBlock={() => void blockActiveParticipant()}
+              canMute={Boolean(activeConversation)}
+              onToggleMute={() => void toggleActiveConversationMute()}
+              isMuted={activeConversationMuted}
+              canArchive={Boolean(activeConversation)}
+              onToggleArchive={() => void toggleActiveConversationArchive()}
+              isArchived={activeConversationArchived}
+              canRestrict={activeConversation?.kind === 'direct'}
+              isRestricted={activeConversationRestricted}
+              onToggleRestrict={() => void toggleActiveConversationRestriction()}
+            />
+          ) : null}
+          {forwardingMessage ? (
+            <div className="absolute inset-x-4 bottom-20 z-10 rounded-lg border bg-background p-3 shadow-xl">
+              <p className="text-sm font-semibold">Forward message</p>
+              <p className="mt-1 truncate text-xs text-muted-foreground">{forwardingMessage.body}</p>
+              <div className="mt-3 grid max-h-40 gap-1 overflow-y-auto">
+                {friends.map((friend) => (
+                  <button
+                    key={friend.id}
+                    type="button"
+                    className="rounded p-2 text-left text-sm hover:bg-muted"
+                    onClick={() => void forwardMessageToFriend(friend.id)}
+                  >
+                    {friend.name || friend.email || 'Friend'}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="mt-2 text-xs text-muted-foreground" onClick={() => setForwardingMessage(null)}>
+                Cancel
+              </button>
+            </div>
+          ) : null}
           </div>
         </section>
       ) : null}
@@ -546,7 +1371,8 @@ export function FloatingChat({
           {unreadConversations
             .filter((conversation) => open || conversation.id !== activeConversationId)
             .map((conversation) => {
-              const friend = friendById.get(conversation.participant_id)
+              const unreadConversation = conversations.find((item) => item.id === conversation.id)
+              const friend = friendById.get(unreadConversation?.participantId ?? '')
               return (
                 <button
                   key={conversation.id}

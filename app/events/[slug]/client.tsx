@@ -189,7 +189,7 @@ export function ClientEventPage({
               activeTab={activeTab}
               onTabChange={handleTabChange}
               entityId={event.id || params.slug}
-              targetType="user"
+              messageTargetUserId={event.created_by}
               isEditable={!!(user && (user.role === 'admin' || user.role === 'super_admin'))}
               isMessageable={true}
               onCoverImageChange={() => {

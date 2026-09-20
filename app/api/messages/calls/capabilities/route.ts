@@ -60,6 +60,8 @@ export async function GET() {
         ready: status.ready,
         reason: status.reason,
         enabled: status.enabled,
+        mode: status.mode,
+        signaling_transport: status.signalingTransport,
         turn_url: status.turnUrl,
         stun_url: status.stunUrl,
         signaling_url: status.signalingUrl,

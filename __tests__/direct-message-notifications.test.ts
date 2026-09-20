@@ -83,6 +83,7 @@ test('dispatches a notification to the other participant after sending', async (
     expect.objectContaining({
       recipient_id: otherUserId,
       source_user_id: userId,
+      message: 'You have a new private message.',
     })
   )
 })

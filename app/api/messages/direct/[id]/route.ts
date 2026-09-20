@@ -3,6 +3,7 @@ import { after } from 'next/server'
 import { z } from 'zod'
 import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
 import { nextErrorResponse } from '@/lib/error-handler'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { NotificationDispatcher } from '@/lib/services/notification-dispatcher'
 
 const identifier = z.string().uuid()
@@ -82,6 +83,7 @@ export async function GET(request: NextRequest, { params }: DirectContext) {
   try {
     const authentication = await requireUser()
     if (!authentication.ok) return authentication.response
+
     const { id } = await params
     const input = historySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams))
     if (!identifier.safeParse(id).success || !input.success) {
@@ -121,6 +123,13 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
   try {
     const authentication = await requireUser()
     if (!authentication.ok) return authentication.response
+    const rate = await checkRateLimit(`messaging:send:${authentication.context.user.id}`)
+    if (!rate.success) {
+      return NextResponse.json({ error: 'Too many messages sent' }, {
+        status: 429,
+        headers: { 'Retry-After': String(Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000))) },
+      })
+    }
     const origin = request.headers.get('origin')
     if (origin && origin !== request.nextUrl.origin) {
       return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
@@ -177,7 +186,9 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
           recipient_id: recipientId,
           type: 'message',
           title: 'New message',
-          message: input.data.body.slice(0, 100),
+          // Private message bodies must never be copied into notifications,
+          // email queues, push payloads, or generic browser surfaces.
+          message: 'You have a new private message.',
           source_user_id: authentication.context.user.id,
           source_type: 'direct_conversation',
           source_id: id,
@@ -191,7 +202,7 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
               recipient_id: mentionedUserId,
               type: 'mention',
               title: 'You were mentioned in a message',
-              message: input.data.body.slice(0, 100),
+              message: 'You were mentioned in a private message.',
               source_user_id: authentication.context.user.id,
               source_type: 'direct_conversation',
               source_id: id,

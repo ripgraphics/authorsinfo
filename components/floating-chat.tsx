@@ -48,6 +48,7 @@ interface Friend {
   name: string | null
   email: string | null
   avatar_url?: string | null
+  role?: string | null
 }
 
 export interface FloatingChatProps {
@@ -1036,6 +1037,13 @@ export function FloatingChat({
   const activeConversation = conversations.find(
     (conversation) => conversation.id === activeConversationId
   )
+  const activeParticipant = activeConversation?.kind === 'messenger_group'
+    ? {
+        id: activeConversation.groupId ?? activeConversation.id,
+        name: activeConversation.title,
+        avatar_url: activeConversation.avatarUrl ?? null,
+      }
+    : activeFriend
   const railItems = conversations.map((conversation) => ({
     id: conversation.id,
     title: conversation.title,
@@ -1082,7 +1090,7 @@ export function FloatingChat({
           }
         >
           <ConversationHeader
-            participant={activeFriend ?? null}
+            participant={activeParticipant ?? null}
             title={activeConversation?.title ?? (fullPage || open ? 'Messenger' : undefined)}
             presenceLabel={open && activeConversationId ? 'Active conversation' : undefined}
             connectionLabel={connectionError ? 'Connection lost' : undefined}
@@ -1153,7 +1161,7 @@ export function FloatingChat({
                 ref={messagesContainerRef}
                 messages={messages}
                 currentUserId={userId}
-                participant={activeFriend ?? null}
+                participant={activeParticipant ?? null}
                 typingUserNames={typingUserNames}
                 loading={loadingMessages}
                 onEdit={activeConversation?.kind === 'direct' ? (messageId) => void editDirectMessage(messageId) : undefined}
@@ -1288,7 +1296,7 @@ export function FloatingChat({
           </div>
           {fullPage ? (
             <ParticipantDetailsPanel
-              participant={activeFriend ?? null}
+              participant={activeParticipant ?? null}
               members={groupMembers}
               groupTitle={activeConversation?.kind === 'messenger_group' ? activeConversation.title : null}
               description={activeConversation?.kind === 'messenger_group' ? 'Group conversation' : undefined}

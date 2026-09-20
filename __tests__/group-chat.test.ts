@@ -10,6 +10,10 @@ jest.mock('@/lib/error-handler', () => ({
     NextResponse.json({ error: 'Operation failed' }, { status: 500 })
   ),
 }))
+jest.mock('next/server', () => ({
+  ...jest.requireActual('next/server'),
+  after: (callback: () => unknown) => { void callback() },
+}))
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => ({ from: mockFrom }) }))
 
 const groupId = '11111111-1111-4111-8111-111111111111'

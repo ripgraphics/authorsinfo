@@ -50,7 +50,11 @@ test('requires authentication for the inbox summary', async () => {
 test('returns only authorized group channels with their latest visible message', async () => {
   const memberships = query({ data: [{ group_id: groupId }], error: null })
   const channels = query({
-    data: [{ id: channelId, group_id: groupId, name: 'General', description: null }],
+    data: [{ id: channelId, group_id: groupId, name: 'General', description: null, history_policy: 'retained_moderated' }],
+    error: null,
+  })
+  const groups = query({
+    data: [{ id: groupId, name: 'Book Club', description: 'Readers', cover_image_id: null }],
     error: null,
   })
   const messages = query({
@@ -68,6 +72,7 @@ test('returns only authorized group channels with their latest visible message',
   mockFrom.mockImplementation((table: string) => {
     if (table === 'group_members') return memberships
     if (table === 'group_chat_channels') return channels
+    if (table === 'groups') return groups
     if (table === 'group_chat_channel_read_state')
       return query({ data: { last_read_at: null }, error: null })
     if (table === 'group_chat_messages') return messages
@@ -83,6 +88,7 @@ test('returns only authorized group channels with their latest visible message',
       group_id: groupId,
       name: 'General',
       description: null,
+      history_policy: 'retained_moderated',
       latest_message: {
         id: '44444444-4444-4444-8444-444444444444',
         channel_id: channelId,
@@ -93,6 +99,9 @@ test('returns only authorized group channels with their latest visible message',
       unread_count: 1,
       kind: 'messenger_group',
       title: 'General',
+      description: 'Readers',
+      avatar_url: null,
+      privacy_mode: 'moderated',
       latest_message_preview: 'Latest message',
       latest_message_at: '2026-09-11T10:00:00.000Z',
     },

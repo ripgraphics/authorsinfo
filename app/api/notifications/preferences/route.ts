@@ -11,6 +11,62 @@ import type {
   PreferenceResponse,
 } from '@/types/notifications';
 
+const livePreferenceColumns = new Set([
+  'friend_request_enabled',
+  'message_enabled',
+  'comment_enabled',
+  'mention_enabled',
+  'achievement_enabled',
+  'challenge_enabled',
+  'streak_enabled',
+  'event_enabled',
+  'admin_enabled',
+  'in_app_enabled',
+  'email_enabled',
+  'push_enabled',
+  'email_frequency',
+  'push_frequency',
+  'quiet_hours_enabled',
+  'quiet_hours_start',
+  'quiet_hours_end',
+  'timezone',
+  'all_notifications_muted',
+  'muted_until',
+]);
+
+function toLivePreferencePatch(payload: UpdatePreferencePayload): Record<string, unknown> {
+  const source = payload as unknown as Record<string, unknown>;
+  const patch: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(source)) {
+    if (livePreferenceColumns.has(key) && value !== undefined) patch[key] = value;
+  }
+
+  if (typeof source.all_notifications_enabled === 'boolean') {
+    patch.all_notifications_muted = !source.all_notifications_enabled;
+  }
+  if (typeof source.global_mute === 'boolean') {
+    patch.all_notifications_muted = source.global_mute;
+  }
+  if (typeof source.default_frequency === 'string') {
+    patch.email_frequency = source.default_frequency;
+    patch.push_frequency = source.default_frequency;
+  }
+
+  const settings = source.notification_settings;
+  if (settings && typeof settings === 'object' && !Array.isArray(settings)) {
+    for (const [type, setting] of Object.entries(settings as Record<string, unknown>)) {
+      if (!setting || typeof setting !== 'object' || Array.isArray(setting)) continue;
+      const enabled = (setting as Record<string, unknown>).in_app;
+      if (typeof enabled === 'boolean' && livePreferenceColumns.has(`${type}_enabled`)) {
+        patch[`${type}_enabled`] = enabled;
+      }
+    }
+  }
+
+  return patch;
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -152,9 +208,14 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    const livePatch = toLivePreferencePatch(payload);
+    if (Object.keys(livePatch).length === 0) {
+      return NextResponse.json({ error: 'No supported preference changes supplied' }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from('notification_preferences')
-      .update(payload)
+      .update(livePatch)
       .eq('user_id', user.id)
       .select()
       .single();

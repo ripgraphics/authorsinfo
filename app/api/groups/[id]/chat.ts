@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
 import { nextErrorResponse } from '@/lib/error-handler'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const identifier = z.string().uuid()
 const historySchema = z
@@ -145,6 +146,13 @@ export async function POST(req: NextRequest, { params }: ChatContext) {
   try {
     const authentication = await requireUser()
     if (!authentication.ok) return authentication.response
+    const rate = await checkRateLimit(`messaging:group-send:${authentication.context.user.id}`)
+    if (!rate.success) {
+      return NextResponse.json({ error: 'Too many messages sent' }, {
+        status: 429,
+        headers: { 'Retry-After': String(Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000))) },
+      })
+    }
     const origin = req.headers.get('origin')
     if (origin && origin !== req.nextUrl.origin) {
       return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
@@ -170,6 +178,35 @@ export async function POST(req: NextRequest, { params }: ChatContext) {
       .select('id, channel_id, user_id, message, created_at')
       .single()
     if (error) throw error
+    const persistedMessage = data as { id?: string } | null
+    after(async () => {
+      try {
+        const { NotificationDispatcher } = await import('@/lib/services/notification-dispatcher')
+        const { data: members } = await supabase
+          .from('group_members')
+          .select('user_id')
+          .eq('group_id', id)
+          .eq('status', 'active')
+
+        const recipients = (Array.isArray(members) ? members : [])
+          .map((member) => (member as { user_id?: string }).user_id)
+          .filter((memberId): memberId is string => Boolean(memberId && memberId !== user.id))
+
+        await Promise.all(recipients.map((recipientId) => NotificationDispatcher.dispatch({
+          recipient_id: recipientId,
+          type: 'message',
+          title: 'New group message',
+          message: 'You have a new group message.',
+          source_user_id: user.id,
+          source_type: 'group_chat_channel',
+          source_id: input.data.channel_id,
+          data: { group_id: id, channel_id: input.data.channel_id, message_id: persistedMessage?.id ?? null },
+        })))
+      } catch {
+        // Notification delivery must never turn a successful message send
+        // into a failed request.
+      }
+    })
     return NextResponse.json(data, {
       status: 201,
       headers: { 'Cache-Control': 'private, no-store' },

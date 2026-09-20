@@ -5,6 +5,10 @@ export interface MessengerConversation {
   kind: MessengerConversationKind
   participantId: string | null
   title: string | null
+  description?: string | null
+  avatarUrl?: string | null
+  privacyMode?: 'private_e2ee' | 'moderated'
+  historyPolicy?: 'retained_moderated'
   latestMessagePreview: string | null
   latestMessageAt: string | null
   unreadCount?: number
@@ -22,6 +26,10 @@ export interface GroupConversationRecord {
   id: string
   group_id: string
   name: string | null
+  description?: string | null
+  avatar_url?: string | null
+  privacy_mode?: 'private_e2ee' | 'moderated'
+  history_policy?: 'retained_moderated'
   latest_message?: {
     message: string | null
     created_at: string | null
@@ -50,6 +58,10 @@ export function normalizeGroupConversation(
     kind: 'messenger_group',
     participantId: null,
     title: conversation.name,
+    description: conversation.description ?? null,
+    avatarUrl: conversation.avatar_url ?? null,
+    privacyMode: conversation.privacy_mode ?? 'moderated',
+    historyPolicy: conversation.history_policy ?? 'retained_moderated',
     latestMessagePreview: conversation.latest_message?.message ?? null,
     latestMessageAt: conversation.latest_message?.created_at ?? null,
     unreadCount: conversation.unread_count,

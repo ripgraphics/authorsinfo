@@ -11,6 +11,27 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+interface NotificationPreferencesRow {
+  all_notifications_muted?: boolean | null
+  muted_until?: string | null
+  quiet_hours_enabled?: boolean | null
+  quiet_hours_start?: string | null
+  quiet_hours_end?: string | null
+  email_enabled?: boolean | null
+  push_enabled?: boolean | null
+  in_app_enabled?: boolean | null
+  friend_request_enabled?: boolean | null
+  message_enabled?: boolean | null
+  comment_enabled?: boolean | null
+  mention_enabled?: boolean | null
+  achievement_enabled?: boolean | null
+  challenge_enabled?: boolean | null
+  streak_enabled?: boolean | null
+  event_enabled?: boolean | null
+  admin_enabled?: boolean | null
+  notification_settings?: Record<string, Record<string, boolean | string>> | null
+}
+
 /**
  * Notification Dispatcher Service
  * Handles creating notifications and routing them to appropriate channels
@@ -96,16 +117,21 @@ export class NotificationDispatcher {
     userId: string,
     type: string,
     channel: 'email' | 'push' | 'in_app',
-    preferences: any
+    preferences: NotificationPreferencesRow | null
   ): Promise<boolean> {
     if (!preferences) return true; // Default to true if no preferences
 
-    // Check global mute
-    if (preferences.global_mute) return false;
+    if (preferences.all_notifications_muted) return false;
+    if (preferences.muted_until && new Date(preferences.muted_until).getTime() > Date.now()) {
+      return false;
+    }
 
     // Check channel default
     const channelKey = `${channel}_enabled`;
-    if (!preferences[channelKey]) return false;
+    if (preferences[channelKey as keyof NotificationPreferencesRow] === false) return false;
+
+    const typeKey = `${type}_enabled` as keyof NotificationPreferencesRow;
+    if (preferences[typeKey] === false) return false;
 
     // Check if in quiet hours
     if (preferences.quiet_hours_enabled && this.isInQuietHours(preferences)) {
@@ -122,7 +148,7 @@ export class NotificationDispatcher {
   /**
    * Check if current time is within quiet hours
    */
-  private static isInQuietHours(preferences: any): boolean {
+  private static isInQuietHours(preferences: NotificationPreferencesRow): boolean {
     if (!preferences.quiet_hours_enabled) return false;
 
     const now = new Date();
@@ -206,15 +232,29 @@ export class NotificationDispatcher {
         return;
       }
 
-      // For now, just log that push would be sent
-      // In production, you would send to Firebase Cloud Messaging or Web Push API
-      for (const subscription of subscriptions) {
-        console.log(`Would send push notification to ${subscription.device_type}:`, {
-          notificationId,
-          deviceId: subscription.device_id,
-          title: payload.title,
-          message: payload.message,
-        });
+      const outboxRows = subscriptions
+        .filter((subscription) => typeof subscription.id === 'string')
+        .map((subscription) => ({
+          notification_id: notificationId,
+          recipient_id: userId,
+          subscription_id: subscription.id,
+          // The dispatcher receives already-sanitized notification text. Keep
+          // private message bodies out of the durable push queue as well.
+          payload: {
+            title: payload.title,
+            message: payload.message,
+            data: payload.data ?? null,
+          },
+        }));
+
+      if (outboxRows.length === 0) return;
+
+      const { error: outboxError } = await supabase
+        .from('notification_push_outbox')
+        .upsert(outboxRows, { onConflict: 'notification_id,subscription_id', ignoreDuplicates: true });
+
+      if (outboxError) {
+        console.error('Failed to queue push notification:', outboxError);
       }
     } catch (error) {
       console.error('Error queuing push notification:', error);

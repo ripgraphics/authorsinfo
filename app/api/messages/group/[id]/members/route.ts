@@ -13,6 +13,10 @@ type MemberRow = {
     name: string | null
     avatar_url?: string | null
   } | null
+  role: {
+    id: string
+    name: string
+  } | null
 }
 
 interface MembersQuery {
@@ -61,19 +65,19 @@ export async function GET(_request: Request, { params }: GroupMembersContext) {
 
     const { data: members, error: membersError } = await supabase
       .from('group_members')
-      .select('user_id, user:users(id, name, avatar_url)')
+      .select('user_id, user:users(id, name, avatar_url), role:group_roles(id, name)')
       .eq('group_id', id)
       .eq('status', 'active')
       .order('created_at', { ascending: true })
     if (membersError) throw membersError
 
     const identities = ((members ?? []) as unknown as MemberRow[])
-      .map((member) => member.user)
-      .filter((member): member is NonNullable<MemberRow['user']> => Boolean(member?.id))
+      .filter((member): member is MemberRow & { user: NonNullable<MemberRow['user']> } => Boolean(member.user?.id))
       .map((member) => ({
-        id: member.id,
-        name: member.name,
-        avatar_url: member.avatar_url ?? null,
+        id: member.user.id,
+        name: member.user.name,
+        avatar_url: member.user.avatar_url ?? null,
+        ...(member.role?.name ? { role: member.role.name } : {}),
       }))
 
     return NextResponse.json(identities, {

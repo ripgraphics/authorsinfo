@@ -175,10 +175,9 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabase
         .from('push_subscriptions')
         .update({
-          endpoint: payload.endpoint,
+          endpoint: payload.endpoint || payload.fcm_token || '',
           auth_key: payload.auth_key,
           p256dh: payload.p256dh,
-          fcm_token: payload.fcm_token,
           is_active: true,
           last_used_at: new Date().toISOString(),
         })
@@ -209,15 +208,9 @@ export async function POST(request: NextRequest) {
           user_id: user.id,
           device_id: payload.device_id,
           device_type: payload.device_type,
-          device_name: payload.device_name || null,
-          endpoint: payload.endpoint || null,
+          endpoint: payload.endpoint || payload.fcm_token || '',
           auth_key: payload.auth_key || null,
           p256dh: payload.p256dh || null,
-          fcm_token: payload.fcm_token || null,
-          browser_name: payload.browser_name || null,
-          browser_version: payload.browser_version || null,
-          os_name: payload.os_name || null,
-          os_version: payload.os_version || null,
         },
       ])
       .select()

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
 import { nextErrorResponse } from '@/lib/error-handler'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const conversationSchema = z
   .object({
@@ -111,6 +112,13 @@ export async function POST(request: NextRequest) {
   try {
     const authentication = await requireUser()
     if (!authentication.ok) return authentication.response
+    const rate = await checkRateLimit(`messaging:conversation:${authentication.context.user.id}`)
+    if (!rate.success) {
+      return NextResponse.json({ error: 'Too many conversation requests' }, {
+        status: 429,
+        headers: { 'Retry-After': String(Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000))) },
+      })
+    }
 
     const origin = request.headers.get('origin')
     if (origin && origin !== request.nextUrl.origin) {

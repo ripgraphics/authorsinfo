@@ -13,6 +13,7 @@ export interface ParticipantDetailsPanelProps {
     id: string
     name: string | null
     avatar_url?: string | null
+    role?: string | null
   }>
   groupTitle?: string | null
   canLeave?: boolean
@@ -100,6 +101,7 @@ export function ParticipantDetailsPanel({
                     size="xs"
                   />
                   <span className="truncate text-sm">{member.name || 'Member'}</span>
+                  {member.role ? <span className="ml-auto text-[10px] text-muted-foreground">{member.role}</span> : null}
                 </div>
               ))}
             </div>

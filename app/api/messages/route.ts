@@ -26,6 +26,8 @@ interface InboxClient {
       | 'group_chat_channels'
       | 'group_chat_messages'
       | 'group_chat_channel_read_state'
+      | 'groups'
+      | 'images'
   ): InboxQuery
 }
 
@@ -38,6 +40,20 @@ interface ChatChannel {
   group_id: string
   name: string | null
   description: string | null
+  history_policy: 'retained_moderated'
+}
+
+interface GroupMetadata {
+  id: string
+  name: string | null
+  description: string | null
+  history_policy: 'retained_moderated'
+  cover_image_id: string | null
+}
+
+interface ImageRecord {
+  id: string
+  url: string | null
 }
 
 interface ChatMessage {
@@ -53,6 +69,9 @@ interface InboxConversation extends ChatChannel {
   unread_count: number
   kind: 'messenger_group'
   title: string | null
+  description: string | null
+  avatar_url: string | null
+  privacy_mode: 'private_e2ee' | 'moderated'
   latest_message_preview: string | null
   latest_message_at: string | null
 }
@@ -81,12 +100,31 @@ export async function GET() {
 
     const { data: channels, error: channelError } = await supabase
       .from('group_chat_channels')
-      .select('id, group_id, name, description')
+      .select('id, group_id, name, description, history_policy')
       .in('group_id', groupIds)
       .is('event_id', null)
       .or('is_event_channel.is.null,is_event_channel.eq.false')
       .order('created_at', { ascending: true })
     if (channelError) throw channelError
+
+    const { data: groups, error: groupsError } = await supabase
+      .from('groups')
+      .select('id, name, description, cover_image_id')
+      .in('id', groupIds)
+    if (groupsError) throw groupsError
+    const groupById = new Map(
+      ((groups ?? []) as GroupMetadata[]).map((group) => [group.id, group])
+    )
+    const coverImageIds = ((groups ?? []) as GroupMetadata[])
+      .map((group) => group.cover_image_id)
+      .filter((imageId): imageId is string => Boolean(imageId))
+    const { data: images, error: imagesError } = coverImageIds.length
+      ? await supabase.from('images').select('id, url').in('id', coverImageIds)
+      : { data: [], error: null }
+    if (imagesError) throw imagesError
+    const imageById = new Map(
+      ((images ?? []) as ImageRecord[]).map((image) => [image.id, image.url])
+    )
 
     const conversations: InboxConversation[] = []
     for (const channel of (channels ?? []) as ChatChannel[]) {
@@ -123,6 +161,10 @@ export async function GET() {
         }).length,
         kind: 'messenger_group',
         title: channel.name,
+        description: channel.description ?? groupById.get(channel.group_id)?.description ?? null,
+        history_policy: channel.history_policy,
+        avatar_url: imageById.get(groupById.get(channel.group_id)?.cover_image_id ?? '') ?? null,
+        privacy_mode: 'moderated',
         latest_message_preview: ((messages ?? [])[0] as ChatMessage)?.message ?? null,
         latest_message_at: ((messages ?? [])[0] as ChatMessage)?.created_at ?? null,
       })

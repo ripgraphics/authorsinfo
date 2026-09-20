@@ -98,6 +98,7 @@ test('inserts a message using the authenticated sender', async () => {
     conversation_id: conversationId,
     sender_id: userId,
     body: 'Hello',
+    mention_user_ids: [],
   })
 })
 

@@ -46,6 +46,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 let supabase: any = null
 let presenceChannel: RealtimeChannel | null = null
 let activityChannel: RealtimeChannel | null = null
+let activeUserId: string | null = null
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error && typeof error === 'object' && 'message' in error) {
@@ -65,6 +66,19 @@ export const useRealtimeStore = create<RealtimeState>()(
 
       initialize: async (userId: string) => {
         try {
+          // Presence and activity state are account-scoped. Clear channels and
+          // persisted in-memory state before a different account initializes.
+          if (activeUserId !== null && activeUserId !== userId) {
+            get().disconnect()
+          }
+          activeUserId = userId
+          set({
+            userPresence: new Map(),
+            onlineUserCount: 0,
+            activityFeed: [],
+            connectionError: null,
+          })
+
           if (!supabaseUrl || !supabaseAnonKey) {
             set({
               isConnected: false,
@@ -290,7 +304,13 @@ export const useRealtimeStore = create<RealtimeState>()(
           activityChannel.unsubscribe()
           activityChannel = null
         }
-        set({ isConnected: false })
+        activeUserId = null
+        set({
+          isConnected: false,
+          userPresence: new Map(),
+          onlineUserCount: 0,
+          activityFeed: [],
+        })
       },
     }),
     {

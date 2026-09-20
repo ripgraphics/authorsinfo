@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import LoginPage from '@/app/login/page'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
 
 const mockSignInWithPassword = jest.fn()
 
@@ -10,8 +11,13 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }))
 
-jest.mock('@/components/ui/use-toast', () => ({
+jest.mock('@/hooks/use-toast', () => ({
   useToast: jest.fn(),
+  setPendingToast: jest.fn(),
+}))
+
+jest.mock('@/hooks/useAuth', () => ({
+  useAuth: jest.fn(() => ({ user: null, loading: false })),
 }))
 
 jest.mock('@supabase/ssr', () => ({
@@ -37,6 +43,7 @@ describe('LoginPage', () => {
       refresh: mockRefresh,
     })
     ;(useToast as jest.Mock).mockReturnValue({ toast: mockToast })
+    ;(useAuth as jest.Mock).mockReturnValue({ user: null, loading: false })
     mockSignInWithPassword.mockResolvedValue({ data: {}, error: null })
     // Mock fetch for user list (useEffect)
     global.fetch = jest.fn().mockResolvedValue({
@@ -48,15 +55,15 @@ describe('LoginPage', () => {
   it('renders login form', async () => {
     render(<LoginPage />)
 
-    expect(screen.getByPlaceholderText('Enter your email')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Enter your password')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
+    expect(await screen.findByPlaceholderText('Enter your email')).toBeInTheDocument()
+    expect(await screen.findByPlaceholderText('Enter your password')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /sign in/i })).toBeInTheDocument()
   })
   it('updates input fields', async () => {
     render(<LoginPage />)
 
-    const emailInput = screen.getByPlaceholderText('Enter your email')
-    const passwordInput = screen.getByPlaceholderText('Enter your password')
+    const emailInput = await screen.findByPlaceholderText('Enter your email')
+    const passwordInput = await screen.findByPlaceholderText('Enter your password')
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
     fireEvent.change(passwordInput, { target: { value: 'password123' } })
@@ -68,8 +75,8 @@ describe('LoginPage', () => {
   it('toggles password visibility', async () => {
     render(<LoginPage />)
 
-    const passwordInput = screen.getByPlaceholderText('Enter your password')
-    const toggleButton = screen.getByRole('button', { name: /show password|hide password/i })
+    const passwordInput = await screen.findByPlaceholderText('Enter your password')
+    const toggleButton = await screen.findByRole('button', { name: /show password|hide password/i })
 
     expect(passwordInput).toHaveAttribute('type', 'password')
 
@@ -104,6 +111,21 @@ describe('LoginPage', () => {
       })
       expect(mockReplace).toHaveBeenCalledWith('/')
       expect(mockRefresh).toHaveBeenCalled()
+    })
+  })
+
+  it('redirects an already authenticated user and explains why', async () => {
+    ;(useAuth as jest.Mock).mockReturnValue({ user: { id: 'sam-id' }, loading: false })
+    window.history.pushState({}, '', '/login?next=%2Fbooks')
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledWith({
+        title: 'Already signed in',
+        description: 'You are already logged in.',
+      })
+      expect(mockReplace).toHaveBeenCalledWith('/books')
     })
   })
 })

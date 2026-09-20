@@ -137,6 +137,27 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, 'id'>
 
+const PENDING_TOAST_KEY = 'authorsinfo:pending-toast'
+
+export function setPendingToast(props: Toast): void {
+  try {
+    window.sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify(props))
+  } catch {
+    // Session storage may be unavailable.
+  }
+}
+
+export function consumePendingToast(): Toast | null {
+  try {
+    const value = window.sessionStorage.getItem(PENDING_TOAST_KEY)
+    if (!value) return null
+    window.sessionStorage.removeItem(PENDING_TOAST_KEY)
+    return JSON.parse(value) as Toast
+  } catch {
+    return null
+  }
+}
+
 function toast({ ...props }: Toast) {
   const id = genId()
 

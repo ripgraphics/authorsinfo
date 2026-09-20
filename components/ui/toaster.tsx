@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useToast } from '@/hooks/use-toast'
+import { consumePendingToast, toast, useToast } from '@/hooks/use-toast'
 import {
   Toast,
   ToastClose,
@@ -13,6 +13,11 @@ import {
 
 export function Toaster() {
   const { toasts } = useToast()
+
+  React.useEffect(() => {
+    const pendingToast = consumePendingToast()
+    if (pendingToast) toast(pendingToast)
+  }, [])
 
   return (
     <ToastProvider swipeDirection="down">

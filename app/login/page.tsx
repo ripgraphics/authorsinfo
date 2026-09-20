@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useToast } from '@/components/ui/use-toast'
+import { setPendingToast, useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
 import {
   Card,
   CardContent,
@@ -35,24 +36,47 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
   const [users, setUsers] = useState<User[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
+  const { user, loading: authLoading } = useAuth()
 
   // Use the correct Supabase client with Database type
-  const supabase = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim()
+  const supabase = useMemo(
+    () => createBrowserClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim()
+    ),
+    []
   )
 
   // Get redirect URL from query parameters
   const searchParams = new URLSearchParams(
     typeof window !== 'undefined' ? window.location.search : ''
   )
-  const redirectTo = searchParams.get('redirect') || '/'
+  const redirectTo = searchParams.get('redirect') || searchParams.get('next') || '/'
+
+  const getReturnPath = () => {
+    if (redirectTo !== '/') return redirectTo
+    if (typeof document === 'undefined' || !document.referrer) return '/'
+
+    try {
+      const referrer = new URL(document.referrer)
+      if (referrer.origin === window.location.origin && referrer.pathname !== '/login') {
+        return `${referrer.pathname}${referrer.search}${referrer.hash}`
+      }
+    } catch {
+      // Fall back to the home page when the referrer is not a valid URL.
+    }
+
+    return '/'
+  }
 
   useEffect(() => {
+    let cancelled = false
+
     async function fetchUsers() {
       setFetchError(null)
       try {
@@ -130,8 +154,22 @@ export default function LoginPage() {
         setFetchError(error?.message || 'Failed to fetch users')
       }
     }
+    if (authLoading) return () => { cancelled = true }
+
+    if (user) {
+      const alreadySignedInToast = { title: 'Already signed in', description: 'You are already logged in.' }
+      setPendingToast(alreadySignedInToast)
+      toast(alreadySignedInToast)
+      router.replace(getReturnPath())
+      return () => { cancelled = true }
+    }
+
+    setIsCheckingSession(false)
     fetchUsers()
-  }, [])
+    return () => {
+      cancelled = true
+    }
+  }, [authLoading, redirectTo, router, toast, user])
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
@@ -215,6 +253,14 @@ export default function LoginPage() {
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Never'
     return new Date(dateString).toLocaleDateString()
+  }
+
+  if (isCheckingSession) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center" role="status">
+        Checking your sign-in status...
+      </div>
+    )
   }
 
   return (

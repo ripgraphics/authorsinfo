@@ -2,17 +2,19 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MessageCircle } from 'lucide-react'
+import { Maximize2, MessageCircle, MoreHorizontal, Pencil, Search } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { GiphyFetch } from '@giphy/js-fetch-api'
 import type { ChatComposerGif } from '@/components/chat-composer'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
+import { useRouter } from 'next/navigation'
 import { broadcastChatUnreadTotal } from '@/hooks/use-chat-unread'
 import { useTypingIndicator } from '@/hooks/use-typing-indicator'
 import { useGroupPermissions } from '@/hooks/useGroupPermissions'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ChatComposer } from '@/components/chat-composer'
 import { ConversationRail } from '@/components/conversation-rail'
 import { ParticipantDetailsPanel } from '@/components/participant-details-panel'
@@ -55,20 +57,24 @@ export interface FloatingChatProps {
   openEventName?: string
   fullPage?: boolean
   initialConversationId?: string | null
+  compactInbox?: boolean
 }
 
 export function FloatingChat({
   openEventName = 'authorsinfo:open-floating-chat',
   fullPage = false,
   initialConversationId = null,
+  compactInbox = false,
 }: FloatingChatProps) {
   const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const userId = user?.id ?? null
   const giphyFetch = useMemo(
     () => new GiphyFetch(process.env.NEXT_PUBLIC_GIPHY_API_KEY || 'dc6zaTOxFJmzC'),
     []
   )
   const [open, setOpen] = useState(fullPage)
+  const compactPanelRef = useRef<HTMLElement | null>(null)
   const [conversations, setConversations] = useState<MessengerConversation[]>([])
   const [friends, setFriends] = useState<Friend[]>([])
   const [messageRequests, setMessageRequests] = useState<MessengerRequestListItem[]>([])
@@ -78,6 +84,7 @@ export function FloatingChat({
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     initialConversationId
   )
+  const [minimizedConversationIds, setMinimizedConversationIds] = useState<string[]>([])
   const [messages, setMessages] = useState<MessengerMessage[]>([])
   const [replyingToMessageId, setReplyingToMessageId] = useState<string | null>(null)
   const [mentionUserIds, setMentionUserIds] = useState<string[]>([])
@@ -191,22 +198,43 @@ export function FloatingChat({
       }
       return
     }
-    const storedOpen = window.sessionStorage.getItem('authorsinfo:floating-chat:open')
-    const storedConversation = window.sessionStorage.getItem(
-      'authorsinfo:floating-chat:conversation'
-    )
+    if (!userId) return
+    const storagePrefix = `authorsinfo:floating-chat:${userId}`
+    const storedOpen = window.sessionStorage.getItem(`${storagePrefix}:open`)
+    const storedConversation = window.sessionStorage.getItem(`${storagePrefix}:conversation`)
     if (storedOpen === 'true') setOpen(true)
-    if (storedConversation) setActiveConversationId(storedConversation)
-  }, [fullPage, initialConversationId])
+    if (storedConversation) {
+      try {
+        const parsed = JSON.parse(storedConversation) as unknown
+        setMinimizedConversationIds(
+          Array.isArray(parsed)
+            ? parsed.filter((value): value is string => typeof value === 'string')
+            : [storedConversation]
+        )
+      } catch {
+        setMinimizedConversationIds([storedConversation])
+      }
+    }
+  }, [fullPage, initialConversationId, userId])
 
   useEffect(() => {
-    window.sessionStorage.setItem('authorsinfo:floating-chat:open', String(open))
-    if (activeConversationId) {
-      window.sessionStorage.setItem('authorsinfo:floating-chat:conversation', activeConversationId)
+    if (!userId) return
+    const storagePrefix = `authorsinfo:floating-chat:${userId}`
+    window.sessionStorage.setItem(`${storagePrefix}:open`, String(open))
+    if (minimizedConversationIds.length > 0) {
+      window.sessionStorage.setItem(`${storagePrefix}:conversation`, JSON.stringify(minimizedConversationIds))
     } else {
-      window.sessionStorage.removeItem('authorsinfo:floating-chat:conversation')
+      window.sessionStorage.removeItem(`${storagePrefix}:conversation`)
     }
-  }, [open, activeConversationId])
+  }, [open, minimizedConversationIds, userId])
+
+  useEffect(() => {
+    if (!userId || !activeConversationId) return
+    if (conversations.length === 0) return
+    if (conversationsRef.current.some((conversation) => conversation.id === activeConversationId)) return
+    setActiveConversationId(null)
+    setMobileConversationOpen(false)
+  }, [conversations, activeConversationId, userId])
 
   useEffect(() => {
     if (!user) return
@@ -323,13 +351,56 @@ export function FloatingChat({
 
   useEffect(() => {
     const handleOpen = () => {
-      setOpen(true)
-      setActiveConversationId(null)
-      setMobileConversationOpen(false)
+      if (compactInbox) {
+        setOpen((current) => !current)
+        setActiveConversationId(null)
+        setMobileConversationOpen(false)
+      } else {
+        setOpen(true)
+        setActiveConversationId(null)
+        setMobileConversationOpen(false)
+      }
     }
     window.addEventListener(openEventName, handleOpen)
     return () => window.removeEventListener(openEventName, handleOpen)
-  }, [openEventName])
+  }, [compactInbox, openEventName])
+
+  useEffect(() => {
+    if (compactInbox) return
+    const handleConversationSelection = (event: Event) => {
+      const conversationId = (event as CustomEvent<{ conversationId?: string }>).detail?.conversationId
+      if (!conversationId) return
+      setActiveConversationId(conversationId)
+      setMobileConversationOpen(true)
+      setOpen(true)
+    }
+    const handleFriendSelection = (event: Event) => {
+      const friendId = (event as CustomEvent<{ friendId?: string }>).detail?.friendId
+      if (!friendId) return
+      setOpen(true)
+      setMobileConversationOpen(true)
+      void openConversation(friendId)
+    }
+    window.addEventListener('authorsinfo:open-floating-conversation', handleConversationSelection)
+    window.addEventListener('authorsinfo:open-floating-friend', handleFriendSelection)
+    return () => {
+      window.removeEventListener('authorsinfo:open-floating-conversation', handleConversationSelection)
+      window.removeEventListener('authorsinfo:open-floating-friend', handleFriendSelection)
+    }
+  }, [compactInbox])
+
+  useEffect(() => {
+    if (!compactInbox || !open) return
+    const handleOutsidePointer = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      if (compactPanelRef.current?.contains(target)) return
+      if (target.closest('.page-header__messages-btn')) return
+      setOpen(false)
+    }
+    document.addEventListener('pointerdown', handleOutsidePointer)
+    return () => document.removeEventListener('pointerdown', handleOutsidePointer)
+  }, [compactInbox, open])
 
   // Clear the unread badge for the active conversation as soon as it is
   // opened — the read state is persisted server-side right after.
@@ -551,6 +622,8 @@ export function FloatingChat({
   }, [activeConversationId, conversations])
 
   const openConversation = async (friendId: string) => {
+    setOpen(true)
+    setMobileConversationOpen(true)
     const response = await fetch('/api/messages/direct', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1078,18 +1151,23 @@ export function FloatingChat({
       className={
         fullPage
           ? 'floating-chat floating-chat--full-page flex h-[calc(100vh-4rem)] w-full'
-          : 'floating-chat fixed bottom-5 right-5 z-50 flex items-end gap-3'
+          : compactInbox
+            ? 'floating-chat floating-chat--compact-inbox fixed right-4 top-16 z-[60] flex items-start gap-3'
+            : 'floating-chat fixed bottom-5 right-5 z-50 flex items-end gap-3'
       }
     >
       {open ? (
         <section
+          ref={compactInbox ? compactPanelRef : undefined}
           className={
             fullPage
               ? 'floating-chat__panel floating-chat__panel--full-page relative flex h-full min-h-0 w-full flex-col overflow-hidden border-0 bg-background shadow-none'
-              : 'floating-chat__panel relative flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl'
+              : compactInbox
+                ? 'floating-chat__panel floating-chat__panel--compact-inbox relative flex h-[calc(100vh-4rem-30px)] max-h-[calc(100vh-4rem-30px)] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl'
+                : 'floating-chat__panel relative flex h-[min(32rem,calc(100vh-6rem))] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl'
           }
         >
-          <ConversationHeader
+          {activeConversationId || fullPage || !compactInbox ? <ConversationHeader
             participant={activeParticipant ?? null}
             title={activeConversation?.title ?? (fullPage || open ? 'Messenger' : undefined)}
             presenceLabel={open && activeConversationId ? 'Active conversation' : undefined}
@@ -1115,12 +1193,49 @@ export function FloatingChat({
             onVideoCall={callCapabilityReady && activeConversation?.kind === 'direct'
               ? () => void directCall.startCall('video')
               : undefined}
-            onMinimize={() => setOpen(false)}
+            onMinimize={() => {
+              if (activeConversationId) {
+                setMinimizedConversationIds((current) => [
+                  activeConversationId,
+                  ...current.filter((id) => id !== activeConversationId),
+                ])
+              }
+              setOpen(false)
+            }}
             onClose={() => {
               setOpen(false)
               setActiveConversationId(null)
+              setMinimizedConversationIds([])
             }}
-          />
+          /> : (
+            <div className="floating-chat__compact-header border-b bg-background px-3 py-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">Chats</h2>
+                <div className="flex items-center gap-1">
+                  <Button type="button" variant="ghost" size="icon" aria-label="More chat options" className="rounded-full">
+                    <MoreHorizontal className="h-5 w-5" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" aria-label="See all in Messenger" className="rounded-full" onClick={() => router.push('/messages')}>
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" aria-label="New message" className="rounded-full" onClick={() => document.querySelector<HTMLInputElement>('[aria-label="Search Messenger"]')?.focus()}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="relative mt-2">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input value={conversationSearch} onChange={(event) => setConversationSearch(event.target.value)} placeholder="Search Messenger" aria-label="Search Messenger" className="h-9 rounded-full bg-muted pl-9" />
+              </div>
+              <div className="mt-2 flex gap-1" role="tablist" aria-label="Messenger categories">
+                {(['all', 'unread', 'friends', 'archived'] as const).map((option) => (
+                  <button key={option} type="button" role="tab" aria-selected={conversationFilter === option} onClick={() => setConversationFilter(option)} className={`rounded-full px-3 py-1.5 text-xs font-medium capitalize ${conversationFilter === option ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                    {option === 'all' ? 'All' : option}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <DirectCallPanel
             status={directCall.status}
             mediaType={directCall.mediaType}
@@ -1260,7 +1375,13 @@ export function FloatingChat({
                     key={conversation.id}
                     type="button"
                     className="floating-chat__conversation flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-muted"
-                    onClick={() => setActiveConversationId(conversation.id)}
+                    onClick={() => {
+                      setOpen(false)
+                      window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))
+                      window.dispatchEvent(new CustomEvent('authorsinfo:open-floating-conversation', {
+                        detail: { conversationId: conversation.id },
+                      }))
+                    }}
                   >
                     <Avatar
                       src={friend?.avatar_url ?? undefined}
@@ -1280,7 +1401,13 @@ export function FloatingChat({
                   key={friend.id}
                   type="button"
                   className="floating-chat__friend flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-muted"
-                  onClick={() => void openConversation(friend.id)}
+                  onClick={() => {
+                    setOpen(false)
+                    window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))
+                    window.dispatchEvent(new CustomEvent('authorsinfo:open-floating-friend', {
+                      detail: { friendId: friend.id },
+                    }))
+                  }}
                 >
                   <Avatar
                     src={friend.avatar_url ?? undefined}
@@ -1346,36 +1473,41 @@ export function FloatingChat({
           </div>
         </section>
       ) : null}
-      {!fullPage ? <div className="floating-chat__launcher-stack relative">
+      {!fullPage && !compactInbox ? <div className="floating-chat__launcher-stack relative">
         <div className="floating-chat__unread-stack absolute bottom-full right-0 mb-3 flex flex-col items-end gap-2">
           {/* Minimized conversation avatar — clicking it reopens the chat */}
-          {!open && activeConversationId && activeFriend ? (
-            <button
-              type="button"
-              className="floating-chat__minimized-conversation relative rounded-full shadow-lg"
-              onClick={() => setOpen(true)}
-              aria-label={`Open chat with ${activeFriend.name || 'friend'}`}
-              title={`Chat with ${activeFriend.name || 'friend'}`}
-            >
-              <Avatar
-                src={activeFriend.avatar_url ?? undefined}
-                name={activeFriend.name ?? ''}
-                alt={activeFriend.name || 'Friend'}
-                size="sm"
-                className="floating-chat__minimized-avatar ring-2 ring-background"
-              />
-              {(() => {
-                const unread = unreadConversations.find(
-                  (conversation) => conversation.id === activeConversationId
-                )
-                return unread && unread.unread_count > 0 ? (
+          {minimizedConversationIds.map((minimizedId) => {
+            const minimizedConversation = conversations.find((conversation) => conversation.id === minimizedId)
+            const friend = friendById.get(minimizedConversation?.participantId ?? '')
+            if (!friend) return null
+            const unread = unreadConversations.find((conversation) => conversation.id === minimizedId)
+            return (
+              <button
+                key={minimizedId}
+                type="button"
+                className="floating-chat__minimized-conversation relative rounded-full shadow-lg"
+                onClick={() => {
+                  setActiveConversationId(minimizedId)
+                  setOpen(true)
+                }}
+                aria-label={`Open chat with ${friend.name || 'friend'}`}
+                title={`Chat with ${friend.name || 'friend'}`}
+              >
+                <Avatar
+                  src={friend.avatar_url ?? undefined}
+                  name={friend.name ?? ''}
+                  alt={friend.name || 'Friend'}
+                  size="sm"
+                  className="floating-chat__minimized-avatar ring-2 ring-background"
+                />
+                {unread && unread.unread_count > 0 ? (
                   <span className="floating-chat__unread-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
                     {unread.unread_count > 99 ? '99+' : unread.unread_count}
                   </span>
-                ) : null
-              })()}
-            </button>
-          ) : null}
+                ) : null}
+              </button>
+            )
+          })}
           {unreadConversations
             .filter((conversation) => open || conversation.id !== activeConversationId)
             .map((conversation) => {
@@ -1410,7 +1542,11 @@ export function FloatingChat({
           type="button"
           size="icon"
           className="floating-chat__launcher h-14 w-14 rounded-full shadow-xl"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setActiveConversationId(null)
+            setMobileConversationOpen(false)
+            setOpen(true)
+          }}
           aria-label="Open chat"
         >
           <MessageCircle className="h-6 w-6" />

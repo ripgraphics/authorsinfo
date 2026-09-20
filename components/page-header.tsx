@@ -136,7 +136,9 @@ export function PageHeader({
               tone="muted"
               badge={unreadChatTotal > 0 ? (unreadChatTotal > 99 ? '99+' : unreadChatTotal) : null}
               className="page-header__messages-btn hidden sm:flex"
-              onClick={() => window.dispatchEvent(new Event('authorsinfo:open-floating-chat'))}
+              onClick={() => {
+                window.dispatchEvent(new Event('authorsinfo:open-messenger-chats'))
+              }}
             />
           ) : null}
 

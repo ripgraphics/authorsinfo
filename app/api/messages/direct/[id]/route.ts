@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { after } from 'next/server'
 import { z } from 'zod'
 import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
-import { nextErrorResponse } from '@/lib/error-handler'
+import { handleDatabaseError, nextErrorResponse } from '@/lib/error-handler'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { NotificationDispatcher } from '@/lib/services/notification-dispatcher'
 
@@ -217,6 +217,10 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
       headers: { 'Cache-Control': 'private, no-store' },
     })
   } catch (error) {
+    if (String(error).includes('row-level security')) {
+      const { message, statusCode } = handleDatabaseError(error, 'Unable to send direct message')
+      return NextResponse.json({ error: message }, { status: statusCode })
+    }
     return nextErrorResponse(error, 'Unable to send direct message', 500, false)
   }
 }

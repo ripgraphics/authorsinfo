@@ -108,6 +108,15 @@ export function handleDatabaseError(
   // Check for specific database error patterns
   const errorString = String(error)
 
+  // Permission errors, including PostgreSQL RLS violations
+  if (
+    errorString.includes('permission') ||
+    errorString.includes('denied') ||
+    errorString.includes('row-level security')
+  ) {
+    return { message: 'You do not have permission to perform this action', statusCode: 403 }
+  }
+
   // Foreign key constraint violations
   if (errorString.includes('foreign key') || errorString.includes('violates')) {
     return { message: 'Invalid reference provided', statusCode: 400 }
@@ -116,11 +125,6 @@ export function handleDatabaseError(
   // Duplicate key/unique constraint violations
   if (errorString.includes('duplicate') || errorString.includes('unique')) {
     return { message: 'This record already exists', statusCode: 409 }
-  }
-
-  // Permission/authorization errors
-  if (errorString.includes('permission') || errorString.includes('denied')) {
-    return { message: 'You do not have permission to perform this action', statusCode: 403 }
   }
 
   // Not found errors

@@ -6,6 +6,10 @@ import { requireUser } from '@/lib/auth/require-auth'
 
 jest.mock('@/lib/auth/require-auth', () => ({ requireUser: jest.fn() }))
 jest.mock('@/lib/error-handler', () => ({
+  handleDatabaseError: jest.fn(() => ({
+    message: 'You do not have permission to perform this action',
+    statusCode: 403,
+  })),
   nextErrorResponse: jest.fn(() => NextResponse.json({ error: 'Operation failed' }, { status: 500 })),
 }))
 jest.mock('next/server', () => {
@@ -94,4 +98,18 @@ test('rejects a reply parent that is not in the conversation', async () => {
 
   expect(response.status).toBe(404)
   expect(messages.insert).not.toHaveBeenCalled()
+})
+
+test('returns forbidden when RLS rejects a blocked direct-message insert', async () => {
+  messages.single.mockResolvedValueOnce({
+    data: null,
+    error: new Error('new row violates row-level security policy for table "direct_conversation_messages"'),
+  })
+
+  const response = await POST(request({ body: 'Blocked message' }), context)
+
+  expect(response.status).toBe(403)
+  await expect(response.json()).resolves.toEqual({
+    error: 'You do not have permission to perform this action',
+  })
 })

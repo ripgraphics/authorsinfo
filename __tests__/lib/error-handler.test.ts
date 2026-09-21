@@ -73,6 +73,13 @@ describe('handleDatabaseError', () => {
     expect(message).toBe('You do not have permission to perform this action')
   })
 
+  it('returns 403 for row-level security violations before generic violations', () => {
+    const err = new Error('new row violates row-level security policy for table "blocks"')
+    const { message, statusCode } = handleDatabaseError(err, 'Database failed')
+    expect(statusCode).toBe(403)
+    expect(message).toBe('You do not have permission to perform this action')
+  })
+
   it('returns 404 for not found errors', () => {
     const err = new Error('no rows returned')
     const { message, statusCode } = handleDatabaseError(err, 'Database failed')

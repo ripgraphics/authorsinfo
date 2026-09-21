@@ -16,6 +16,7 @@ export interface ParticipantDetailsPanelProps {
     role?: string | null
   }>
   groupTitle?: string | null
+  historyPolicy?: 'retained_moderated' | null
   canLeave?: boolean
   onLeave?: () => void
   leaving?: boolean
@@ -50,6 +51,7 @@ export function ParticipantDetailsPanel({
   participant,
   members = [],
   groupTitle,
+  historyPolicy = null,
   canLeave = false,
   onLeave,
   leaving = false,
@@ -86,6 +88,12 @@ export function ParticipantDetailsPanel({
         />
         <h2 className="mt-4 font-semibold">{groupTitle || participant?.name || 'Participant'}</h2>
         <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+        {historyPolicy ? (
+          <div className="mt-4 w-full rounded-md bg-muted/40 px-3 py-2 text-left">
+            <p className="text-[10px] font-semibold uppercase text-muted-foreground">History</p>
+            <p className="mt-1 text-xs">Retained and moderated</p>
+          </div>
+        ) : null}
         {members.length > 0 ? (
           <div className="mt-6 w-full border-t pt-4 text-left">
             <p className="text-xs font-semibold uppercase text-muted-foreground">

@@ -74,3 +74,16 @@ test('exposes archive state toggle for direct conversations', () => {
 
   expect(onToggleArchive).toHaveBeenCalledTimes(1)
 })
+
+test('shows the retained moderated history policy for group conversations', () => {
+  render(
+    <ParticipantDetailsPanel
+      participant={{ id: 'group-1', name: 'Readers' }}
+      groupTitle="Readers"
+      historyPolicy="retained_moderated"
+    />
+  )
+
+  expect(screen.getByText('History')).toBeInTheDocument()
+  expect(screen.getByText('Retained and moderated')).toBeInTheDocument()
+})

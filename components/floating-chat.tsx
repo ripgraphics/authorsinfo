@@ -1488,6 +1488,7 @@ export function FloatingChat({
               participant={activeParticipant ?? null}
               members={groupMembers}
               groupTitle={activeConversation?.kind === 'messenger_group' ? activeConversation.title : null}
+              historyPolicy={activeConversation?.kind === 'messenger_group' ? activeConversation.historyPolicy : null}
               description={activeConversation?.kind === 'messenger_group' ? 'Group conversation' : undefined}
               canLeave={activeConversation?.kind === 'messenger_group'}
               onLeave={() => void leaveActiveGroup()}

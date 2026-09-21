@@ -15,6 +15,7 @@ import { useGroupPermissions } from '@/hooks/useGroupPermissions'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { ChatComposer } from '@/components/chat-composer'
 import { ConversationRail } from '@/components/conversation-rail'
 import { ParticipantDetailsPanel } from '@/components/participant-details-panel'
@@ -1212,17 +1213,34 @@ export function FloatingChat({
             <div className="floating-chat__compact-header border-b bg-background px-3 py-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Chats</h2>
-                <div className="flex items-center gap-1">
-                  <Button type="button" variant="ghost" size="icon" aria-label="More chat options" className="rounded-full" onClick={() => setCompactOptionsOpen((current) => !current)}>
-                    <MoreHorizontal className="h-5 w-5" />
-                  </Button>
-                  <Button type="button" variant="ghost" size="icon" aria-label="See all in Messenger" className="rounded-full" onClick={() => router.push('/messages')}>
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                  <Button type="button" variant="ghost" size="icon" aria-label="New message" className="rounded-full" onClick={() => document.querySelector<HTMLInputElement>('[aria-label="Search Messenger"]')?.focus()}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </div>
+                <TooltipProvider delayDuration={300}>
+                  <div className="flex items-center gap-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon" aria-label="More chat options" className="rounded-full" onClick={() => setCompactOptionsOpen((current) => !current)}>
+                          <MoreHorizontal className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={8} className="z-[100] border-black !bg-black px-2 py-1 text-xs !text-white">More</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon" aria-label="See all in Messenger" className="rounded-full" onClick={() => { setOpen(false); router.push('/messages') }}>
+                          <Maximize2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={8} className="z-[100] border-black !bg-black px-2 py-1 text-xs !text-white">See all in Messenger</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon" aria-label="New message" className="rounded-full" onClick={() => document.querySelector<HTMLInputElement>('[aria-label="Search Messenger"]')?.focus()}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={8} className="z-[100] border-black !bg-black px-2 py-1 text-xs !text-white">New message</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
                 {compactOptionsOpen ? (
                   <div role="menu" aria-label="Messenger options" className="absolute right-3 top-12 z-10 w-48 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg">
                     <button type="button" role="menuitem" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-accent" onClick={() => { setConversationFilter('unread'); setCompactOptionsOpen(false) }}>Show unread chats</button>
@@ -1407,12 +1425,22 @@ export function FloatingChat({
                       }))
                     }}
                   >
-                    <Avatar
-                      src={friend?.avatar_url ?? undefined}
-                      name={friend?.name ?? ''}
-                      alt={friend?.name ?? 'Friend'}
-                      size="xs"
-                    />
+                    <span className="relative shrink-0">
+                      <Avatar
+                        src={friend?.avatar_url ?? undefined}
+                        name={friend?.name ?? ''}
+                        alt={friend?.name ?? 'Friend'}
+                        size="xs"
+                      />
+                      {item.unreadCount ? (
+                        <span
+                          className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-none text-destructive-foreground ring-2 ring-background"
+                          aria-label={`${item.unreadCount} unread messages`}
+                        >
+                          {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold">{friend?.name || conversation.title || 'Private conversation'}</span>
                       {conversation.latestMessagePreview ? <span className="block truncate text-xs text-muted-foreground">{conversation.latestMessagePreview}</span> : null}

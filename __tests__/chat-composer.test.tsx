@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { ChatComposer } from '@/components/chat-composer'
 
 test('inserts a selected emoji into the draft', () => {
@@ -74,7 +74,7 @@ test('exposes a voice note control when recording is enabled', () => {
   expect(screen.getByRole('button', { name: 'Record voice message' })).toBeInTheDocument()
 })
 
-test('sends with Enter but preserves a newline with Shift+Enter', () => {
+test('sends with Enter but preserves a newline with Shift+Enter', async () => {
   const onSend = jest.fn().mockReturnValue(true)
   render(
     <ChatComposer
@@ -90,5 +90,5 @@ test('sends with Enter but preserves a newline with Shift+Enter', () => {
   expect(textbox).toHaveValue('hello')
 
   fireEvent.keyDown(textbox, { key: 'Enter', shiftKey: false })
-  expect(onSend).toHaveBeenCalledWith('hello')
+  await waitFor(() => expect(onSend).toHaveBeenCalledWith('hello'))
 })

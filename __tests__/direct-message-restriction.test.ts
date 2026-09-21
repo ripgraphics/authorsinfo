@@ -70,3 +70,47 @@ test('denies a user outside the conversation', async () => {
   const response = await GET(new NextRequest(`http://localhost/api/messages/direct/${conversationId}/restriction`), context)
   expect(response.status).toBe(403)
 })
+
+test('rejects malformed restriction updates before touching storage', async () => {
+  const response = await PATCH(
+    new NextRequest(`http://localhost/api/messages/direct/${conversationId}/restriction`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restricted: 'yes' }),
+    }),
+    context
+  )
+
+  expect(response.status).toBe(400)
+  expect(restrictions.insert).not.toHaveBeenCalled()
+  expect(restrictions.delete).not.toHaveBeenCalled()
+})
+
+test('rejects cross-origin restriction updates', async () => {
+  const response = await PATCH(
+    new NextRequest(`http://localhost/api/messages/direct/${conversationId}/restriction`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        origin: 'https://attacker.example',
+      },
+      body: JSON.stringify({ restricted: true }),
+    }),
+    context
+  )
+
+  expect(response.status).toBe(403)
+  expect(restrictions.insert).not.toHaveBeenCalled()
+})
+
+test('returns the authentication response without querying conversation data', async () => {
+  mockRequireUser.mockResolvedValue({
+    ok: false,
+    response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+  } as unknown as Awaited<ReturnType<typeof requireUser>>)
+
+  const response = await GET(new NextRequest(`http://localhost/api/messages/direct/${conversationId}/restriction`), context)
+
+  expect(response.status).toBe(401)
+  expect(mockFrom).not.toHaveBeenCalled()
+})

@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { GET } from '@/app/api/messages/direct/[id]/attachments/route'
+import { GET, POST } from '@/app/api/messages/direct/[id]/attachments/route'
 import { requireUser } from '@/lib/auth/require-auth'
 
 jest.mock('@/lib/auth/require-auth', () => ({ requireUser: jest.fn() }))
@@ -125,4 +125,52 @@ test('denies non-participants from listing attachments', async () => {
 
   expect(response.status).toBe(403)
   expect(mockFrom).not.toHaveBeenCalledWith('direct_message_attachments')
+})
+
+test('rejects unsupported upload types before storage', async () => {
+  const form = new FormData()
+  form.append('message_id', messageId)
+  form.append('file', new File(['not an image'], 'payload.exe', { type: 'application/x-msdownload' }))
+
+  const response = await POST(
+    new NextRequest(`http://localhost/api/messages/direct/${conversationId}/attachments`, {
+      method: 'POST',
+      body: form,
+    }),
+    context
+  )
+
+  expect(response.status).toBe(400)
+  expect(mockStorage).not.toHaveBeenCalled()
+})
+
+test('rejects cross-origin upload requests before storage', async () => {
+  const form = new FormData()
+  form.append('message_id', messageId)
+  form.append('file', new File(['content'], 'photo.png', { type: 'image/png' }))
+
+  const response = await POST(
+    new NextRequest(`http://localhost/api/messages/direct/${conversationId}/attachments`, {
+      method: 'POST',
+      headers: { origin: 'https://attacker.example' },
+      body: form,
+    }),
+    context
+  )
+
+  expect(response.status).toBe(403)
+  expect(mockStorage).not.toHaveBeenCalled()
+})
+
+test('denies uploads for non-participants before reading form data', async () => {
+  conversations.maybeSingle.mockResolvedValue({ data: null, error: null })
+  const request = new NextRequest(
+    `http://localhost/api/messages/direct/${conversationId}/attachments`,
+    { method: 'POST', body: new FormData() }
+  )
+
+  const response = await POST(request, context)
+
+  expect(response.status).toBe(403)
+  expect(mockStorage).not.toHaveBeenCalled()
 })

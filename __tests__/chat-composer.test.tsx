@@ -73,3 +73,22 @@ test('exposes a voice note control when recording is enabled', () => {
 
   expect(screen.getByRole('button', { name: 'Record voice message' })).toBeInTheDocument()
 })
+
+test('sends with Enter but preserves a newline with Shift+Enter', () => {
+  const onSend = jest.fn().mockReturnValue(true)
+  render(
+    <ChatComposer
+      conversationId="conversation-1"
+      onSend={onSend}
+    />
+  )
+
+  const textbox = screen.getByRole('textbox')
+  fireEvent.change(textbox, { target: { value: 'hello' } })
+  fireEvent.keyDown(textbox, { key: 'Enter', shiftKey: true })
+  expect(onSend).not.toHaveBeenCalled()
+  expect(textbox).toHaveValue('hello')
+
+  fireEvent.keyDown(textbox, { key: 'Enter', shiftKey: false })
+  expect(onSend).toHaveBeenCalledWith('hello')
+})

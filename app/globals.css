@@ -6,6 +6,17 @@
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
 
+@media (prefers-reduced-motion: reduce) {
+  .conversation-rail *,
+  .conversation-header *,
+  .floating-chat * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Map your existing design-token variables (defined in @layer base :root/.dark) into
    Tailwind v4 theme variable namespaces so utilities like `bg-primary` exist. */
 @theme {

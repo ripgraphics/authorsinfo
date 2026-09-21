@@ -101,3 +101,84 @@ test('denies private event targets to unrelated users', async () => {
   expect(response.status).toBe(403)
   await expect(response.json()).resolves.toEqual({ error: 'Event messaging access denied' })
 })
+
+function asUser(userId: string) {
+  mockRequireUser.mockResolvedValue({
+    ok: true,
+    context: { user: { id: userId }, supabase: { from: mockFrom } },
+  } as unknown as Awaited<ReturnType<typeof requireUser>>)
+}
+
+const unrelatedId = '55555555-5555-4555-8555-555555555555'
+const adminId = '66666666-6666-4666-8666-666666666666'
+
+test('resolves targets for an unrelated requester on a public published event', async () => {
+  asUser(unrelatedId)
+  const events = query({ data: { id: eventId, title: 'Public Event', created_by: ownerId, status: 'published', visibility: 'public' }, error: null })
+  const permissions = query({ data: [], error: null })
+  mockFrom.mockReturnValueOnce(events).mockReturnValueOnce(permissions)
+
+  const response = await GET(
+    new Request(`http://localhost/api/messages/entity/event/${eventId}/targets`),
+    { params: Promise.resolve({ id: eventId }) }
+  )
+
+  expect(response.status).toBe(200)
+  await expect(response.json()).resolves.toEqual({
+    entity_type: 'event',
+    entity_id: eventId,
+    title: 'Public Event',
+    targets: [{ user_id: ownerId, role: 'owner' }],
+  })
+})
+
+test('allows the event owner to resolve targets on a private draft event', async () => {
+  asUser(ownerId)
+  const events = query({ data: { id: eventId, title: 'Private Event', created_by: ownerId, status: 'draft', visibility: 'private' }, error: null })
+  const permissions = query({ data: [], error: null })
+  mockFrom.mockReturnValueOnce(events).mockReturnValueOnce(permissions)
+
+  const response = await GET(
+    new Request(`http://localhost/api/messages/entity/event/${eventId}/targets`),
+    { params: Promise.resolve({ id: eventId }) }
+  )
+
+  expect(response.status).toBe(200)
+  await expect(response.json()).resolves.toMatchObject({
+    targets: [{ user_id: ownerId, role: 'owner' }],
+  })
+})
+
+test('allows a platform admin to resolve targets on a private event', async () => {
+  asUser(adminId)
+  const events = query({ data: { id: eventId, title: 'Private Event', created_by: ownerId, status: 'draft', visibility: 'private' }, error: null })
+  const permissions = query({ data: [{ user_id: adminId }], error: null })
+  mockFrom.mockReturnValueOnce(events).mockReturnValueOnce(permissions)
+
+  const response = await GET(
+    new Request(`http://localhost/api/messages/entity/event/${eventId}/targets`),
+    { params: Promise.resolve({ id: eventId }) }
+  )
+
+  expect(response.status).toBe(200)
+  await expect(response.json()).resolves.toMatchObject({
+    targets: [
+      { user_id: ownerId, role: 'owner' },
+      { user_id: adminId, role: 'admin' },
+    ],
+  })
+})
+
+test('rejects a malformed event identifier before any query', async () => {
+  asUser(ownerId)
+  const events = query({ data: null, error: null })
+  mockFrom.mockReturnValueOnce(events)
+
+  const response = await GET(
+    new Request('http://localhost/api/messages/entity/event/not-a-uuid/targets'),
+    { params: Promise.resolve({ id: 'not-a-uuid' }) }
+  )
+
+  expect(response.status).toBe(400)
+  expect(mockFrom).not.toHaveBeenCalled()
+})

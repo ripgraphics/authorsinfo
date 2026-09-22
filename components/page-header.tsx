@@ -99,6 +99,7 @@ export function PageHeader({
               alt="Author's Info Logo"
               width={135}
               height={45}
+              loading="eager"
               className="h-8 w-auto"
             />
           </Link>

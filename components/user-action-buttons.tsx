@@ -141,6 +141,7 @@ export function UserActionButtons({
   )
   const [isRequestedByMe, setIsRequestedByMe] = useState(false)
   const [isCheckingFriend, setIsCheckingFriend] = useState(true)
+  const [isBlocking, setIsBlocking] = useState(false)
 
   const redirectTarget = useMemo(() => {
     const path = pathname || '/'
@@ -323,6 +324,38 @@ export function UserActionButtons({
     }
   }
 
+  const handleBlockUser = async () => {
+    if (isBlocking || !window.confirm(`Block ${userName || 'this user'}?`)) return
+
+    try {
+      setIsBlocking(true)
+      const response = await fetch('/api/users/block', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId }),
+      })
+      const data = (await response.json().catch(() => null)) as { error?: string } | null
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to block user')
+      }
+
+      toast({
+        title: 'User blocked',
+        description: `${userName || 'This user'} can no longer interact with you directly.`,
+      })
+      router.refresh()
+    } catch (error) {
+      toast({
+        title: 'Unable to block user',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsBlocking(false)
+    }
+  }
+
   return (
     <div className={containerClass}>
       {showMessage && (
@@ -431,8 +464,12 @@ export function UserActionButtons({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem className="cursor-pointer">Report User</DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer text-destructive">
-              Block User
+            <DropdownMenuItem
+              className="cursor-pointer text-destructive"
+              disabled={isBlocking}
+              onClick={() => void handleBlockUser()}
+            >
+              {isBlocking ? 'Blocking...' : 'Block User'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

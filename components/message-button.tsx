@@ -16,6 +16,9 @@ export interface MessageButtonProps {
   variant?: React.ComponentProps<typeof ResponsiveActionButton>['variant']
   size?: React.ComponentProps<typeof ResponsiveActionButton>['size']
   className?: string
+  openInFloatingChat?: boolean
+  floatingParticipantName?: string
+  floatingParticipantAvatarUrl?: string | null
   onClick?: () => void
   onConversationCreated?: (conversationId: string) => void
 }
@@ -29,6 +32,9 @@ export function MessageButton({
   variant = 'default',
   size = 'sm',
   className,
+  openInFloatingChat = false,
+  floatingParticipantName,
+  floatingParticipantAvatarUrl,
   onClick,
   onConversationCreated,
 }: MessageButtonProps) {
@@ -40,6 +46,15 @@ export function MessageButton({
     if ((!targetUserId && !targetUserPermalink) || loading) return
     setLoading(true)
     try {
+      if (openInFloatingChat && targetUserId) {
+        window.dispatchEvent(new CustomEvent('authorsinfo:open-floating-friend', {
+          detail: {
+            friendId: targetUserId,
+            friendName: floatingParticipantName,
+            friendAvatarUrl: floatingParticipantAvatarUrl,
+          },
+        }))
+      }
       const response = await fetch('/api/messages/direct', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,7 +73,18 @@ export function MessageButton({
       }
       onConversationCreated?.(data.id)
       onClick?.()
-      router.push(getDirectMessengerRoute(data.id))
+      if (openInFloatingChat && targetUserId) {
+        window.dispatchEvent(new CustomEvent('authorsinfo:open-floating-friend', {
+          detail: {
+            conversationId: data.id,
+            friendId: targetUserId,
+            friendName: floatingParticipantName,
+            friendAvatarUrl: floatingParticipantAvatarUrl,
+          },
+        }))
+      } else {
+        router.push(getDirectMessengerRoute(data.id))
+      }
     } catch {
       toast({ title: 'Unable to open messages', description: 'Please try again.' })
     } finally {

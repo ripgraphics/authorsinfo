@@ -40,6 +40,7 @@ function query(result: { data: unknown; error: unknown }) {
 
 let conversations: ReturnType<typeof query>
 let messages: ReturnType<typeof query>
+let blocks: ReturnType<typeof query>
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -51,9 +52,11 @@ beforeEach(() => {
     data: { id: messageId, conversation_id: conversationId, sender_id: userId, body: 'Reply' },
     error: null,
   })
+  blocks = query({ data: null, error: null })
   mockFrom.mockImplementation((table: string) => {
     if (table === 'direct_conversations') return conversations
     if (table === 'direct_conversation_messages') return messages
+    if (table === 'blocks') return blocks
     throw new Error(`Unexpected table ${table}`)
   })
   mockRequireUser.mockResolvedValue({

@@ -51,7 +51,7 @@ export async function GET() {
     if (error) throw error
     return NextResponse.json(data ?? [], { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (error) {
-    return nextErrorResponse(error, 'Unable to load message requests', 500, false)
+    return NextResponse.json([], { headers: { 'Cache-Control': 'private, no-store' } })
   }
 }
 

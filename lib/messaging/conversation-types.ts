@@ -4,6 +4,12 @@ export interface MessengerConversation {
   id: string
   kind: MessengerConversationKind
   participantId: string | null
+  participant?: {
+    id: string
+    name: string | null
+    email: string | null
+    avatar_url?: string | null
+  } | null
   title: string | null
   description?: string | null
   avatarUrl?: string | null
@@ -18,6 +24,12 @@ export interface MessengerConversation {
 export interface DirectConversationRecord {
   id: string
   participant_id: string
+  participant?: {
+    id: string
+    name?: string | null
+    email?: string | null
+    avatar_url?: string | null
+  } | null
   last_message_preview?: string | null
   last_message_at?: string | null
 }
@@ -44,7 +56,8 @@ export function normalizeDirectConversation(
     id: conversation.id,
     kind: 'direct',
     participantId: conversation.participant_id,
-    title: null,
+    title: conversation.participant?.name ?? conversation.participant?.email ?? null,
+    avatarUrl: conversation.participant?.avatar_url ?? null,
     latestMessagePreview: conversation.last_message_preview ?? null,
     latestMessageAt: conversation.last_message_at ?? null,
   }

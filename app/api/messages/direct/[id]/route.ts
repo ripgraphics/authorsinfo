@@ -5,6 +5,7 @@ import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
 import { handleDatabaseError, nextErrorResponse } from '@/lib/error-handler'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { NotificationDispatcher } from '@/lib/services/notification-dispatcher'
+import { isBlockedByEitherUser } from '@/lib/messaging/blocking'
 
 const identifier = z.string().uuid()
 const historySchema = z
@@ -75,6 +76,13 @@ async function authorizeConversation(
   if (error) throw error
   if (!data || ![data.user_low_id, data.user_high_id].includes(context.user.id)) {
     return NextResponse.json({ error: 'Conversation access denied' }, { status: 403 })
+  }
+  const otherUserId = data.user_low_id === context.user.id ? data.user_high_id : data.user_low_id
+  if (await isBlockedByEitherUser(context, otherUserId)) {
+    return NextResponse.json(
+      { error: 'This conversation is unavailable', code: 'blocked_user' },
+      { status: 403 }
+    )
   }
   return data
 }
@@ -171,7 +179,10 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
       })
       .select('id, conversation_id, sender_id, body, created_at, read_at, read_by, reply_to_message_id, mention_user_ids')
       .single()
-    if (error) throw error
+    if (error) {
+      const { message, statusCode } = handleDatabaseError(error, 'Unable to send direct message')
+      return NextResponse.json({ error: message }, { status: statusCode })
+    }
 
     const recipientId =
       access.user_low_id === authentication.context.user.id
@@ -217,10 +228,6 @@ export async function POST(request: NextRequest, { params }: DirectContext) {
       headers: { 'Cache-Control': 'private, no-store' },
     })
   } catch (error) {
-    if (String(error).includes('row-level security')) {
-      const { message, statusCode } = handleDatabaseError(error, 'Unable to send direct message')
-      return NextResponse.json({ error: message }, { status: statusCode })
-    }
     return nextErrorResponse(error, 'Unable to send direct message', 500, false)
   }
 }

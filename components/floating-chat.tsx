@@ -202,9 +202,7 @@ export function FloatingChat({
     }
     if (!userId) return
     const storagePrefix = `authorsinfo:floating-chat:${userId}`
-    const storedOpen = window.sessionStorage.getItem(`${storagePrefix}:open`)
     const storedConversation = window.sessionStorage.getItem(`${storagePrefix}:conversation`)
-    if (storedOpen === 'true') setOpen(true)
     if (storedConversation) {
       try {
         const parsed = JSON.parse(storedConversation) as unknown
@@ -222,7 +220,6 @@ export function FloatingChat({
   useEffect(() => {
     if (!userId) return
     const storagePrefix = `authorsinfo:floating-chat:${userId}`
-    window.sessionStorage.setItem(`${storagePrefix}:open`, String(open))
     if (minimizedConversationIds.length > 0) {
       window.sessionStorage.setItem(`${storagePrefix}:conversation`, JSON.stringify(minimizedConversationIds))
     } else {
@@ -377,11 +374,41 @@ export function FloatingChat({
       setOpen(true)
     }
     const handleFriendSelection = (event: Event) => {
-      const friendId = (event as CustomEvent<{ friendId?: string }>).detail?.friendId
+      const detail = (event as CustomEvent<{
+        conversationId?: string
+        friendId?: string
+        friendName?: string
+        friendAvatarUrl?: string | null
+      }>).detail
+      const friendId = detail?.friendId
       if (!friendId) return
       setOpen(true)
       setMobileConversationOpen(true)
-      void openConversation(friendId)
+      setConnectionError(false)
+      if (detail.conversationId) {
+        openExistingConversation(
+          detail.conversationId,
+          friendId,
+          detail.friendName,
+          detail.friendAvatarUrl
+        )
+      } else {
+        setConversations((current) => {
+          if (current.some((conversation) => conversation.participantId === friendId)) return current
+          return [
+            ...current,
+            {
+              id: `pending-${friendId}`,
+              kind: 'direct',
+              participantId: friendId,
+              title: detail.friendName ?? null,
+              avatarUrl: detail.friendAvatarUrl ?? null,
+              latestMessagePreview: null,
+              latestMessageAt: null,
+            },
+          ]
+        })
+      }
     }
     window.addEventListener('authorsinfo:open-floating-conversation', handleConversationSelection)
     window.addEventListener('authorsinfo:open-floating-friend', handleFriendSelection)
@@ -485,6 +512,8 @@ export function FloatingChat({
         const normalizedMessages = isGroupConversation
           ? (data as Array<Parameters<typeof normalizeGroupMessage>[0]>).map(normalizeGroupMessage)
           : (data.messages ?? []).map(normalizeDirectMessage)
+        setMessages(normalizedMessages)
+        setLoadingMessages(false)
         if (!isGroupConversation) {
           await Promise.all(normalizedMessages.map(async (message: MessengerMessage) => {
             const attachmentResponse = await fetch(
@@ -506,7 +535,6 @@ export function FloatingChat({
             }))
           }))
         }
-        setMessages(normalizedMessages)
         if (!isGroupConversation) {
           const pins = await Promise.all(normalizedMessages.map(async (message: MessengerMessage) => {
             const response = await fetch(
@@ -623,7 +651,7 @@ export function FloatingChat({
       .then((members) => setGroupMembers(members as Friend[]))
   }, [activeConversationId, conversations])
 
-  const openConversation = async (friendId: string) => {
+  const openConversation = async (friendId: string, friendName?: string) => {
     setOpen(true)
     setMobileConversationOpen(true)
     const response = await fetch('/api/messages/direct', {
@@ -633,22 +661,64 @@ export function FloatingChat({
     })
     if (!response.ok) return
     const conversation = await response.json()
-    setConversations((current) =>
-      current.some((item) => item.id === conversation.id)
-        ? current
-        : [
-            ...current,
-            {
-              id: conversation.id,
-              kind: 'direct',
-              participantId: friendId,
-              title: null,
-              latestMessagePreview: null,
-              latestMessageAt: null,
-            },
-          ]
-    )
+    setConversations((current) => {
+      const existing = current.find((item) => item.id === conversation.id)
+      if (existing) {
+        return current.map((item) =>
+          item.id === conversation.id && friendName && !item.title
+            ? { ...item, title: friendName }
+            : item
+        )
+      }
+      return [
+        ...current,
+        {
+          id: conversation.id,
+          kind: 'direct',
+          participantId: friendId,
+          title: friendName ?? null,
+          latestMessagePreview: null,
+          latestMessageAt: null,
+        },
+      ]
+    })
     setActiveConversationId(conversation.id)
+  }
+
+  const openExistingConversation = (
+    conversationId: string,
+    friendId: string,
+    friendName?: string,
+    friendAvatarUrl?: string | null
+  ) => {
+    setConversations((current) => {
+      const existing = current.find((item) => item.id === conversationId)
+      const pendingId = `pending-${friendId}`
+      if (existing) {
+        return current.filter((item) => item.id !== pendingId).map((item) =>
+          item.id === conversationId && friendName && !item.title
+            ? {
+                ...item,
+                title: friendName,
+                avatarUrl: friendAvatarUrl ?? item.avatarUrl,
+              }
+            : item
+        )
+      }
+      return [
+        ...current.filter((item) => item.id !== pendingId),
+        {
+          id: conversationId,
+          kind: 'direct',
+          participantId: friendId,
+          title: friendName ?? null,
+          avatarUrl: friendAvatarUrl ?? null,
+          latestMessagePreview: null,
+          latestMessageAt: null,
+        },
+      ]
+    })
+    setActiveConversationId(conversationId)
   }
 
   const send = async (body: string): Promise<boolean> => {
@@ -1101,13 +1171,24 @@ export function FloatingChat({
   }
 
   const friendById = new Map(friends.map((friend) => [friend.id, friend]))
-  const activeFriend = conversations.find(
+  const activeDirectConversation = conversations.find(
     (conversation) => conversation.id === activeConversationId && conversation.kind === 'direct'
   )
-    ? friendById.get(
-        conversations.find((conversation) => conversation.id === activeConversationId)
-          ?.participantId ?? ''
-      )
+  const activeFriend = activeDirectConversation
+    ? (() => {
+        const friend = friendById.get(activeDirectConversation.participantId ?? '')
+        return {
+          id: activeDirectConversation.participantId ?? '',
+          name: friend?.name
+            ?? activeDirectConversation.participant?.name
+            ?? activeDirectConversation.title,
+          email: friend?.email ?? activeDirectConversation.participant?.email ?? null,
+          avatar_url: friend?.avatar_url
+            ?? activeDirectConversation.participant?.avatar_url
+            ?? activeDirectConversation.avatarUrl
+            ?? null,
+        }
+      })()
     : null
   const activeConversation = conversations.find(
     (conversation) => conversation.id === activeConversationId
@@ -1122,7 +1203,14 @@ export function FloatingChat({
   const railItems = conversations.map((conversation) => ({
     id: conversation.id,
     title: conversation.title,
-    participant: friendById.get(conversation.participantId ?? '') ?? null,
+    participant: conversation.participant
+      ? {
+          id: conversation.participant.id,
+          name: conversation.participant.name ?? null,
+          email: conversation.participant.email ?? null,
+          avatar_url: conversation.participant.avatar_url ?? null,
+        }
+      : friendById.get(conversation.participantId ?? '') ?? null,
     unreadCount:
       unreadConversations.find((item) => item.id === conversation.id)?.unread_count ??
       conversation.unreadCount,
@@ -1202,6 +1290,7 @@ export function FloatingChat({
                   ...current.filter((id) => id !== activeConversationId),
                 ])
               }
+              setActiveConversationId(null)
               setOpen(false)
             }}
             onClose={() => {
@@ -1411,7 +1500,14 @@ export function FloatingChat({
               {visibleRailItems.map((item) => {
                 const conversation = conversations.find((candidate) => candidate.id === item.id)
                 if (!conversation) return null
-                const friend = friendById.get(conversation.participantId ?? '')
+                const friend = conversation.participant
+                  ? {
+                      id: conversation.participant.id,
+                      name: conversation.participant.name ?? null,
+                      email: conversation.participant.email ?? null,
+                      avatar_url: conversation.participant.avatar_url ?? null,
+                    }
+                  : friendById.get(conversation.participantId ?? '')
                 return (
                   <button
                     key={conversation.id}
@@ -1442,7 +1538,7 @@ export function FloatingChat({
                       ) : null}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold">{friend?.name || conversation.title || 'Private conversation'}</span>
+                      <span className="block truncate text-sm font-semibold">{friend?.name || friend?.email || conversation.title || 'Conversation'}</span>
                       {conversation.latestMessagePreview ? <span className="block truncate text-xs text-muted-foreground">{conversation.latestMessagePreview}</span> : null}
                     </span>
                     <span className="flex shrink-0 flex-col items-end gap-1">
@@ -1541,7 +1637,25 @@ export function FloatingChat({
           {/* Minimized conversation avatar — clicking it reopens the chat */}
           {minimizedConversationIds.filter((minimizedId) => minimizedId !== activeConversationId).map((minimizedId) => {
             const minimizedConversation = conversations.find((conversation) => conversation.id === minimizedId)
-            const friend = friendById.get(minimizedConversation?.participantId ?? '')
+            const friend = friendById.get(minimizedConversation?.participantId ?? '') ?? (
+              minimizedConversation?.participant
+                ? {
+                    id: minimizedConversation.participant.id,
+                    name: minimizedConversation.participant.name ?? null,
+                    email: minimizedConversation.participant.email ?? null,
+                    avatar_url: minimizedConversation.participant.avatar_url
+                      ?? minimizedConversation.avatarUrl
+                      ?? null,
+                  }
+                : minimizedConversation
+                  ? {
+                      id: minimizedConversation.participantId ?? '',
+                      name: minimizedConversation.title,
+                      email: null,
+                      avatar_url: minimizedConversation.avatarUrl ?? null,
+                    }
+                  : null
+            )
             if (!friend) return null
             const unread = unreadConversations.find((conversation) => conversation.id === minimizedId)
             return (

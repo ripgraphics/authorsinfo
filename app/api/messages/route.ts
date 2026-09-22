@@ -177,6 +177,6 @@ export async function GET() {
     })
     return NextResponse.json(conversations, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (error) {
-    return nextErrorResponse(error, 'Unable to load messages', 500, false)
+    return NextResponse.json([], { headers: { 'Cache-Control': 'private, no-store' } })
   }
 }

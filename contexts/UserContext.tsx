@@ -6,6 +6,7 @@ import { User } from '@supabase/supabase-js'
 import { deduplicatedRequest, debounce, clearCache } from '@/lib/request-utils'
 
 interface UserWithRole extends User {
+  name?: string | null
   role?: string
   permalink?: string | null
   avatar_url?: string | null
@@ -22,9 +23,13 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserWithRole | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim()
+  const supabase = React.useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim()
+      ),
+    []
   )
   const isInitialized = React.useRef(false)
 

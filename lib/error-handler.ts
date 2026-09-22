@@ -46,6 +46,15 @@ function sanitizeErrorForLogging(error: unknown): any {
   }
 }
 
+function databaseErrorText(error: unknown): string {
+  if (!error || typeof error !== 'object') return String(error)
+  const record = error as { code?: unknown; message?: unknown; details?: unknown; hint?: unknown }
+  return [record.code, record.message, record.details, record.hint, String(error)]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+}
+
 /**
  * Sanitizes error for client response (excludes sensitive details)
  * Development: includes error.message
@@ -105,11 +114,13 @@ export function handleDatabaseError(
   // Log the error
   logger.error({ err: sanitizeErrorForLogging(error) }, defaultMessage)
 
-  // Check for specific database error patterns
-  const errorString = String(error)
+  // Check for specific database error patterns. Supabase returns structured
+  // PostgREST errors, so code/message/details must be inspected, not only String(error).
+  const errorString = databaseErrorText(error)
 
   // Permission errors, including PostgreSQL RLS violations
   if (
+    errorString.includes('42501') ||
     errorString.includes('permission') ||
     errorString.includes('denied') ||
     errorString.includes('row-level security')

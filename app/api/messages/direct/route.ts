@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
 import { nextErrorResponse } from '@/lib/error-handler'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { getBlockedUserIds, isBlockedByEitherUser } from '@/lib/messaging/blocking'
 
 const conversationSchema = z
   .object({
@@ -54,7 +55,7 @@ interface ConversationQuery {
 }
 
 interface ConversationSupabaseClient {
-  from(table: 'direct_conversations' | 'direct_conversation_messages' | 'users' | 'user_friends' | 'direct_message_requests'): ConversationQuery
+  from(table: 'direct_conversations' | 'direct_conversation_messages' | 'users' | 'profiles' | 'images' | 'user_friends' | 'direct_message_requests'): ConversationQuery
 }
 
 function getConversationClient(context: AuthenticatedRoute): ConversationSupabaseClient {
@@ -73,7 +74,73 @@ export async function GET() {
     if (error) throw error
 
     const conversationRows = data ?? []
-    const conversationIds = conversationRows.map((conversation) => conversation.id)
+    const blockedUserIds = await getBlockedUserIds(authentication.context)
+    const visibleConversationRows = conversationRows.filter((conversation) => {
+      const participantId = conversation.user_low_id === authentication.context.user.id
+        ? conversation.user_high_id
+        : conversation.user_low_id
+      return !blockedUserIds.has(participantId)
+    })
+    const participantIds = visibleConversationRows.map((conversation) =>
+      conversation.user_low_id === authentication.context.user.id
+        ? conversation.user_high_id
+        : conversation.user_low_id
+    )
+    const participantRows = await Promise.all(
+      participantIds.map(async (participantId) => {
+        try {
+          const { data: participant } = await getConversationClient(authentication.context)
+            .from('users')
+            .select('id, name, email')
+            .eq('id', participantId)
+            .maybeSingle()
+          return participant as {
+            id: string
+            name?: string | null
+            email?: string | null
+          } | null
+        } catch {
+          return null
+        }
+      })
+    )
+    const participantsById = new Map(
+      participantRows
+        .filter(
+          (participant): participant is NonNullable<typeof participant> => Boolean(participant)
+        )
+        .map((participant) => [participant.id, participant])
+    )
+    const { data: profiles, error: profilesError } = participantIds.length
+      ? await getConversationClient(authentication.context)
+        .from('profiles')
+        .select('user_id, avatar_image_id')
+        .in('user_id', participantIds)
+      : { data: [], error: null }
+    // Avatar enrichment is optional; a participant/RLS image lookup must not
+    // make the entire authenticated conversation inbox fail.
+    const avatarImageIds = (profiles ?? [])
+      .map((profile) => (profile as { avatar_image_id?: string | null }).avatar_image_id)
+      .filter((imageId): imageId is string => Boolean(imageId))
+    const { data: images, error: imagesError } = avatarImageIds.length
+      ? await getConversationClient(authentication.context)
+        .from('images')
+        .select('id, url')
+        .in('id', avatarImageIds)
+      : { data: [], error: null }
+    const safeImages = imagesError ? [] : images ?? []
+    const avatarByUserId = new Map<string, string | null>()
+    const imageById = new Map(
+      safeImages.map((image) => {
+        const record = image as { id: string; url?: string | null }
+        return [record.id, record.url ?? null]
+      })
+    )
+    for (const profile of profiles ?? []) {
+      const record = profile as unknown as { user_id: string; avatar_image_id?: string | null }
+      avatarByUserId.set(record.user_id, record.avatar_image_id ? imageById.get(record.avatar_image_id) ?? null : null)
+    }
+    const conversationIds = visibleConversationRows.map((conversation) => conversation.id)
     const latestMessagesByConversation = new Map<string, LatestMessageRow>()
     if (conversationIds.length > 0) {
       const { data: latestMessages, error: latestMessagesError } = await getConversationClient(
@@ -92,14 +159,20 @@ export async function GET() {
       }
     }
 
-    const conversations = conversationRows.map((conversation) => ({
-      ...conversation,
-      participant_id:
-        conversation.user_low_id === authentication.context.user.id
-          ? conversation.user_high_id
-          : conversation.user_low_id,
-      last_message_preview: latestMessagesByConversation.get(conversation.id)?.body ?? null,
-    }))
+    const conversations = visibleConversationRows.map((conversation) => {
+      const participantId = conversation.user_low_id === authentication.context.user.id
+        ? conversation.user_high_id
+        : conversation.user_low_id
+      const participant = participantsById.get(participantId)
+      return {
+        ...conversation,
+        participant_id: participantId,
+        participant: participant
+          ? { ...participant, avatar_url: avatarByUserId.get(participantId) ?? null }
+          : null,
+        last_message_preview: latestMessagesByConversation.get(conversation.id)?.body ?? null,
+      }
+    })
     return NextResponse.json(conversations, {
       headers: { 'Cache-Control': 'private, no-store' },
     })
@@ -144,6 +217,12 @@ export async function POST(request: NextRequest) {
     }
     if (!targetUserId || targetUserId === authentication.context.user.id) {
       return NextResponse.json({ error: 'Invalid conversation target' }, { status: 400 })
+    }
+    if (await isBlockedByEitherUser(authentication.context, targetUserId)) {
+      return NextResponse.json(
+        { error: 'This user is unavailable', code: 'blocked_user' },
+        { status: 403 }
+      )
     }
 
     const userIds = [authentication.context.user.id, targetUserId].sort()

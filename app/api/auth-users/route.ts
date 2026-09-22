@@ -206,21 +206,19 @@ export async function POST(request: Request) {
     }
 
     // Get user data from users table
-    const { data: userData, error: userDataError } = await supabase
-      .from('users')
-      .select(
-        `
-        id,
-        email,
-        name,
-        created_at,
-        updated_at,
-        role_id,
-        permalink
-      `
-      )
-      .eq('id', user.id)
-      .single()
+    let userData: unknown = null
+    let userDataError: unknown = null
+    try {
+      const result = await supabase
+        .from('users')
+        .select('id, email, name, created_at, updated_at, role_id, permalink')
+        .eq('id', user.id)
+        .single()
+      userData = result.data
+      userDataError = result.error
+    } catch (error) {
+      userDataError = error
+    }
 
     if (userDataError) console.warn('User profile enrichment unavailable:', userDataError)
 
@@ -240,19 +238,19 @@ export async function POST(request: Request) {
 
     // Get profile for role and avatar_image_id
     // Profile might not exist for all users - handle gracefully
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select(
-        `
-        id,
-        user_id,
-        role,
-        avatar_image_id,
-        created_at
-      `
-      )
-      .eq('user_id', user.id)
-      .maybeSingle() // Use maybeSingle() instead of single() - returns null if not found instead of error
+    let profile: unknown = null
+    let profileError: { code?: string } | null = null
+    try {
+      const result = await supabase
+        .from('profiles')
+        .select('id, user_id, role, avatar_image_id, created_at')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      profile = result.data
+      profileError = result.error as { code?: string } | null
+    } catch (error) {
+      profileError = error as { code?: string }
+    }
 
     let userRole = 'user'
     if (profileError && profileError.code !== 'PGRST116') {

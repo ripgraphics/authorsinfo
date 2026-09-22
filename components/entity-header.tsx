@@ -17,7 +17,7 @@ import {
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { GroupActions } from '@/components/group/GroupActions'
 import { useGroupPermissions } from '@/hooks/useGroupPermissions'
-import { useAuth } from '@/hooks/useAuth'
+import { useUser } from '@/contexts/UserContext'
 import { FollowButton } from '@/components/follow-button'
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
 import { AddFriendButton } from '@/components/add-friend-button'
@@ -216,7 +216,7 @@ export function EntityHeader({
   enhancedProfile: _enhancedProfile,
   userStats,
 }: EntityHeaderProps) {
-  const { user } = useAuth()
+  const { user } = useUser()
   const router = useRouter()
   const groupPermissions = useGroupPermissions(group?.id || null, user?.id)
   const { isMember: isGroupMember, isAdmin } = groupPermissions
@@ -1072,6 +1072,9 @@ export function EntityHeader({
                 variant="default"
                 size="sm"
                 className="entity-header__message-button flex items-center"
+                openInFloatingChat={entityType === 'user'}
+                floatingParticipantName={entityType === 'user' ? name : undefined}
+                floatingParticipantAvatarUrl={entityType === 'user' ? profileImageUrl : undefined}
                 onClick={onMessage}
               />
             )}

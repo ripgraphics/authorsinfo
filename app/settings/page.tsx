@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 
 import { PermalinkSettings } from '@/components/permalink-settings'
+import { BlockedUsersSettings } from '@/components/blocked-users-settings'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { User, Link, Shield, Bell, Palette } from 'lucide-react'
@@ -116,6 +117,7 @@ export default async function SettingsPage() {
                 </p>
               </CardContent>
             </Card>
+            <BlockedUsersSettings />
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">

@@ -22,7 +22,13 @@ export async function checkRateLimit(identifier: string) {
   }
 
   try {
-    const { success, limit, reset, remaining } = await ratelimit.limit(identifier)
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Rate-limit provider timeout')), 750)
+    })
+    const { success, limit, reset, remaining } = await Promise.race([
+      ratelimit.limit(identifier),
+      timeout,
+    ])
 
     return {
       success,

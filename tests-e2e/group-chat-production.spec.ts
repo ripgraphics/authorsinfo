@@ -251,6 +251,50 @@ test.describe('production group chat authorization and realtime', () => {
     }
   })
 
+  test('removed member loses group access while the active member remains authorized', async ({ browser }) => {
+    test.skip(Boolean(fixtureError), fixtureError || undefined)
+    if (!fixture) throw new Error('Chat E2E fixture was not created')
+    const chatFixture = fixture
+    const activeContext = await browser.newContext({
+      storageState: storageState(chatFixture.active.session),
+    })
+    const removedContext = await browser.newContext({
+      storageState: storageState(chatFixture.observer.session),
+    })
+    try {
+      const { error: removalError } = await chatFixture.admin
+        .from('group_members')
+        .delete()
+        .eq('group_id', chatFixture.groupId)
+        .eq('user_id', chatFixture.observer.id)
+      if (removalError) throw removalError
+
+      expect(
+        (await activeContext.request.get(`${baseUrl}/api/groups/${chatFixture.groupId}/chat`)).status()
+      ).toBe(200)
+      expect(
+        (await removedContext.request.get(`${baseUrl}/api/groups/${chatFixture.groupId}/chat`)).status()
+      ).toBe(403)
+      expect(
+        (
+          await removedContext.request.get(
+            `${baseUrl}/api/groups/${chatFixture.groupId}/chat?channel_id=${chatFixture.channelId}`
+          )
+        ).status()
+      ).toBe(403)
+      expect(
+        (
+          await removedContext.request.post(`${baseUrl}/api/groups/${chatFixture.groupId}/chat`, {
+            data: { channel_id: chatFixture.channelId, message: 'removed member send' },
+          })
+        ).status()
+      ).toBe(403)
+    } finally {
+      await activeContext.close()
+      await removedContext.close()
+    }
+  })
+
   test('rejects event channels and forged sender payloads', async ({ browser }) => {
     test.skip(Boolean(fixtureError), fixtureError || undefined)
     if (!fixture) throw new Error('Chat E2E fixture was not created')

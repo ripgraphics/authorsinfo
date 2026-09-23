@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
+import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getBlockedUserIds } from '@/lib/messaging/blocking';
+
+type EventAccessRow = { id: string; visibility?: string | null; is_public?: boolean; created_by: string | null };
 
 /**
  * GET /api/events/[id]/comments
@@ -14,7 +18,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createClient();
+    const supabase = await createRouteHandlerClientAsync();
+    const { data: viewerResult } = await supabase.auth.getUser();
     const eventId = id;
     const searchParams = request.nextUrl.searchParams;
 
@@ -22,22 +27,39 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '100');
 
     // Check if event exists
-    const { data: event, error: eventError } = await supabase
+    const { data: event, error: eventError } = await supabaseAdmin
       .from('events')
-      .select('id, is_public')
+      .select('id, visibility, created_by')
       .eq('id', eventId)
       .single();
 
-    if (eventError || !event) {
+    const eventAccess = event as EventAccessRow | null;
+    if (eventError || !eventAccess) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
+    const isPublic = eventAccess.visibility ? eventAccess.visibility === 'public' : eventAccess.is_public === true;
+    if (!isPublic) {
+      if (!viewerResult.user) {
+        return NextResponse.json({ error: 'Event access denied' }, { status: 403 });
+      }
+      const { data: membership } = await supabase
+        .from('event_participants')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id', viewerResult.user.id)
+        .maybeSingle();
+      if (eventAccess.created_by !== viewerResult.user.id && !membership) {
+        return NextResponse.json({ error: 'Event access denied' }, { status: 403 });
+      }
+    }
+
     // Build query
-    let query = supabase
+    let query = (supabase as any)
       .from('event_comments')
       .select(`
         *,
-        user:user_id(id, full_name, avatar_url)
+        user:user_id(id, name, email)
       `)
       .eq('event_id', eventId);
 
@@ -58,7 +80,19 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: comments });
+    let visibleComments = comments || [];
+    if (viewerResult.user) {
+      const blockedUserIds = await getBlockedUserIds({
+        user: viewerResult.user,
+        supabase,
+      } as Parameters<typeof getBlockedUserIds>[0]);
+      visibleComments = visibleComments.filter(
+        (comment: { user_id?: string }) =>
+          !comment.user_id || !blockedUserIds.has(comment.user_id)
+      );
+    }
+
+    return NextResponse.json({ data: visibleComments });
   } catch (error: any) {
     console.error('[API] Error fetching event comments:', error);
     return NextResponse.json(
@@ -79,7 +113,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const supabase = createClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -98,7 +132,7 @@ export async function POST(
     }
 
     // Check if user is an event participant
-    const { data: participant } = await supabase
+    const { data: participant } = await (supabase as any)
       .from('event_participants')
       .select('id, role')
       .eq('event_id', eventId)
@@ -121,7 +155,7 @@ export async function POST(
     }
 
     // Create the comment
-    const { data: comment, error } = await supabase
+    const { data: comment, error } = await (supabase as any)
       .from('event_comments')
       .insert({
         event_id: eventId,
@@ -133,7 +167,7 @@ export async function POST(
       })
       .select(`
         *,
-        user:user_id(id, full_name, avatar_url)
+        user:user_id(id, name, email)
       `)
       .single();
 

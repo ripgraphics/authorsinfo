@@ -4,6 +4,7 @@ import { getFollowTargetType } from '@/lib/follows-server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { followEntity, unfollowEntity } from '@/app/actions/follow'
 import { getUserIdFromPermalinkServer } from '@/lib/utils/profile-url-server'
+import { isBlockedByEitherUser } from '@/lib/messaging/blocking'
 
 // Create the cache outside of the helper function so it persists between calls
 const targetTypeIdCache = new Map<string, number>()
@@ -61,6 +62,13 @@ export async function POST(request: NextRequest) {
     // Prevent users from following themselves
     if (targetType === 'user' && user.id === actualEntityId) {
       return NextResponse.json({ error: 'You cannot follow yourself' }, { status: 400 })
+    }
+
+    if (
+      targetType === 'user' &&
+      (await isBlockedByEitherUser({ user, supabase } as Parameters<typeof isBlockedByEitherUser>[0], actualEntityId))
+    ) {
+      return NextResponse.json({ error: 'This user is unavailable', code: 'blocked_user' }, { status: 403 })
     }
 
     // Get the target type ID

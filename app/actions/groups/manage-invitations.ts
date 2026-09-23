@@ -3,6 +3,7 @@
 import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
 import { validateAndFilterPayload } from '@/lib/schema/schema-validators'
 import { supabaseAdmin } from '@/lib/supabase/server'
+import { isReciprocallyBlockedForGroupInvite } from '@/lib/messaging/group-invitation-blocking'
 
 export interface CreateInvitationParams {
   groupId: string
@@ -68,6 +69,25 @@ export async function createGroupInvitation(
       return {
         success: false,
         error: 'Either invitee email or user ID is required',
+      }
+    }
+
+    let resolvedInviteeId = params.inviteeUserId || null
+    if (!resolvedInviteeId && params.inviteeEmail) {
+      const { data: invitee } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .ilike('email', params.inviteeEmail.trim())
+        .maybeSingle()
+      resolvedInviteeId = invitee?.id ?? null
+    }
+
+    if (resolvedInviteeId) {
+      if (resolvedInviteeId === user.id) {
+        return { success: false, error: 'You cannot invite yourself to a group' }
+      }
+      if (await isReciprocallyBlockedForGroupInvite(supabaseAdmin as any, user.id, resolvedInviteeId)) {
+        return { success: false, error: 'This user is unavailable' }
       }
     }
 

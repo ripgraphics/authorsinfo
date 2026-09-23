@@ -41,9 +41,8 @@ import {
   Maximize,
   Copy,
   ExternalLink,
-  Twitter,
-  Instagram,
   Send,
+  Camera,
   Edit,
   Trash2,
   Flag,
@@ -1857,11 +1856,11 @@ export function EnterprisePhotoViewer({
                     </h4>
                     <div className="photo-share-social-media-buttons grid grid-cols-1 gap-2">
                       <Button variant="outline" onClick={() => handleShare('twitter')}>
-                        <Twitter className="h-4 w-4 mr-2" />
+                        <Send className="h-4 w-4 mr-2" />
                         Twitter
                       </Button>
                       <Button variant="outline" onClick={() => handleShare('instagram')}>
-                        <Instagram className="h-4 w-4 mr-2" />
+                        <Camera className="h-4 w-4 mr-2" />
                         Instagram
                       </Button>
                       <Button variant="outline" onClick={() => handleShare('copy')}>

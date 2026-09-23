@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
+import { isBlockedByEitherUser } from '@/lib/messaging/blocking'
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,6 +33,16 @@ export async function GET(request: NextRequest) {
         .maybeSingle()
       if (entityRow?.id) {
         entityId = entityRow.id
+      }
+    }
+
+    if (isAuthenticated && entityType === 'user' && user.id !== entityId) {
+      const blocked = await isBlockedByEitherUser(
+        { user, supabase } as Parameters<typeof isBlockedByEitherUser>[0],
+        entityId
+      )
+      if (blocked) {
+        return NextResponse.json({ activities: [], pagination: { limit, offset, count: 0 } })
       }
     }
 

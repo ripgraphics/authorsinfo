@@ -50,7 +50,7 @@ test('returns only active member identities for an authorized group', async () =
   const membership = query({ data: { group_id: groupId }, error: null })
   const members = query({
     data: [
-      { user_id: userId, user: { id: userId, name: 'Sam Smith', avatar_url: null } },
+      { user_id: userId, role_id: null, user: { id: userId, name: 'Sam Smith', email: 'sam@example.com' } },
     ],
     error: null,
   })
@@ -62,7 +62,7 @@ test('returns only active member identities for an authorized group', async () =
 
   expect(response.status).toBe(200)
   await expect(response.json()).resolves.toEqual([
-    { id: userId, name: 'Sam Smith', avatar_url: null },
+    { id: userId, name: 'Sam Smith', email: 'sam@example.com' },
   ])
   expect(members.eq).toHaveBeenCalledWith('status', 'active')
 })

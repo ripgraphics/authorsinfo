@@ -47,9 +47,33 @@ export async function GET(request: NextRequest) {
     }
 
     // Extract all friend user IDs (the ones that aren't the current user)
-    const friendUserIds = ((friends || []) as any[]).map((friend: any) =>
+    let friendUserIds = ((friends || []) as any[]).map((friend: any) =>
       friend.user_id === userId ? friend.friend_id : friend.user_id
     )
+
+    // Blocked users must not appear in authenticated friend discovery, in
+    // either direction of the block relationship.
+    let blockedFriendIds = new Set<string>()
+    if (user?.id && friendUserIds.length > 0) {
+      const { data: ownBlocks, error: ownBlocksError } = await supabase
+        .from('blocks')
+        .select('blocked_user_id')
+        .eq('user_id', user.id)
+        .in('blocked_user_id', friendUserIds)
+      const { data: reciprocalBlocks, error: reciprocalBlocksError } = await supabase
+        .from('blocks')
+        .select('user_id')
+        .eq('blocked_user_id', user.id)
+        .in('user_id', friendUserIds)
+      if (ownBlocksError || reciprocalBlocksError) {
+        throw ownBlocksError || reciprocalBlocksError
+      }
+      blockedFriendIds = new Set([
+        ...((ownBlocks ?? []) as Array<{ blocked_user_id: string }>).map((row) => row.blocked_user_id),
+        ...((reciprocalBlocks ?? []) as Array<{ user_id: string }>).map((row) => row.user_id),
+      ])
+    }
+    friendUserIds = friendUserIds.filter((friendId) => !blockedFriendIds.has(friendId))
 
     // Batch fetch all user data, profiles, and stats in parallel - use admin client for speed
     // Only fetch if we have friend IDs to avoid empty array issues with .in() filter
@@ -185,7 +209,11 @@ export async function GET(request: NextRequest) {
     const profileMap = new Map((profiles as any[]).map((p: any) => [p.user_id, p]))
 
     // Build friends with user details
-    const friendsWithUserDetails = ((friends || []) as any[]).map((friend: any) => {
+    const visibleFriends = ((friends || []) as any[]).filter((friend: any) => {
+      const friendUserId = friend.user_id === userId ? friend.friend_id : friend.user_id
+      return !blockedFriendIds.has(friendUserId)
+    })
+    const friendsWithUserDetails = visibleFriends.map((friend: any) => {
       const friendUserId = friend.user_id === userId ? friend.friend_id : friend.user_id
       const user = userMap.get(friend.user_id)
       const friendUser = userMap.get(friend.friend_id)
@@ -267,8 +295,8 @@ export async function GET(request: NextRequest) {
       pagination: {
         page,
         limit,
-        total: totalCount || 0,
-        totalPages: Math.ceil((totalCount || 0) / limit),
+        total: friendsList.length,
+        totalPages: Math.ceil(friendsList.length / limit),
       },
       analytics: analytics || null,
     })

@@ -24,7 +24,7 @@
 
 import React, { useState } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { Share2, Loader2, Check, Copy, Twitter } from 'lucide-react';
+import { Share2, Loader2, Check, Copy, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -140,7 +140,7 @@ export function getShareIcon(destination: ShareDestination): React.ReactNode {
   const icons: Record<ShareDestination, React.ReactNode> = {
     feed: <Share2 className="h-4 w-4" />,
     clipboard: <Copy className="h-4 w-4" />,
-    twitter: <Twitter className="h-4 w-4" />,
+    twitter: <Send className="h-4 w-4" />,
   };
   return icons[destination] || <Share2 className="h-4 w-4" />;
 }

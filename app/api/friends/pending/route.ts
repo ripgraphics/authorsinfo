@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { getBlockedUserIds } from '@/lib/messaging/blocking'
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,6 +55,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const blockedUserIds = await getBlockedUserIds({
+      user,
+      supabase,
+    } as Parameters<typeof getBlockedUserIds>[0])
+
     // Get pending friend requests where the current user is the recipient
     const { data: pendingRequests, error } = await supabase
       .from('user_friends')
@@ -84,8 +90,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user details for each request
+    const visibleRequests = ((pendingRequests || []) as any[]).filter(
+      (request: any) => !blockedUserIds.has(request.user_id)
+    )
     const requestsWithUserDetails = await Promise.all(
-      ((pendingRequests || []) as any[]).map(async (request: any, index: number) => {
+      visibleRequests.map(async (request: any, index: number) => {
         try {
           const { data: userData, error: userError } = await supabase
             .from('users')

@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest) {
-  return NextResponse.json({ message: 'Members endpoint - not yet implemented' }, { status: 501 })
+type GroupMembersContext = { params: Promise<{ id: string }> }
+
+async function resolveParams(context: GroupMembersContext) {
+  const { id } = await context.params
+  return id
 }
 
-export async function POST(request: NextRequest) {
-  return NextResponse.json({ message: 'Members endpoint - not yet implemented' }, { status: 501 })
+export async function GET(_request: NextRequest, context: GroupMembersContext) {
+  const id = await resolveParams(context)
+  return NextResponse.json(
+    { error: 'Use the canonical Messenger group members endpoint', canonical_route: `/api/messages/group/${id}/members` },
+    { status: 308, headers: { Location: `/api/messages/group/${id}/members` } }
+  )
+}
+
+export async function POST(_request: NextRequest, context: GroupMembersContext) {
+  const id = await resolveParams(context)
+  return NextResponse.json(
+    { error: 'Use the canonical Messenger group members endpoint', canonical_route: `/api/messages/group/${id}/members` },
+    { status: 308, headers: { Location: `/api/messages/group/${id}/members` } }
+  )
 }

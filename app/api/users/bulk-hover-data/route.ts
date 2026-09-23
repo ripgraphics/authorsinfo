@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { getBlockedUserIds } from '@/lib/messaging/blocking'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
     const { userIds } = await request.json()
+    const { data: viewerResult } = await supabase.auth.getUser()
 
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
       return NextResponse.json({ error: 'User IDs array is required' }, { status: 400 })
@@ -15,27 +17,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Maximum 100 users per request' }, { status: 400 })
     }
 
+    const blockedUserIds = viewerResult.user
+      ? await getBlockedUserIds({
+          user: viewerResult.user,
+          supabase,
+        } as Parameters<typeof getBlockedUserIds>[0])
+      : new Set<string>()
+    const visibleUserIds = userIds.filter(
+      (userId: unknown): userId is string => typeof userId === 'string' && !blockedUserIds.has(userId)
+    )
+
+    if (visibleUserIds.length === 0) {
+      return NextResponse.json({ users: [] })
+    }
+
     // Fetch all user data in parallel
     const [usersData, readingProgress, userFriends, profiles] = await Promise.all([
       // Get basic user data
       (supabase.from('users') as any)
         .select('id, name, email, created_at, permalink, location, website')
-        .in('id', userIds),
+        .in('id', visibleUserIds),
 
       // Get reading progress for all users
       (supabase.from('reading_progress') as any)
         .select('user_id, status')
-        .in('user_id', userIds)
+        .in('user_id', visibleUserIds)
         .eq('status', 'completed'),
 
       // Get friends data for all users
       (supabase.from('user_friends') as any)
         .select('user_id, friend_id, status')
-        .in('user_id', userIds)
+        .in('user_id', visibleUserIds)
         .eq('status', 'accepted'),
 
       // Get profile data for all users
-      (supabase.from('profiles') as any).select('user_id, bio').in('user_id', userIds),
+      (supabase.from('profiles') as any).select('user_id, bio').in('user_id', visibleUserIds),
     ])
 
     // Check for errors

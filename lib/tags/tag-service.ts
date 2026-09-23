@@ -317,7 +317,8 @@ export async function searchTags(
  */
 export async function searchUsersForMentions(
   query: string,
-  limit: number = 10
+  limit: number = 10,
+  viewerId?: string | null
 ): Promise<TagSuggestion[]> {
   const supabase = await createClient()
 
@@ -349,9 +350,24 @@ export async function searchUsersForMentions(
     return []
   }
 
+  const blockedUserIds = new Set<string>()
+  if (viewerId) {
+    const [{ data: ownBlocks, error: ownBlocksError }, { data: reciprocalBlocks, error: reciprocalBlocksError }] = await Promise.all([
+      (supabase.from('blocks') as any).select('blocked_user_id').eq('user_id', viewerId),
+      (supabase.from('blocks') as any).select('user_id').eq('blocked_user_id', viewerId),
+    ])
+    if (ownBlocksError || reciprocalBlocksError) {
+      console.error('Error loading blocked users for mention search:', ownBlocksError || reciprocalBlocksError)
+      return []
+    }
+    for (const block of ownBlocks || []) blockedUserIds.add(block.blocked_user_id)
+    for (const block of reciprocalBlocks || []) blockedUserIds.add(block.user_id)
+  }
+
   const suggestions: TagSuggestion[] = []
 
   for (const user of users || []) {
+    if (blockedUserIds.has(user.id) || user.id === viewerId) continue
     const { data: profile } = await supabase
       .from('profiles')
       .select('avatar_image_id')

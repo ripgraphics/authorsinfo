@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
 import { validateAndFilterPayload } from '@/lib/schema/schema-validators'
 import { ENGAGEMENT_ENTITY_TYPE_POST } from '@/lib/engagement/config'
+import { getBlockedUserIds } from '@/lib/messaging/blocking'
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,7 +54,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply additional filters if provided
-    let filteredData: any[] = data || []
+    const blockedUserIds = await getBlockedUserIds({
+      user,
+      supabase,
+    } as Parameters<typeof getBlockedUserIds>[0])
+    let filteredData: any[] = (data || []).filter(
+      (activity: any) => !activity.user_id || !blockedUserIds.has(activity.user_id)
+    )
 
     if (activityType) {
       filteredData = filteredData.filter((activity: any) => activity.activity_type === activityType)

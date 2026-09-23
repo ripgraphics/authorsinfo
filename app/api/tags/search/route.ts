@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     // If searching for users specifically, use user search
     if (types?.includes('user') || (!types && q.startsWith('@'))) {
       const cleanQuery = q.replace(/^@/, '')
-      const userResults = await searchUsersForMentions(cleanQuery, limit)
+      const userResults = await searchUsersForMentions(cleanQuery, limit, user?.id)
       return NextResponse.json({ results: userResults, type: 'users' })
     }
 

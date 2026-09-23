@@ -30,6 +30,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     })
   } catch (error: any) {
     console.error('[API] Error registering for event:', error)
+    if (error?.code === '23505' || error?.message === 'You are already registered for this event') {
+      return NextResponse.json({ error: error.message }, { status: 409 })
+    }
+    if (error?.message === 'Event access denied') {
+      return NextResponse.json({ error: error.message }, { status: 403 })
+    }
+    if (error?.message === 'This event is full') {
+      return NextResponse.json({ error: error.message, code: 'event_full' }, { status: 409 })
+    }
     return NextResponse.json(
       { error: error.message || 'Failed to register for event' },
       { status: 500 }

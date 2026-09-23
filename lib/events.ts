@@ -217,13 +217,23 @@ export async function registerForEvent(
   // First check if registration is open and event is available
   const { data: event } = await supabase
     .from('events')
-    .select('id, title, status, requires_registration, registration_opens_at, registration_closes_at')
+    .select('id, title, status, visibility, created_by, requires_registration, registration_opens_at, registration_closes_at, max_attendees, max_participants')
     .eq('id', eventId)
     .eq('status', 'published')
     .single<Event>()
 
   if (!event) {
     throw new Error('Event not found or not available for registration')
+  }
+
+  if (event.visibility !== 'public' && event.created_by !== userId) {
+    const { data: participant } = await supabase
+      .from('event_participants')
+      .select('id')
+      .eq('event_id', eventId)
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (!participant) throw new Error('Event access denied')
   }
 
   if (!event.requires_registration) {
@@ -238,6 +248,19 @@ export async function registerForEvent(
 
   if (event.registration_closes_at && now > event.registration_closes_at) {
     throw new Error('Registration has closed')
+  }
+
+  const eventCapacity = event as Event & { max_participants?: number | null; max_attendees?: number | null }
+  const registrationLimit = eventCapacity.max_participants ?? eventCapacity.max_attendees ?? null
+  if (registrationLimit !== null) {
+    const { count: registrationCount } = await supabase
+      .from('event_registrations')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', eventId)
+      .neq('registration_status', 'cancelled')
+    if ((registrationCount ?? 0) >= registrationLimit) {
+      throw new Error('This event is full')
+    }
   }
 
   // Check if the user is already registered

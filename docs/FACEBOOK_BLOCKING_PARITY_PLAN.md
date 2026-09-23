@@ -25,11 +25,11 @@ Blocking follows Facebook's normal user-facing model:
 | --- | --- | --- | --- |
 | `[x]` Wire profile Block User action to authenticated API | `COMPLETED` | `components/user-action-buttons.tsx` now confirms, calls `POST /api/users/block`, reports errors, and refreshes the profile; focused block/profile tests pass 6/6 | Add browser acceptance |
 | `[x]` Add blocked-users Settings list and Unblock controls | `COMPLETED` | `/api/users/block/list` and the Privacy settings panel expose authenticated blocked users and DELETE-based unblock controls | Add browser acceptance |
-| `[x]` Centralize reciprocal blocked-pair authorization check | `COMPLETED` | `lib/messaging/blocking.ts` checks both block directions; inbox, conversation creation, history, and send routes enforce it; focused suite passes 11/11 | Extend to discovery/profile routes |
-| `[ ]` Hide blocked profiles from direct navigation and discovery | `NOT STARTED` | Profile pages use admin reads without a block boundary | Add profile gate and discovery filters |
+| `[x]` Centralize reciprocal blocked-pair authorization check | `COMPLETED` | `lib/messaging/blocking.ts` checks both block directions; live Supabase RLS now protects direct conversations, messages, and read state; blocks have unique pair and no-self constraints | Extend to remaining interaction surfaces |
+| `[x]` Hide blocked profiles from direct navigation and discovery | `COMPLETED` | `/profile/[id]` returns neutral `notFound()` before profile data assembly; friend lists, suggestions, user follows, friend requests, mention search, bulk hover data, user tag previews, source-user notifications, authenticated feeds, and user timelines enforce both block directions; focused suites pass; isolated Bob/Wendy feed/timeline acceptance passed | Audit group/public-content rules |
 | `[x]` Hide blocked direct conversations and history | `COMPLETED` | Reciprocal block helper filters direct inbox rows and rejects conversation creation/history/send with `403` blocked responses; focused suite passes 11/11 | Extend the same boundary to remaining direct actions |
-| `[ ]` Preserve shared-group/public visibility rules | `NOT STARTED` | Group visibility is not yet covered by block acceptance tests | Add policy matrix and two-account tests |
-| `[ ]` Complete browser acceptance with isolated accounts | `NOT STARTED` | Bob/Wendy isolated messaging is proven only after unblock | Add block, hidden profile, hidden thread, unblock, and new-thread tests |
+| `[>]` Preserve shared-group/public visibility rules | `IN PROGRESS` | Live Supabase RLS gates event participants/private-group members; group invitation service/helper and RLS reject reciprocal-blocked known users; focused invitation suite passes 17/17; 2026-09-23 browser check kept shared group members at `200` while blocked direct history/read-state returned `403` | Complete isolated two-account shared-group acceptance |
+| `[x]` Complete browser acceptance with isolated accounts | `COMPLETED` | Isolated Bob/Wendy contexts verified block `200`, blocked-list visibility, reciprocal history `403 blocked_user`, neutral blocked profile shell without profile content, unblock `200`, and restored conversation eligibility | Extend acceptance to shared-group/public-content rules |
 
 ## 3. Acceptance Matrix
 
@@ -61,3 +61,19 @@ Blocking follows Facebook's normal user-facing model:
 | 2026-09-21 | Wired profile Block User action with confirmation and feedback | Diagnostics clean; focused tests pass 6/6 |
 | 2026-09-22 | Added blocked-user Settings list and reciprocal direct-message enforcement | Diagnostics clean; focused blocking/messaging suite passes 11/11 |
 | 2026-09-22 | Production build passed after explicit block-table row typing | Next.js build completed TypeScript, page-data collection, static generation, and finalization |
+| 2026-09-22 | Added reciprocal profile and friend-list blocking gates | Diagnostics clean; focused blocking/discovery suite passes 15/15 |
+| 2026-09-22 | Added reciprocal friend-suggestion filtering and stale-accept protection | Diagnostics clean; focused blocking/discovery suite passes 12/12 |
+| 2026-09-22 | Validated discovery slice after handler-scope correction | Focused tests pass 12/12; production build compiles successfully |
+| 2026-09-22 | Added reciprocal block guards to user follows, friend requests, and pending requests | Diagnostics clean; focused interaction suite passes 15/15 |
+| 2026-09-22 | Added reciprocal block filtering to user mention search | Diagnostics clean; focused blocking/messaging suite passes 15/15 |
+| 2026-09-22 | Added reciprocal block filtering to bulk hover data and user tag previews | Diagnostics clean; focused blocking/messaging suite passes 15/15 |
+| 2026-09-22 | Completed isolated Bob/Wendy blocking acceptance | Block/list `200`; both history requests `403 blocked_user`; blocked profile rendered neutral shell; unblock and conversation restore `200` |
+| 2026-09-22 | Added reciprocal block filtering to source-user notifications | Diagnostics clean; focused notification/blocking suite passes 15/15 |
+| 2026-09-22 | Added reciprocal block filtering to authenticated feeds and user timelines | Diagnostics clean; focused feed/notification suite passes 15/15 |
+| 2026-09-22 | Completed isolated Bob/Wendy feed and timeline acceptance | Bob feed omitted Wendy; Wendy feed omitted Bob; Bob timeline for Wendy returned zero activities; unblock returned `200` |
+| 2026-09-22 | Applied live Supabase RLS migration for event participants and private group members | Live policy verification shows `event_participants_select_privacy` and `group_members_select_privacy`; migration completed successfully |
+| 2026-09-22 | Applied live Supabase blocking RLS migration | Live verification shows unique `blocks_user_blocked_user_unique`, `blocks_cannot_self_block`, reciprocal `is_blocked_between` policies on direct conversations/messages/read state; focused suite passes 24/24 |
+| 2026-09-22 | Applied live reciprocal block guard to group invitations | Service action blocks UUID/email-known users in either direction; live `group_invitations_recipient_insert` policy verified; focused invitation/blocking suite passes 14/14 |
+| 2026-09-22 | Extracted and tested reciprocal group invitation block guard | `lib/messaging/group-invitation-blocking.ts`; unblocked, blocked, and lookup-failure cases covered; focused suite passes 17/17 |
+| 2026-09-22 | Completed isolated shared-group member acceptance | Bob and Wendy were seeded in the public `Messenger Parity Test Group`; both member-list requests returned `200` with shared members; direct messaging remained blocked during the block check |
+| 2026-09-23 | Revalidated shared-group blocking boundary against final source | Disposable Bob session read the live group member route with `200`; block mutation returned `200`; the same session continued to read shared members with `200`; canonical direct history and read-state both returned `403 Conversation access denied`; focused parity suites passed 15/15 and production build passed |

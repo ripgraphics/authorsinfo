@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { z } from 'zod'
 import { unauthorizedError, handleValidationError, nextErrorResponse } from '@/lib/error-handler'
+import { isBlockedByEitherUser } from '@/lib/messaging/blocking'
 
 const previewSchema = z.object({
   slug: z.string().min(1),
@@ -62,6 +63,17 @@ export async function GET(request: NextRequest) {
     // Fetch additional data based on type
     if (tagType === 'user' && tagData.metadata?.entity_id) {
       const userId = tagData.metadata.entity_id
+
+      if (
+        user &&
+        user.id !== userId &&
+        (await isBlockedByEitherUser(
+          { user, supabase } as Parameters<typeof isBlockedByEitherUser>[0],
+          userId
+        ))
+      ) {
+        return NextResponse.json({ error: 'Tag not found' }, { status: 404 })
+      }
 
       // Get user and profile
       const { data: userData } = await supabase

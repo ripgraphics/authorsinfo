@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getUserIdFromPermalinkServer } from '@/lib/utils/profile-url-server'
+import { isBlockedByEitherUser } from '@/lib/messaging/blocking'
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,6 +39,15 @@ export async function POST(request: NextRequest) {
 
     if (user.id === targetUserUUID) {
       return NextResponse.json({ error: 'Cannot add yourself as a friend' }, { status: 400 })
+    }
+
+    if (
+      await isBlockedByEitherUser(
+        { user, supabase } as Parameters<typeof isBlockedByEitherUser>[0],
+        targetUserUUID
+      )
+    ) {
+      return NextResponse.json({ error: 'This user is unavailable', code: 'blocked_user' }, { status: 403 })
     }
 
     // Check for existing friend request

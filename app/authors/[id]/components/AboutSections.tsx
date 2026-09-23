@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar, Globe, MapPin, Edit2, Settings, User, Twitter, Instagram, BookOpen } from 'lucide-react'
+import { Calendar, Globe, MapPin, Edit2, Settings, User, Send, Camera, BookOpen } from 'lucide-react'
 import { BookCard } from '@/components/book-card'
 import { getBookPages } from '@/utils/bookUtils'
 import { useState, useRef, useEffect } from 'react'
@@ -134,7 +134,7 @@ export function OverviewSection({
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium"
                 >
-                  <Twitter className="h-4 w-4" />
+                  <Send className="h-4 w-4" />
                   Twitter
                 </a>
               )}
@@ -156,7 +156,7 @@ export function OverviewSection({
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium"
                 >
-                  <Instagram className="h-4 w-4" />
+                  <Camera className="h-4 w-4" />
                   Instagram
                 </a>
               )}

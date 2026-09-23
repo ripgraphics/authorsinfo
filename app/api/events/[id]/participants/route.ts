@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
+import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getBlockedUserIds } from '@/lib/messaging/blocking';
+
+type EventAccessRow = {
+  id: string;
+  visibility?: string | null;
+  is_public?: boolean;
+  created_by: string | null;
+  max_participants?: number | null;
+  max_attendees?: number | null;
+};
 
 /**
  * GET /api/events/[id]/participants
@@ -14,30 +25,48 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createClient();
+    const supabase = await createRouteHandlerClientAsync();
     const eventId = id;
     const searchParams = request.nextUrl.searchParams;
+    const { data: viewerResult } = await supabase.auth.getUser();
 
     const rsvpStatus = searchParams.get('rsvp_status');
     const role = searchParams.get('role');
 
     // Check if event exists
-    const { data: event, error: eventError } = await supabase
+    const { data: event, error: eventError } = await supabaseAdmin
       .from('events')
-      .select('id, is_public')
+      .select('id, visibility, created_by, max_participants, max_attendees')
       .eq('id', eventId)
       .single();
 
-    if (eventError || !event) {
+    const eventAccess = event as EventAccessRow | null;
+    if (eventError || !eventAccess) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
+    const isPublic = eventAccess.visibility ? eventAccess.visibility === 'public' : eventAccess.is_public === true;
+    if (!isPublic) {
+      if (!viewerResult.user) {
+        return NextResponse.json({ error: 'Event access denied' }, { status: 403 });
+      }
+      const { data: membership } = await supabase
+        .from('event_participants')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id', viewerResult.user.id)
+        .maybeSingle();
+      if (eventAccess.created_by !== viewerResult.user.id && !membership) {
+        return NextResponse.json({ error: 'Event access denied' }, { status: 403 });
+      }
+    }
+
     // Build query
-    let query = supabase
+    let query = (supabase as any)
       .from('event_participants')
       .select(`
         *,
-        user:user_id(id, full_name, avatar_url)
+        user:user_id(id, name, email)
       `)
       .eq('event_id', eventId);
 
@@ -60,7 +89,19 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: participants });
+    let visibleParticipants = participants || [];
+    if (viewerResult.user) {
+      const blockedUserIds = await getBlockedUserIds({
+        user: viewerResult.user,
+        supabase,
+      } as Parameters<typeof getBlockedUserIds>[0]);
+      visibleParticipants = visibleParticipants.filter(
+        (participant: { user_id?: string }) =>
+          !participant.user_id || !blockedUserIds.has(participant.user_id)
+      );
+    }
+
+    return NextResponse.json({ data: visibleParticipants });
   } catch (error: any) {
     console.error('[API] Error fetching event participants:', error);
     return NextResponse.json(
@@ -81,7 +122,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const supabase = createClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -103,7 +144,7 @@ export async function POST(
     // Check if event exists
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .select('id')
+      .select('id, max_participants, max_attendees')
       .eq('id', eventId)
       .single();
 
@@ -112,7 +153,7 @@ export async function POST(
     }
 
     // Check if user already has RSVP
-    const { data: existing } = await supabase
+    const { data: existing } = await (supabase as any)
       .from('event_participants')
       .select('id')
       .eq('event_id', eventId)
@@ -126,8 +167,21 @@ export async function POST(
       );
     }
 
+    const eventAccess = event as EventAccessRow;
+    const participantLimit = eventAccess.max_participants ?? eventAccess.max_attendees ?? null;
+    if (rsvp_status === 'attending' && participantLimit !== null) {
+      const { count: attendingCount } = await (supabase as any)
+        .from('event_participants')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .eq('rsvp_status', 'attending');
+      if ((attendingCount ?? 0) >= participantLimit) {
+        return NextResponse.json({ error: 'This event is full', code: 'event_full' }, { status: 409 });
+      }
+    }
+
     // Create RSVP
-    const { data: participant, error } = await supabase
+    const { data: participant, error } = await (supabase as any)
       .from('event_participants')
       .insert({
         event_id: eventId,
@@ -137,12 +191,18 @@ export async function POST(
       })
       .select(`
         *,
-        user:user_id(id, full_name, avatar_url)
+        user:user_id(id, name, email)
       `)
       .single();
 
     if (error) {
       console.error('[API] Error creating RSVP:', error);
+      if ((error as { code?: string }).code === '23505') {
+        return NextResponse.json(
+          { error: 'You have already RSVP\'d to this event. Use PATCH to update your RSVP.' },
+          { status: 409 }
+        );
+      }
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -170,7 +230,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const supabase = createClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -190,7 +250,7 @@ export async function PATCH(
     }
 
     // Update RSVP
-    const { data: participant, error } = await supabase
+    const { data: participant, error } = await (supabase as any)
       .from('event_participants')
       .update({ rsvp_status })
       .eq('event_id', eventId)

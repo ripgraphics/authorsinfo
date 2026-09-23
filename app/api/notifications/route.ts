@@ -104,9 +104,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { data: ownBlocks, error: ownBlocksError } = await supabase
+      .from('blocks')
+      .select('blocked_user_id')
+      .eq('user_id', user.id);
+    const { data: reciprocalBlocks, error: reciprocalBlocksError } = await supabase
+      .from('blocks')
+      .select('user_id')
+      .eq('blocked_user_id', user.id);
+
+    if (ownBlocksError || reciprocalBlocksError) {
+      console.error('Supabase block lookup error:', ownBlocksError || reciprocalBlocksError);
+      return NextResponse.json(
+        { error: 'Failed to fetch notifications' },
+        { status: 500 }
+      );
+    }
+
+    const blockedSourceIds = new Set([
+      ...(ownBlocks || []).map((block) => block.blocked_user_id),
+      ...(reciprocalBlocks || []).map((block) => block.user_id),
+    ]);
+    const visibleNotifications = ((data as Notification[]) || []).filter(
+      (notification) => !notification.source_user_id || !blockedSourceIds.has(notification.source_user_id)
+    );
+
     const response: NotificationsListResponse = {
-      data: (data as Notification[]) || [],
-      total: count || 0,
+      data: visibleNotifications,
+      total: Math.max(0, (count || 0) - (((data as Notification[]) || []).length - visibleNotifications.length)),
       page: Math.floor(offset / limit),
       pageSize: limit,
       error: null,

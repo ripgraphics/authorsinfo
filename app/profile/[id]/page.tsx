@@ -405,6 +405,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       notFound()
     }
 
+    if (viewerId && viewerId !== user.id) {
+      const { data: block } = await supabaseAdmin
+        .from('blocks')
+        .select('id')
+        .or(
+          `and(user_id.eq.${viewerId},blocked_user_id.eq.${user.id}),and(user_id.eq.${user.id},blocked_user_id.eq.${viewerId})`
+        )
+        .maybeSingle()
+
+      if (block) notFound()
+    }
+
     // Fetch user statistics
     const userStats = {
       booksRead: 0,

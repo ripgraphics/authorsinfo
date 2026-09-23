@@ -394,7 +394,6 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                               mode="single"
                               selected={startDate}
                               onSelect={setStartDate}
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>
@@ -420,7 +419,6 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                               mode="single"
                               selected={finishDate}
                               onSelect={setFinishDate}
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>

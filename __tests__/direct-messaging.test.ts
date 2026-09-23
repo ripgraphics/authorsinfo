@@ -18,6 +18,7 @@ const mockFrom = jest.fn()
 const mockRequireUser = jest.mocked(requireUser)
 let friendships: ReturnType<typeof query>
 let requests: ReturnType<typeof query>
+let blocks: ReturnType<typeof query>
 
 function query(result: { data: unknown; error: unknown }) {
   return {
@@ -45,11 +46,13 @@ beforeEach(() => {
     data: { status: 'pending', requester_id: userId, recipient_id: otherUserId },
     error: null,
   })
+  blocks = query({ data: null, error: null })
   mockFrom.mockImplementation((table: string) => {
     if (table === 'direct_conversations') return conversations
     if (table === 'direct_conversation_messages') return messages
     if (table === 'user_friends') return friendships
     if (table === 'direct_message_requests') return requests
+    if (table === 'blocks') return blocks
     throw new Error(`Unexpected table ${table}`)
   })
   mockRequireUser.mockResolvedValue({
@@ -91,6 +94,7 @@ test('creates a pending message request for a non-friend target', async () => {
     if (table === 'direct_conversations') return conversations
     if (table === 'user_friends') return friendships
     if (table === 'direct_message_requests') return requests
+    if (table === 'blocks') return blocks
     throw new Error(`Unexpected table ${table}`)
   })
   conversations.single.mockResolvedValue({
@@ -121,6 +125,7 @@ test('recognizes an accepted friendship stored in reverse direction', async () =
       return friendshipLookupCount === 1 ? friendships : reverseFriendship
     }
     if (table === 'direct_message_requests') return requests
+    if (table === 'blocks') return blocks
     throw new Error(`Unexpected table ${table}`)
   })
   conversations.single.mockResolvedValue({
@@ -178,6 +183,8 @@ test('includes the latest message preview in the conversation list', async () =>
   mockFrom.mockImplementation((table: string) => {
     if (table === 'direct_conversations') return conversations
     if (table === 'direct_conversation_messages') return messages
+    if (table === 'blocks') return blocks
+    if (table === 'profiles') return query({ data: [], error: null })
     throw new Error(`Unexpected table ${table}`)
   })
 

@@ -20,7 +20,6 @@ import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { Grid } from '@giphy/react-components'
 import { GiphyFetch } from '@giphy/js-fetch-api'
-import type { IGif } from '@giphy/js-types'
 import type { EmojiClickData } from 'emoji-picker-react'
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
@@ -168,7 +167,10 @@ export function CommentComposerToolbar({
     insertToken(emojiData.emoji)
   }
 
-  const handleGifSelect = async (gif: IGif, event: React.SyntheticEvent<HTMLElement, Event>) => {
+  const handleGifSelect = async (
+    gif: Parameters<NonNullable<React.ComponentProps<typeof Grid>['onGifClick']>>[0],
+    event: React.SyntheticEvent<HTMLElement, Event>
+  ) => {
     event.preventDefault()
     const gifUrl =
       gif.images.fixed_width_downsampled?.url ||

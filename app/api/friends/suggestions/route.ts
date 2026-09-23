@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { getBlockedUserIds } from '@/lib/messaging/blocking'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,6 +18,11 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const blockedUserIds = await getBlockedUserIds({
+      user,
+      supabase,
+    } as Parameters<typeof getBlockedUserIds>[0])
 
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -44,8 +50,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user details for each suggestion
+    const visibleSuggestions = ((suggestions || []) as any[]).filter(
+      (suggestion: any) => !blockedUserIds.has(suggestion.suggested_user_id)
+    )
     const suggestionsWithUserDetails = await Promise.all(
-      ((suggestions || []) as any[]).map(async (suggestion: any) => {
+      visibleSuggestions.map(async (suggestion: any) => {
         const { data: userData } = await supabase
           .from('users')
           .select('id, name, email')
@@ -133,6 +142,11 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const blockedUserIds = await getBlockedUserIds({
+      user,
+      supabase,
+    } as Parameters<typeof getBlockedUserIds>[0])
+
     const { suggestionId, action } = await request.json()
 
     if (!suggestionId || !action) {
@@ -173,6 +187,9 @@ export async function PUT(request: NextRequest) {
       }
 
       const sugg = suggestion as any
+      if (blockedUserIds.has(sugg.suggested_user_id)) {
+        return NextResponse.json({ error: 'This user is unavailable', code: 'blocked_user' }, { status: 403 })
+      }
       // Send friend request
       const { error: requestError } = await (supabase.from('user_friends') as any).insert({
         user_id: user.id,

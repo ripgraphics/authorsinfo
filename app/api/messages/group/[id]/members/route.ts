@@ -8,16 +8,12 @@ type GroupMembersContext = { params: Promise<{ id: string }> }
 
 type MemberRow = {
   user_id: string
-  user: {
-    id: string
-    name: string | null
-    avatar_url?: string | null
-  } | null
-  role: {
-    id: string
-    name: string
-  } | null
+  role_id: string | null
+  user?: { id: string; name?: string | null; email?: string | null } | null
+  role?: { id: string; name?: string | null } | null
 }
+type UserRow = { id: string; name?: string | null; email?: string | null }
+type RoleRow = { id: string; name?: string | null }
 
 interface MembersQuery {
   select(columns: string): MembersQuery
@@ -65,20 +61,50 @@ export async function GET(_request: Request, { params }: GroupMembersContext) {
 
     const { data: members, error: membersError } = await supabase
       .from('group_members')
-      .select('user_id, user:users(id, name, avatar_url), role:group_roles(id, name)')
+      .select('user_id, role_id')
       .eq('group_id', id)
       .eq('status', 'active')
-      .order('created_at', { ascending: true })
     if (membersError) throw membersError
 
-    const identities = ((members ?? []) as unknown as MemberRow[])
-      .filter((member): member is MemberRow & { user: NonNullable<MemberRow['user']> } => Boolean(member.user?.id))
-      .map((member) => ({
-        id: member.user.id,
-        name: member.user.name,
-        avatar_url: member.user.avatar_url ?? null,
-        ...(member.role?.name ? { role: member.role.name } : {}),
-      }))
+    const memberRows = (members ?? []) as unknown as MemberRow[]
+    const nestedIdentities = memberRows.filter((member) => member.user?.id)
+    if (nestedIdentities.length === memberRows.length) {
+      return NextResponse.json(
+        nestedIdentities.map((member) => ({
+          id: member.user!.id,
+          name: member.user!.name ?? member.user!.email ?? null,
+          email: member.user!.email ?? null,
+          ...(member.role?.name ? { role: member.role.name } : {}),
+        })),
+        { headers: { 'Cache-Control': 'private, no-store' } }
+      )
+    }
+    const userIds = memberRows.map((member) => member.user_id)
+    const roleIds = memberRows.map((member) => member.role_id).filter(Boolean)
+    const [{ data: users, error: usersError }, { data: roles, error: rolesError }] = await Promise.all([
+      (supabase as any).from('users').select('id, name, email').in('id', userIds),
+      (supabase as any).from('group_roles').select('id, name').in('id', roleIds),
+    ])
+    if (usersError) throw usersError
+    if (rolesError) throw rolesError
+
+    const userRows = (users ?? []) as UserRow[]
+    const roleRows = (roles ?? []) as RoleRow[]
+    const usersById = new Map<string, UserRow>(userRows.map((user) => [user.id, user]))
+    const rolesById = new Map<string, RoleRow>(roleRows.map((role) => [role.id, role]))
+    const identities = memberRows
+      .map((member) => {
+        const user = usersById.get(member.user_id)
+        const role = member.role_id ? rolesById.get(member.role_id) : null
+        if (!user) return null
+        return {
+          id: user.id,
+          name: user.name ?? user.email ?? null,
+          email: user.email ?? null,
+          ...(role?.name ? { role: role.name } : {}),
+        }
+      })
+      .filter(Boolean)
 
     return NextResponse.json(identities, {
       headers: { 'Cache-Control': 'private, no-store' },

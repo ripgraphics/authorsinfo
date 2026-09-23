@@ -49,3 +49,16 @@ test('sanitizes denied member actions', async () => {
   expect(response.status).toBe(403)
   await expect(response.json()).resolves.toEqual({ error: 'You do not have permission' })
 })
+
+test('rejects cross-origin member removal before the policy action', async () => {
+  const request = new Request(`http://localhost/api/messages/group/${groupId}/members/${memberId}`, {
+    headers: { origin: 'https://untrusted.example' },
+  })
+
+  const response = await DELETE(request, {
+    params: Promise.resolve({ id: groupId, memberId }),
+  })
+
+  expect(response.status).toBe(403)
+  expect(mockRemove).not.toHaveBeenCalled()
+})

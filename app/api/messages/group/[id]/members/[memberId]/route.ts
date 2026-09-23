@@ -9,10 +9,14 @@ const identifier = z.string().uuid()
 const roleUpdateSchema = z.object({ role_id: identifier }).strict()
 type MemberActionContext = { params: Promise<{ id: string; memberId: string }> }
 
-export async function DELETE(_request: Request, { params }: MemberActionContext) {
+export async function DELETE(request: Request, { params }: MemberActionContext) {
   const { id, memberId } = await params
   if (!identifier.safeParse(id).success || !identifier.safeParse(memberId).success) {
     return NextResponse.json({ error: 'Invalid group member request' }, { status: 400 })
+  }
+  const origin = request.headers.get('origin')
+  if (origin && origin !== new URL(request.url).origin) {
+    return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
   }
 
   const result = await removeGroupMember({ groupId: id, userId: memberId })

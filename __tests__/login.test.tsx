@@ -87,17 +87,22 @@ describe('LoginPage', () => {
     expect(passwordInput).toHaveAttribute('type', 'password')
   })
 
-  it('navigates away from login immediately after a successful test-user login', async () => {
-    ;(global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => [
-        {
-          id: 'sam-id',
-          email: 'sam.smith@authorsinfo.com',
-          name: 'Sam Smith',
-        },
-      ],
-    })
+  it('waits for the server session before redirecting after a successful test-user login', async () => {
+    ;(global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: 'sam-id',
+            email: 'sam.smith@authorsinfo.com',
+            name: 'Sam Smith',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ user: { id: 'sam-id', name: 'Sam Smith' } }),
+      })
 
     render(<LoginPage />)
 
@@ -109,13 +114,17 @@ describe('LoginPage', () => {
         email: 'sam.smith@authorsinfo.com',
         password: 'password123',
       })
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth-users', expect.objectContaining({ method: 'POST' }))
       expect(mockReplace).toHaveBeenCalledWith('/')
       expect(mockRefresh).toHaveBeenCalled()
     })
   })
 
   it('redirects an already authenticated user and explains why', async () => {
-    ;(useAuth as jest.Mock).mockReturnValue({ user: { id: 'sam-id' }, loading: false })
+    ;(useAuth as jest.Mock).mockReturnValue({
+      user: { id: 'sam-id', permalink: 'sam.smith' },
+      loading: false,
+    })
     window.history.pushState({}, '', '/login?next=%2Fbooks')
 
     render(<LoginPage />)
@@ -125,7 +134,7 @@ describe('LoginPage', () => {
         title: 'Already signed in',
         description: 'You are already logged in.',
       })
-      expect(mockReplace).toHaveBeenCalledWith('/books')
+      expect(mockReplace).toHaveBeenCalledWith('/profile/sam.smith')
     })
   })
 })

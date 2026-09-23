@@ -41,8 +41,9 @@ export async function proxy(request: NextRequest) {
     authorized = !profileError && (role === 'admin' || role === 'super_admin')
   }
 
+  if (!isApiAdminPath(request.nextUrl.pathname)) return response
   if (authorized) return response
-  if (isApiAdminPath(request.nextUrl.pathname)) {
+  if (request.nextUrl.pathname.startsWith('/api/')) {
     return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
   }
 
@@ -51,4 +52,8 @@ export async function proxy(request: NextRequest) {
   return NextResponse.redirect(loginUrl)
 }
 
-export const config = { matcher: ['/admin/:path*', '/api/admin/:path*', '/api/debug/:path*'] }
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|images/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif)$).*)',
+  ],
+}

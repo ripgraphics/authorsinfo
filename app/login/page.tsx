@@ -74,6 +74,11 @@ export default function LoginPage() {
     return '/'
   }
 
+  const getAuthenticatedProfilePath = () => {
+    const profileIdentifier = user?.permalink || user?.id
+    return profileIdentifier ? `/profile/${profileIdentifier}` : '/'
+  }
+
   useEffect(() => {
     let cancelled = false
 
@@ -160,7 +165,7 @@ export default function LoginPage() {
       const alreadySignedInToast = { title: 'Already signed in', description: 'You are already logged in.' }
       setPendingToast(alreadySignedInToast)
       toast(alreadySignedInToast)
-      router.replace(getReturnPath())
+      router.replace(getAuthenticatedProfilePath())
       return () => { cancelled = true }
     }
 
@@ -193,6 +198,23 @@ export default function LoginPage() {
 
       if (error) {
         throw error
+      }
+
+      let serverSessionReady = false
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const sessionResponse = await fetch('/api/auth-users', {
+          method: 'POST',
+          cache: 'no-store',
+        })
+        if (sessionResponse.ok) {
+          const sessionData = await sessionResponse.json()
+          serverSessionReady = Boolean(sessionData?.user?.id)
+          if (serverSessionReady) break
+        }
+        if (attempt < 4) await new Promise((resolve) => setTimeout(resolve, 200))
+      }
+      if (!serverSessionReady) {
+        throw new Error('The signed-in session is not ready yet. Please try again.')
       }
 
       toast({ title: 'Success', description: 'You have been signed in successfully' })

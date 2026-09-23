@@ -20,7 +20,10 @@ function query(result: { data: unknown; error: unknown }) {
   return chain
 }
 
-const channel = query({ data: { id: channelId, group_id: groupId }, error: null })
+const channel = query({
+  data: { id: channelId, group_id: groupId, history_policy: 'retained_moderated' },
+  error: null,
+})
 const membership = query({ data: { group_id: groupId }, error: null })
 const settings = query({
   data: { channel_id: channelId, user_id: userId, is_archived: false, is_muted: true },
@@ -47,7 +50,11 @@ test('loads settings only for active members of a non-event group channel', asyn
     { params: Promise.resolve({ id: channelId }) },
   )
   expect(response.status).toBe(200)
-  await expect(response.json()).resolves.toMatchObject({ channel_id: channelId, is_muted: true })
+  await expect(response.json()).resolves.toMatchObject({
+    channel_id: channelId,
+    history_policy: 'retained_moderated',
+    is_muted: true,
+  })
   expect(channel.or).toHaveBeenCalledWith('is_event_channel.is.null,is_event_channel.eq.false')
   expect(membership.eq).toHaveBeenCalledWith('status', 'active')
 })

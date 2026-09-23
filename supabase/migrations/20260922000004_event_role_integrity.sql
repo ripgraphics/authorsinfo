@@ -1,4 +1,4 @@
--- Facebook parity: participants may update RSVP state, but cannot self-promote
+-- Participants may update RSVP state, but cannot self-promote
 -- to host, co-host, speaker, or moderator through a direct database client.
 
 CREATE OR REPLACE FUNCTION public.can_update_event_participant_role(

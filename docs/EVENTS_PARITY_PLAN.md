@@ -1,11 +1,11 @@
-# Facebook Events Parity Plan
+# Events Parity Plan
 
 **Status:** Future work, not yet started  
 **Dependency:** Groups privacy, notifications, identity, and blocking contracts.
 
 ## 1. Product Contract
 
-Events should provide Facebook-style event discovery, participation, hosting, and communication:
+Events should provide familiar event discovery, participation, hosting, and communication:
 
 - Public, private, and group-scoped event visibility with privacy-safe previews.
 - Event discovery, search, recommendations, categories, location/date filters, and shareable links.
@@ -50,7 +50,7 @@ Creator role management evidence: authenticated creator-only participant-role PA
 
 ## 4. Blocking Boundary Acceptance
 
-Facebook-style event behavior requires:
+The approved event behavior requires:
 
 - A blocked user cannot directly invite, message, tag, follow, or call the other user through an event.
 - Public event discovery remains governed by event visibility and does not become a private profile bypass.

@@ -1,11 +1,11 @@
-# Facebook Groups Parity Plan
+# Groups Parity Plan
 
 **Status:** Future work, not yet started  
 **Dependency:** Blocking parity and the unified messaging contract must remain stable.
 
 ## 1. Product Contract
 
-Groups should behave like Facebook Groups while preserving Authors Info's reading-community domain:
+Groups should provide familiar community behavior while preserving Authors Info's reading-community domain:
 
 - Public, private, and hidden group privacy with explicit join/visibility rules.
 - Group discovery, search, recommendations, invitations, join requests, approval, decline, leave, and rejoin behavior.
@@ -26,7 +26,7 @@ Groups should behave like Facebook Groups while preserving Authors Info's readin
 | `[ ]` Complete role and moderation model | `NOT STARTED` | Roles and member actions exist | Add permission matrix and audit evidence |
 | `[ ]` Complete feed/content parity | `NOT STARTED` | Posts, discussions, polls, and resources exist | Unify privacy, reactions, reports, media, and pagination |
 | `[ ]` Complete group notifications | `NOT STARTED` | Notification infrastructure exists | Add group-specific preferences and safe previews |
-| `[>]` Complete group chat boundary | `IN PROGRESS` | Messenger group channels and member reads enforce active membership; legacy member API redirects canonically; live parity users can read the shared group member list; a browser block check preserved shared member visibility (`200`) while direct history/read-state returned `403` | Verify isolated two-account lifecycle, member removal, history policy, realtime, and block behavior |
+| `[>]` Complete group chat boundary | `IN PROGRESS` | Messenger group channels and member reads enforce active membership; legacy member API redirects canonically; per-user mute/archive settings are authorized; channel settings expose the immutable `retained_moderated` history policy; focused settings/chat coverage passes 20/20; live parity users can read the shared group member list; a browser block check preserved shared member visibility (`200`) while direct history/read-state returned `403` | Verify isolated two-account lifecycle, member removal, history policy, realtime, and block behavior |
 | `[ ]` Complete responsive/accessibility acceptance | `NOT STARTED` | Individual surfaces have partial coverage | Run desktop/mobile/keyboard/screen-reader matrix |
 | `[ ]` Release with two-account and moderator acceptance | `NOT STARTED` | Focused Jest coverage exists | Add persistent browser suite and evidence ledger |
 
@@ -40,7 +40,7 @@ Groups should behave like Facebook Groups while preserving Authors Info's readin
 
 ## 4. Blocking Boundary Acceptance
 
-The blocking system must not globally remove shared-group content. Facebook-style behavior requires:
+The blocking system must not globally remove shared-group content. The approved behavior requires:
 
 - A blocked user cannot direct-message, follow, invite, tag, or call the other user through a group.
 - Both users may remain members of a shared group until the group owner/moderator removes or suspends one of them.

@@ -32,7 +32,7 @@ async function authorize(context: AuthenticatedRoute, channelId: string) {
   const supabase = getClient(context)
   const { data: channel, error: channelError } = await supabase
     .from('group_chat_channels')
-    .select('id, group_id')
+    .select('id, group_id, history_policy')
     .eq('id', channelId)
     .is('event_id', null)
     .or('is_event_channel.is.null,is_event_channel.eq.false')
@@ -51,7 +51,11 @@ async function authorize(context: AuthenticatedRoute, channelId: string) {
     .eq('status', 'active')
     .maybeSingle()
   if (membershipError) throw membershipError
-  return membership ? null : NextResponse.json({ error: 'Active group membership required' }, { status: 403 })
+  if (!membership) return NextResponse.json({ error: 'Active group membership required' }, { status: 403 })
+  const historyPolicy = 'history_policy' in channel && channel.history_policy === 'retained_moderated'
+    ? channel.history_policy
+    : 'retained_moderated'
+  return { historyPolicy }
 }
 
 export async function GET(_: NextRequest, { params }: Context) {
@@ -60,8 +64,8 @@ export async function GET(_: NextRequest, { params }: Context) {
     if (!authentication.ok) return authentication.response
     const { id } = await params
     if (!uuid.safeParse(id).success) return NextResponse.json({ error: 'Invalid settings request' }, { status: 400 })
-    const denied = await authorize(authentication.context, id)
-    if (denied) return denied
+    const authorization = await authorize(authentication.context, id)
+    if (authorization instanceof NextResponse) return authorization
     const { data, error } = await getClient(authentication.context)
       .from('group_conversation_settings')
       .select('channel_id, user_id, is_archived, is_muted, updated_at')
@@ -69,12 +73,12 @@ export async function GET(_: NextRequest, { params }: Context) {
       .eq('user_id', authentication.context.user.id)
       .maybeSingle()
     if (error) throw error
-    return NextResponse.json(data ?? {
+    return NextResponse.json({ ...(data ?? {
       channel_id: id,
       user_id: authentication.context.user.id,
       is_archived: false,
       is_muted: false,
-    })
+    }), history_policy: authorization.historyPolicy })
   } catch (error) {
     return nextErrorResponse(error, 'Unable to load group conversation settings', 500, false)
   }
@@ -91,8 +95,8 @@ export async function PATCH(request: NextRequest, { params }: Context) {
     if (!uuid.safeParse(id).success || !input.success || Object.keys(input.data).length === 0) {
       return NextResponse.json({ error: 'Invalid conversation settings' }, { status: 400 })
     }
-    const denied = await authorize(authentication.context, id)
-    if (denied) return denied
+    const authorization = await authorize(authentication.context, id)
+    if (authorization instanceof NextResponse) return authorization
     const { data, error } = await getClient(authentication.context)
       .from('group_conversation_settings')
       .upsert({ channel_id: id, user_id: authentication.context.user.id, ...input.data, updated_at: new Date().toISOString() }, { onConflict: 'channel_id,user_id' })

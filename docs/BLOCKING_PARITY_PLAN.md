@@ -1,4 +1,4 @@
-# Facebook Blocking Parity Plan
+# Blocking Parity Plan
 
 **Owner-approved direction:** 2026-09-21  
 **Status:** Phase 1 in progress  
@@ -6,7 +6,7 @@
 
 ## 1. Product Contract
 
-Blocking follows Facebook's normal user-facing model:
+Blocking follows the approved normal user-facing model:
 
 - A block is reciprocal in effect even though storage contains one authenticated user's block row.
 - Blocked users cannot discover or open one another's profiles through search, suggestions, friend lists, direct links, or user pickers.
@@ -56,7 +56,7 @@ Blocking follows Facebook's normal user-facing model:
 
 | Date | Change | Evidence |
 | --- | --- | --- |
-| 2026-09-21 | Created plan and recorded Facebook-style contract | Repository baseline review |
+| 2026-09-21 | Created plan and recorded the approved contract | Repository baseline review |
 | 2026-09-21 | Confirmed direct-message RLS denies Bob-to-Wendy while a block row exists | Live isolated Supabase probe returned `42501` |
 | 2026-09-21 | Wired profile Block User action with confirmation and feedback | Diagnostics clean; focused tests pass 6/6 |
 | 2026-09-22 | Added blocked-user Settings list and reciprocal direct-message enforcement | Diagnostics clean; focused blocking/messaging suite passes 11/11 |

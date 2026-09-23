@@ -3110,7 +3110,7 @@ export default function EntityFeedCard({
                       </div>
                     </div>
 
-                    {/* Nested Replies Section — Facebook-style tree connectors:
+                    {/* Nested replies use tree connectors:
                         a vertical trunk drops from the parent avatar's bottom-center,
                         and each reply gets an L-branch that ends at its avatar's
                         left-center. The trunk stops at the last reply's avatar. */}

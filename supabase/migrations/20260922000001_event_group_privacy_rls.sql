@@ -1,4 +1,4 @@
--- Facebook parity: enforce event guest-list and private-group membership privacy in RLS.
+-- Enforce event guest-list and private-group membership privacy in RLS.
 -- The application routes retain their richer blocked-user filtering; these policies
 -- prevent alternate clients from bypassing the same privacy boundary.
 

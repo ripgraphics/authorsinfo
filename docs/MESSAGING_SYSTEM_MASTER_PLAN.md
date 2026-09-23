@@ -6,7 +6,7 @@
 
 ## 1. Product Contract
 
-Authors Info will provide one Facebook/Messenger-style messaging product:
+Authors Info will provide one Messenger-style messaging product:
 
 - `/messages` is the unified Messenger inbox.
 - `/messages/direct/[id]` opens a direct conversation in the same Messenger shell.
@@ -16,9 +16,9 @@ Authors Info will provide one Facebook/Messenger-style messaging product:
 
 This is a functional parity target. Completion requires executable evidence for each accepted workflow; visual similarity alone is not completion.
 
-## 1A. Facebook Messenger Desktop Parity Contract
+## 1A. Messenger Desktop Parity Contract
 
-Facebook desktop web Messenger is the primary interaction reference. The global launcher, profile Message actions, full-page Messenger route, minimized conversation bubbles, and group Messenger entry points are presentation variants of one workspace and must preserve the following behavior:
+Desktop web Messenger is the primary interaction reference. The global launcher, profile Message actions, full-page Messenger route, minimized conversation bubbles, and group Messenger entry points are presentation variants of one workspace and must preserve the following behavior:
 
 | Surface | Required behavior |
 | --- | --- |
@@ -165,7 +165,7 @@ Backward-compatible links may remain temporarily, but they must resolve into the
 | `[x]` Replace invitation placeholder with permission-aware creation | `COMPLETED` | POST invitations route and friend invite controls | None |
 | `[x]` Implement invitation accept/decline/cancel lifecycle | `COMPLETED` | PATCH/DELETE lifecycle route; tests pass | None |
 | `[x]` Add pending invitations and inbox accept/decline controls | `COMPLETED` | Pending route and `MessengerInvitationList` | Add browser acceptance test |
-| `[>]` Complete group conversation creation, roles, avatars, and history policy | `IN PROGRESS` | Transport and membership slices exist; per-member mute/archive settings and authorized role assignment are live; the canonical group inbox now carries channel description, group cover-image avatar URL, explicit `moderated` privacy mode, and the live-verified `retained_moderated` history policy; new groups now receive a canonical non-event `General` channel through a live-verified trigger; live acceptance remains incomplete | Add explicit history policy controls and complete live group acceptance |
+| `[>]` Complete group conversation creation, roles, avatars, and history policy | `IN PROGRESS` | Transport and membership slices exist; per-member mute/archive settings and authorized role assignment are live; the canonical group inbox and channel settings now expose the immutable live `retained_moderated` history policy; new groups now receive a canonical non-event `General` channel through a live-verified trigger; focused settings/chat coverage passes 20/20; live acceptance remains incomplete | Complete live group acceptance and decide whether additional history policies are approved |
 | `[>]` Keep moderated community channels separate by conversation kind/privacy | `IN PROGRESS` | Kind field exists; full event/entity classification incomplete | Finish route and schema classification |
 | `[>]` Add authorization tests for every kind and membership transition | `IN PROGRESS` | `__tests__/group-chat.test.ts` now passes 18/18 with active, nonmember, suspended, event-channel, forged-sender, malformed, cross-origin, and DB-error cases; full direct/group transition matrix remains incomplete | Add direct/group membership mutation and realtime authorization cases |
 
@@ -279,7 +279,7 @@ Destructive commands, database resets, blind `--include-all` migration history r
 - Existing private-message Supabase infrastructure is retained until a real replacement is approved and migrated; it is not safe to delete now.
 - Matrix/Synapse remains a gated evaluation, not an enabled production private-message backend.
 - Existing group/event channel privacy and migration-history issues require live verification before cleanup or broad rollout.
-- Exact Facebook parity requires a dated reference inventory and executable acceptance evidence; the project must not claim parity while any required workflow is unimplemented.
+- Exact interaction parity requires a dated reference inventory and executable acceptance evidence; the project must not claim parity while any required workflow is unimplemented.
 - The ESLint module-resolution problem is a repository/tooling issue and must be tracked separately from source diagnostics.
 
 ## 10. Change Log
@@ -324,8 +324,8 @@ Destructive commands, database resets, blind `--include-all` migration history r
 - **2026-09-20:** Added per-user messaging rate-limit enforcement to direct conversation creation, direct sends, and group sends, with explicit `429`/`Retry-After` responses. The limiter now avoids malformed Upstash calls in test environments and fails open only when the configured provider is unavailable; group/direct authorization tests pass 25/25.
 - **2026-09-20:** Hardened account-switch cleanup in the realtime store: presence maps, online counts, private activity state, and realtime channels are cleared on disconnect or a different user initialization. The isolation regression test passes 1/1.
 - **2026-09-20:** Added a provider-agnostic push delivery adapter and wired the service-role worker to deliver claimed outbox jobs through `MESSAGING_PUSH_PROVIDER_URL`, with optional bearer authentication and bounded request timeouts. Provider success marks jobs sent; provider failures record bounded errors and retry delays through the existing completion RPC. Focused worker, notification, group-report, and realtime tests pass 9/9; production provider configuration and live delivery acceptance remain open.
-- **2026-09-20:** Continued Facebook launcher parity: separated the top Chats dropdown from the bottom floating chat, added near-full-height positioning with a 30px bottom gap, toggle/outside close behavior, Facebook-style All/Unread/Groups/Communities tabs, compact recent-row previews/timestamps/unread dots, More options, sticky See all in Messenger footer, friend/conversation handoff into the bottom chat, and multi-conversation minimized bubbles. Browser checks verified top selection closes the dropdown and opens the selected bottom conversation; focused parity tests pass 16/16.
-- **2026-09-20:** Added the compact Facebook-style pending message-request row with authenticated Accept/Decline actions. Browser verification confirmed the request row, both actions, and the sticky Messenger footer render together; focused request and launcher tests pass 14/14.
+- **2026-09-20:** Continued launcher parity: separated the top Chats dropdown from the bottom floating chat, added near-full-height positioning with a 30px bottom gap, toggle/outside close behavior, All/Unread/Groups/Communities tabs, compact recent-row previews/timestamps/unread dots, More options, sticky See all in Messenger footer, friend/conversation handoff into the bottom chat, and multi-conversation minimized bubbles. Browser checks verified top selection closes the dropdown and opens the selected bottom conversation; focused parity tests pass 16/16.
+- **2026-09-20:** Added the compact pending message-request row with authenticated Accept/Decline actions. Browser verification confirmed the request row, both actions, and the sticky Messenger footer render together; focused request and launcher tests pass 14/14.
 - **2026-09-21:** Exposed the live-verified `retained_moderated` group history policy in the canonical participant details panel as a read-only group setting. Focused group/details/Messenger tests pass 16/16; policy mutation remains intentionally gated because the current route does not support changing history policy.
 - **2026-09-21:** Expanded direct restriction authorization coverage with malformed-payload, cross-origin, unauthenticated, and nonparticipant denial cases. The combined direct restriction/report/messaging and group authorization suites pass 33/33; live two-account acceptance remains gated by Supabase session stability.
 - **2026-09-21:** Added Messenger accessibility regression coverage for Enter/Shift+Enter composer behavior and a global reduced-motion rule covering Messenger rail, header, and floating-chat transitions/animations. Focused composer/header/rail/details tests pass 15/15 without warnings after awaiting async composer cleanup.

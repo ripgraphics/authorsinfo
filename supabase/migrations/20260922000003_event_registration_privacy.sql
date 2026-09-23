@@ -1,4 +1,4 @@
--- Facebook parity: event registration records are private attendee data.
+-- Event registration records are private attendee data.
 -- Guests, answers, tickets, and registration metadata must not be public.
 
 DROP POLICY IF EXISTS "Allow public read" ON public.event_registrations;

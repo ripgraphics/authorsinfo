@@ -1,4 +1,4 @@
--- Facebook parity: make blocking durable at the database boundary.
+-- Make blocking durable at the database boundary.
 -- Application routes provide richer UX; these constraints/policies prevent bypasses.
 
 CREATE UNIQUE INDEX IF NOT EXISTS blocks_user_blocked_user_unique

@@ -1,4 +1,4 @@
--- Facebook parity: only event creators may assign/remove event participant roles.
+-- Only event creators may assign/remove event participant roles.
 
 DROP POLICY IF EXISTS event_participants_creator_role_update ON public.event_participants;
 CREATE POLICY event_participants_creator_role_update

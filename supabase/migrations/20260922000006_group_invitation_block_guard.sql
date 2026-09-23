@@ -1,4 +1,4 @@
--- Facebook parity: a group invitation is a direct user interaction and must
+-- A group invitation is a direct user interaction and must
 -- respect reciprocal blocks, including invitations addressed by email.
 
 DROP POLICY IF EXISTS group_invitations_recipient_insert ON public.group_invitations;

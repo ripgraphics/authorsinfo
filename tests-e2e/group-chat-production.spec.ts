@@ -281,4 +281,78 @@ test.describe('production group chat authorization and realtime', () => {
       await context.close()
     }
   })
+
+  test('delivers a group message to a second authenticated realtime subscriber', async ({ browser }) => {
+    test.skip(Boolean(fixtureError), fixtureError || undefined)
+    if (!fixture) throw new Error('Chat E2E fixture was not created')
+    const chatFixture = fixture
+    const activeContext = await browser.newContext({
+      storageState: storageState(chatFixture.active.session),
+    })
+    const observerContext = await browser.newContext({
+      storageState: storageState(chatFixture.observer.session),
+    })
+    const observerClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false } }
+    )
+    const { error: observerSessionError } = await observerClient.auth.setSession({
+      access_token: chatFixture.observer.session.access_token,
+      refresh_token: chatFixture.observer.session.refresh_token,
+    })
+    if (observerSessionError) throw observerSessionError
+    await observerClient.realtime.setAuth(chatFixture.observer.session.access_token)
+
+    const message = `realtime acceptance ${Date.now()}`
+    let resolveSubscribed: (() => void) | null = null
+    let rejectSubscribed: ((error: Error) => void) | null = null
+    const subscribed = new Promise<void>((resolve, reject) => {
+      resolveSubscribed = resolve
+      rejectSubscribed = reject
+    })
+    const received = new Promise<Record<string, unknown>>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Timed out waiting for group realtime message')), 15000)
+      const channel = observerClient.channel(`chat-e2e-realtime-${Date.now()}`)
+      channel.on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'group_chat_messages',
+        filter: `channel_id=eq.${chatFixture.channelId}`,
+      }, (payload) => {
+        const row = payload.new as Record<string, unknown>
+        if (row.message !== message) return
+        clearTimeout(timeout)
+        resolve(row)
+      })
+      channel.subscribe((status, error) => {
+        if (status === 'SUBSCRIBED') resolveSubscribed?.()
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          rejectSubscribed?.(error ?? new Error(`Realtime subscription ${status}`))
+          reject(error ?? new Error(`Realtime subscription ${status}`))
+        }
+      })
+    })
+
+    try {
+      await subscribed
+      const sendResponse = await activeContext.request.post(
+        `${baseUrl}/api/groups/${chatFixture.groupId}/chat`,
+        {
+          data: {
+            channel_id: chatFixture.channelId,
+            message,
+          },
+        }
+      )
+      expect(sendResponse.status()).toBe(201)
+      const row = await received
+      expect(row.message).toBe(message)
+      expect(row.user_id).toBe(chatFixture.active.id)
+    } finally {
+      await observerClient.removeAllChannels()
+      await activeContext.close()
+      await observerContext.close()
+    }
+  })
 })

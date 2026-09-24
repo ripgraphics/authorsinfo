@@ -17,7 +17,11 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <PageHeader showChatLauncher={!isMessengerRoute} />
-      <FloatingChat compactInbox openEventName="authorsinfo:open-messenger-chats" />
+      <FloatingChat
+        compactInbox
+        enableUnreadPolling={false}
+        openEventName="authorsinfo:open-messenger-chats"
+      />
       {isMessengerRoute ? children : <PageContainer>{children}</PageContainer>}
       {isMessengerRoute ? null : <FloatingChat />}
     </>

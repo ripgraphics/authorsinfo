@@ -33,7 +33,7 @@ export function MessengerConversationHeader({
       <div className="flex min-w-0 items-center gap-2">
         {onToggleLeftRail ? (
           <IconButton
-            icon={leftRailOpen ? PanelLeftClose : PanelLeftOpen}
+            icon={leftRailOpen ? PanelLeftClose : PanelLeft}
             label={leftRailOpen ? 'Hide conversations' : 'Show conversations'}
             tone="muted"
             onClick={onToggleLeftRail}

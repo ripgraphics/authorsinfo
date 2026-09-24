@@ -6,6 +6,7 @@ import { handleDatabaseError, nextErrorResponse } from '@/lib/error-handler'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { NotificationDispatcher } from '@/lib/services/notification-dispatcher'
 import { isBlockedByEitherUser } from '@/lib/messaging/blocking'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 const identifier = z.string().uuid()
 const historySchema = z
@@ -74,7 +75,30 @@ async function authorizeConversation(
     .eq('id', conversationId)
     .maybeSingle()
   if (error) throw error
-  if (!data || ![data.user_low_id, data.user_high_id].includes(context.user.id)) {
+  if (!data) {
+    const { data: hiddenConversation, error: hiddenConversationError } = await supabaseAdmin
+      .from('direct_conversations')
+      .select('id, user_low_id, user_high_id')
+      .eq('id', conversationId)
+      .maybeSingle()
+    if (hiddenConversationError) throw hiddenConversationError
+    if (
+      hiddenConversation &&
+      [hiddenConversation.user_low_id, hiddenConversation.user_high_id].includes(context.user.id)
+    ) {
+      const otherUserId = hiddenConversation.user_low_id === context.user.id
+        ? hiddenConversation.user_high_id
+        : hiddenConversation.user_low_id
+      if (await isBlockedByEitherUser(context, otherUserId)) {
+        return NextResponse.json(
+          { error: 'This conversation is unavailable', code: 'blocked_user' },
+          { status: 403 }
+        )
+      }
+    }
+    return NextResponse.json({ error: 'Conversation access denied' }, { status: 403 })
+  }
+  if (![data.user_low_id, data.user_high_id].includes(context.user.id)) {
     return NextResponse.json({ error: 'Conversation access denied' }, { status: 403 })
   }
   const otherUserId = data.user_low_id === context.user.id ? data.user_high_id : data.user_low_id

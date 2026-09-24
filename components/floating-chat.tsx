@@ -21,6 +21,7 @@ import { ConversationRail } from '@/components/conversation-rail'
 import { ParticipantDetailsPanel } from '@/components/participant-details-panel'
 import { DirectMessageList } from '@/components/direct-message-list'
 import { ConversationHeader } from '@/components/conversation-header'
+import { MessengerConversationHeader } from '@/components/messenger-conversation-header'
 import { DirectCallPanel } from '@/components/direct-call-panel'
 import { useDirectCall } from '@/hooks/use-direct-call'
 import {
@@ -59,6 +60,7 @@ export interface FloatingChatProps {
   fullPage?: boolean
   initialConversationId?: string | null
   compactInbox?: boolean
+  enableUnreadPolling?: boolean
 }
 
 export function FloatingChat({
@@ -66,6 +68,7 @@ export function FloatingChat({
   fullPage = false,
   initialConversationId = null,
   compactInbox = false,
+  enableUnreadPolling = true,
 }: FloatingChatProps) {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -112,6 +115,8 @@ export function FloatingChat({
     'all' | 'unread' | 'groups' | 'communities'
   >('all')
   const [compactOptionsOpen, setCompactOptionsOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(true)
+  const [leftRailOpen, setLeftRailOpen] = useState(true)
   const [mobileConversationOpen, setMobileConversationOpen] = useState(Boolean(initialConversationId))
   const conversationsRef = useRef<MessengerConversation[]>([])
   const channelRef = useRef<ReturnType<
@@ -236,7 +241,7 @@ export function FloatingChat({
   }, [conversations, activeConversationId, userId])
 
   useEffect(() => {
-    if (!user) return
+    if (!user || !enableUnreadPolling) return
     void Promise.all([
       fetch('/api/messages/direct', { cache: 'no-store' }).then((response) =>
         response.ok ? response.json() : []
@@ -257,11 +262,14 @@ export function FloatingChat({
       const groupConversations = (groupConversationData as GroupConversationRecord[]).map(
         normalizeGroupConversation
       )
-      setConversations(
-        [...directConversations, ...groupConversations].sort((left, right) =>
-          (right.latestMessageAt ?? '').localeCompare(left.latestMessageAt ?? '')
-        )
+      const nextConversations = [...directConversations, ...groupConversations].sort((left, right) =>
+        (right.latestMessageAt ?? '').localeCompare(left.latestMessageAt ?? '')
       )
+      setConversations(nextConversations)
+      if (fullPage && !initialConversationId && nextConversations.length > 0) {
+        setActiveConversationId(nextConversations[0].id)
+        setMobileConversationOpen(true)
+      }
       setFriends(
         ((friendData.friends ?? []) as { friend: Friend }[])
           .map((row) => row.friend)
@@ -346,7 +354,7 @@ export function FloatingChat({
     void refreshUnread()
     const interval = window.setInterval(() => void refreshUnread(), 3000)
     return () => window.clearInterval(interval)
-  }, [user, userId])
+  }, [enableUnreadPolling, user, userId])
 
   useEffect(() => {
     const handleOpen = () => {
@@ -430,6 +438,30 @@ export function FloatingChat({
     document.addEventListener('pointerdown', handleOutsidePointer)
     return () => document.removeEventListener('pointerdown', handleOutsidePointer)
   }, [compactInbox, open])
+
+  useEffect(() => {
+    if (!fullPage) return
+    const mediaQuery = window.matchMedia('(max-width: 1199px)')
+    const updateViewport = () => {
+      setDetailsOpen(!mediaQuery.matches)
+    }
+    updateViewport()
+    mediaQuery.addEventListener('change', updateViewport)
+    return () => mediaQuery.removeEventListener('change', updateViewport)
+  }, [fullPage])
+
+  useEffect(() => {
+    if (!fullPage || !detailsOpen) return
+    const handleOutsidePointer = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      if (target.closest('.participant-details-panel')) return
+      if (target.closest('[aria-label="Conversation details"]')) return
+      setDetailsOpen(false)
+    }
+    document.addEventListener('pointerdown', handleOutsidePointer)
+    return () => document.removeEventListener('pointerdown', handleOutsidePointer)
+  }, [detailsOpen, fullPage])
 
   // Clear the unread badge for the active conversation as soon as it is
   // opened — the read state is persisted server-side right after.
@@ -1370,12 +1402,14 @@ export function FloatingChat({
                   setMobileConversationOpen(true)
                 }}
                 mobileVisible={!mobileConversationOpen}
+                isOpen={leftRailOpen}
                 contacts={visibleContacts}
                 onSelectContact={(friendId) => void openConversation(friendId)}
                 searchValue={conversationSearch}
                 onSearchChange={setConversationSearch}
                 filter={conversationFilter}
                 onFilterChange={setConversationFilter}
+                onNewMessage={() => document.querySelector<HTMLInputElement>('[aria-label="Search chats"]')?.focus()}
                 messageRequests={messageRequests}
                 currentUserId={userId}
                 onAcceptRequest={(requestId) => void updateMessageRequest(requestId, 'accept')}
@@ -1383,14 +1417,43 @@ export function FloatingChat({
                 onCancelRequest={(requestId) => void updateMessageRequest(requestId, 'cancel')}
               />
             ) : null}
-          <div className={`${fullPage ? 'flex min-w-0 flex-1 flex-col' : 'contents'} ${fullPage && !mobileConversationOpen ? 'hidden md:flex' : ''}`}>
+          <div className={`${fullPage ? 'flex min-w-0 flex-1 flex-col min-[1200px]:min-w-[420px]' : 'contents'} ${fullPage && !mobileConversationOpen ? 'hidden md:flex' : ''}`}>
           {activeConversationId ? (
             <>
+              {fullPage ? (
+                <MessengerConversationHeader
+                  participant={activeParticipant ?? null}
+                  leftRailOpen={leftRailOpen}
+                  onToggleLeftRail={() => setLeftRailOpen((open) => !open)}
+                  audioCallAvailable={callCapabilityReady && activeConversation?.kind === 'direct'}
+                  videoCallAvailable={callCapabilityReady && activeConversation?.kind === 'direct'}
+                  onAudioCall={callCapabilityReady && activeConversation?.kind === 'direct'
+                    ? () => void directCall.startCall('audio')
+                    : undefined}
+                  onVideoCall={callCapabilityReady && activeConversation?.kind === 'direct'
+                    ? () => void directCall.startCall('video')
+                    : undefined}
+                  onDetails={() => setDetailsOpen((open) => !open)}
+                />
+              ) : null}
               <DirectMessageList
                 ref={messagesContainerRef}
                 messages={messages}
                 currentUserId={userId}
                 participant={activeParticipant ?? null}
+                conversationIntroLabel={fullPage && activeParticipant
+                  ? activeConversation?.kind === 'messenger_group'
+                    ? messages[0]?.senderId === userId
+                      ? 'You started this group'
+                      : messages[0]?.senderId
+                        ? `${activeParticipant.name || 'They'} started this group`
+                        : 'Group conversation'
+                    : messages[0]?.senderId === userId
+                      ? 'You started this conversation'
+                      : messages[0]?.senderId
+                        ? `${activeParticipant.name || 'They'} started this conversation`
+                        : 'Conversation details'
+                  : undefined}
                 typingUserNames={typingUserNames}
                 loading={loadingMessages}
                 onEdit={activeConversation?.kind === 'direct' ? (messageId) => void editDirectMessage(messageId) : undefined}
@@ -1579,7 +1642,7 @@ export function FloatingChat({
               See all in Messenger
             </button>
           ) : null}
-          {fullPage ? (
+          {fullPage && detailsOpen ? (
             <ParticipantDetailsPanel
               participant={activeParticipant ?? null}
               members={groupMembers}

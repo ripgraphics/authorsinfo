@@ -1,7 +1,7 @@
 'use client'
 
-import { forwardRef, type Ref } from 'react'
-import { Copy, Download, Flag, Forward, Heart, Pencil, Pin, Reply, Trash2 } from 'lucide-react'
+import { forwardRef, type Ref, useState } from 'react'
+import { Copy, Download, Ellipsis, Flag, Forward, Heart, Pencil, Pin, Reply, Smile, Trash2 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { TypingIndicator } from '@/components/typing-indicator'
@@ -20,6 +20,7 @@ export interface DirectMessageListProps {
   messages: DirectMessageListMessage[]
   currentUserId: string | null
   participant: DirectMessageListParticipant | null
+  conversationIntroLabel?: string
   typingUserNames: string[]
   loading?: boolean
   emptyText?: string
@@ -49,6 +50,7 @@ export const DirectMessageList = forwardRef<HTMLDivElement, DirectMessageListPro
       messages,
       currentUserId,
       participant,
+      conversationIntroLabel,
       typingUserNames,
       loading = false,
       emptyText = 'No messages yet.',
@@ -115,6 +117,20 @@ export const DirectMessageList = forwardRef<HTMLDivElement, DirectMessageListPro
             ) : null}
           </div>
         ) : null}
+        {conversationIntroLabel && participant ? (
+          <div className="direct-message-list__conversation-intro flex flex-col items-center px-6 py-8 text-center">
+            <Avatar
+              src={participant.avatar_url ?? undefined}
+              name={participant.name ?? ''}
+              alt={participant.name ?? 'Participant'}
+              size="lg"
+            />
+            <h2 className="mt-3 text-base font-semibold">
+              {participant.name || 'Conversation'}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">{conversationIntroLabel}</p>
+          </div>
+        ) : null}
         {messages.map((message, index) => {
           const previousMessage = messages[index - 1]
           const showDate =
@@ -122,9 +138,38 @@ export const DirectMessageList = forwardRef<HTMLDivElement, DirectMessageListPro
             new Date(previousMessage.createdAt).toDateString() !==
               new Date(message.createdAt).toDateString()
           const isOwnMessage = message.senderId === currentUserId
+          const hasMessageActions = !message.deletedAt && (
+            isOwnMessage
+              ? Boolean(onEdit || onDelete || onReaction || onCopy || onReply || onForward || onTogglePin || onDeleteForMe)
+              : Boolean(onCopy || onReport || onReply || onForward || onTogglePin || onDeleteForMe)
+          )
+          const messageActions = hasMessageActions ? (
+            <div className="direct-message-list__actions flex shrink-0 items-center gap-1 rounded-full bg-background p-1 opacity-0 shadow-md ring-1 ring-border transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+              {onReaction ? (
+                <IconButton icon={Smile} label="React to message" tone="muted" size="sm" onClick={() => onReaction(message.id)} />
+              ) : null}
+              {onReply ? (
+                <IconButton icon={Reply} label="Reply to message" tone="muted" size="sm" onClick={() => onReply(message.id)} />
+              ) : null}
+              <details className="relative">
+                <summary className="list-none [&::-webkit-details-marker]:hidden">
+                  <IconButton icon={Ellipsis} label="More message actions" tone="muted" size="sm" />
+                </summary>
+                <div className="absolute bottom-full right-0 z-20 mb-1 grid min-w-44 gap-1 rounded-lg border bg-background p-1 text-sm shadow-lg">
+                  {onCopy ? <button type="button" className="rounded px-3 py-2 text-left hover:bg-accent" onClick={() => onCopy(message.id)}>Copy</button> : null}
+                  {!isOwnMessage && onReport ? <button type="button" className="rounded px-3 py-2 text-left hover:bg-accent" onClick={() => onReport(message.id)}>Report</button> : null}
+                  {onForward ? <button type="button" className="rounded px-3 py-2 text-left hover:bg-accent" onClick={() => onForward(message.id)}>Forward</button> : null}
+                  {onTogglePin ? <button type="button" className="rounded px-3 py-2 text-left hover:bg-accent" onClick={() => onTogglePin(message.id)}>{pinnedMessageIds.has(message.id) ? 'Unpin' : 'Pin'}</button> : null}
+                  {onDeleteForMe ? <button type="button" className="rounded px-3 py-2 text-left hover:bg-accent" onClick={() => onDeleteForMe(message.id)}>Delete for me</button> : null}
+                  {onEdit ? <button type="button" className="rounded px-3 py-2 text-left hover:bg-accent" onClick={() => onEdit(message.id)}>Edit</button> : null}
+                  {onDelete ? <button type="button" className="rounded px-3 py-2 text-left hover:bg-accent" onClick={() => onDelete(message.id)}>Delete</button> : null}
+                </div>
+              </details>
+            </div>
+          ) : null
 
           return (
-            <div key={message.id} className="direct-message-list__group">
+            <div key={message.id} className="direct-message-list__group group relative">
               {showDate ? (
                 <div className="direct-message-list__date my-3 text-center text-[11px] text-muted-foreground">
                   {new Date(message.createdAt).toLocaleDateString([], {
@@ -135,7 +180,7 @@ export const DirectMessageList = forwardRef<HTMLDivElement, DirectMessageListPro
                 </div>
               ) : null}
               <div
-                className={`direct-message-list__row flex items-end gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                className={`direct-message-list__row flex items-center gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
               >
                 {!isOwnMessage ? (
                   <Avatar
@@ -143,8 +188,10 @@ export const DirectMessageList = forwardRef<HTMLDivElement, DirectMessageListPro
                     name={participant?.name ?? ''}
                     alt={participant?.name ?? 'Friend'}
                     size="xs"
+                    className="shrink-0"
                   />
                 ) : null}
+                {isOwnMessage ? messageActions : null}
                 <div
                   className={`direct-message-list__bubble max-w-[82%] rounded-xl px-3 py-2 text-sm shadow-sm ${
                     isOwnMessage
@@ -192,6 +239,7 @@ export const DirectMessageList = forwardRef<HTMLDivElement, DirectMessageListPro
                     </div>
                   ) : null}
                 </div>
+                {!isOwnMessage ? messageActions : null}
               </div>
               <div
                 className={`direct-message-list__time mt-1 text-[10px] text-muted-foreground ${isOwnMessage ? 'text-right' : 'text-left'}`}
@@ -200,37 +248,6 @@ export const DirectMessageList = forwardRef<HTMLDivElement, DirectMessageListPro
               </div>
               {pinnedMessageIds.has(message.id) ? <span className="direct-message-list__pinned text-[10px] text-muted-foreground">Pinned</span> : null}
               {message.mentionUserIds?.length ? <span className="direct-message-list__mentions text-[10px] text-muted-foreground">Mentioned users</span> : null}
-              {!message.deletedAt && (isOwnMessage ? onEdit || onDelete || onReaction || onCopy || onReply || onForward || onTogglePin || onDeleteForMe : onCopy || onReport || onReply || onForward || onTogglePin || onDeleteForMe) ? (
-                <div className="direct-message-list__actions mt-1 flex justify-end gap-1">
-                  {onCopy ? (
-                    <IconButton icon={Copy} label="Copy message" tone="muted" size="sm" onClick={() => onCopy(message.id)} />
-                  ) : null}
-                  {!isOwnMessage && onReport ? (
-                    <IconButton icon={Flag} label="Report message" tone="muted" size="sm" onClick={() => onReport(message.id)} />
-                  ) : null}
-                  {onReply ? (
-                    <IconButton icon={Reply} label="Reply to message" tone="muted" size="sm" onClick={() => onReply(message.id)} />
-                  ) : null}
-                  {onForward ? (
-                    <IconButton icon={Forward} label="Forward message" tone="muted" size="sm" onClick={() => onForward(message.id)} />
-                  ) : null}
-                  {onTogglePin ? (
-                    <IconButton icon={Pin} label={pinnedMessageIds.has(message.id) ? 'Unpin message' : 'Pin message'} tone="muted" size="sm" onClick={() => onTogglePin(message.id)} />
-                  ) : null}
-                  {onDeleteForMe ? (
-                    <IconButton icon={Trash2} label="Delete message for me" tone="muted" size="sm" onClick={() => onDeleteForMe(message.id)} />
-                  ) : null}
-                  {onReaction ? (
-                    <IconButton icon={Heart} label="React to message" tone="muted" size="sm" onClick={() => onReaction(message.id)} />
-                  ) : null}
-                  {onEdit && !message.deletedAt ? (
-                    <IconButton icon={Pencil} label="Edit message" tone="muted" size="sm" onClick={() => onEdit(message.id)} />
-                  ) : null}
-                  {onDelete && !message.deletedAt ? (
-                    <IconButton icon={Trash2} label="Delete message" tone="muted" size="sm" onClick={() => onDelete(message.id)} />
-                  ) : null}
-                </div>
-              ) : null}
               {isOwnMessage && message.readAt && message.readBy ? (
                 <div className="direct-message-list__receipt mt-0.5 flex justify-end">
                   <Tooltip>

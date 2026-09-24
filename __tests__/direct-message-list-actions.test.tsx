@@ -13,6 +13,10 @@ jest.mock('@/components/typing-indicator', () => ({
   TypingIndicator: () => null,
 }))
 
+function openMessageActions() {
+  fireEvent.click(screen.getByRole('button', { name: 'More message actions' }))
+}
+
 test('exposes edit, delete, and reaction callbacks for owned messages', async () => {
   const onEdit = jest.fn()
   const onDelete = jest.fn()
@@ -40,8 +44,9 @@ test('exposes edit, delete, and reaction callbacks for owned messages', async ()
     />
   )
 
-  fireEvent.click(screen.getByRole('button', { name: 'Edit message' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Delete message' }))
+  openMessageActions()
+  fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
   fireEvent.click(screen.getByRole('button', { name: 'React to message' }))
 
   expect(onEdit).toHaveBeenCalledWith('message-1')
@@ -72,7 +77,8 @@ test('exposes copy callback for messages from either participant', () => {
     />
   )
 
-  fireEvent.click(screen.getByRole('button', { name: 'Copy message' }))
+  openMessageActions()
+  fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
 
   expect(onCopy).toHaveBeenCalledWith('message-1')
 })
@@ -177,7 +183,8 @@ test('exposes report callback for messages from the other participant', () => {
     />
   )
 
-  fireEvent.click(screen.getByRole('button', { name: 'Report message' }))
+  openMessageActions()
+  fireEvent.click(screen.getByRole('button', { name: 'Report' }))
 
   expect(onReport).toHaveBeenCalledWith('message-2')
 })
@@ -263,7 +270,8 @@ test('exposes forward callback for non-deleted messages', () => {
     />
   )
 
-  fireEvent.click(screen.getByRole('button', { name: 'Forward message' }))
+  openMessageActions()
+  fireEvent.click(screen.getByRole('button', { name: 'Forward' }))
 
   expect(onForward).toHaveBeenCalledWith('message-4')
 })
@@ -286,7 +294,8 @@ test('exposes pin callback and pinned state for messages', () => {
   )
 
   expect(screen.getByText('Pinned')).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Unpin message' }))
+  openMessageActions()
+  fireEvent.click(screen.getByRole('button', { name: 'Unpin' }))
   expect(onTogglePin).toHaveBeenCalledWith('message-5')
 })
 
@@ -306,7 +315,8 @@ test('exposes delete for me callback for non-deleted messages', () => {
     />
   )
 
-  fireEvent.click(screen.getByRole('button', { name: 'Delete message for me' }))
+  openMessageActions()
+  fireEvent.click(screen.getByRole('button', { name: 'Delete for me' }))
   expect(onDeleteForMe).toHaveBeenCalledWith('message-6')
 })
 

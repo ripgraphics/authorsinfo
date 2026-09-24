@@ -11,68 +11,20 @@ jest.mock('@/components/ui/button', () => ({
   ),
 }))
 
-test('exposes mark unread for direct conversations', () => {
-  const onMarkUnread = jest.fn()
-
+test('uses compact Messenger profile controls instead of full-width actions', () => {
   render(
     <ParticipantDetailsPanel
       participant={{ id: 'user-2', name: 'Bob Brown' }}
-      canMarkUnread
-      onMarkUnread={onMarkUnread}
     />
   )
 
-  fireEvent.click(screen.getByRole('button', { name: 'Mark unread' }))
-
-  expect(onMarkUnread).toHaveBeenCalledTimes(1)
-})
-
-test('exposes block participant for direct conversations', () => {
-  const onBlock = jest.fn()
-
-  render(
-    <ParticipantDetailsPanel
-      participant={{ id: 'user-2', name: 'Bob Brown' }}
-      canBlock
-      onBlock={onBlock}
-    />
-  )
-
-  fireEvent.click(screen.getByRole('button', { name: 'Block participant' }))
-
-  expect(onBlock).toHaveBeenCalledTimes(1)
-})
-
-test('exposes mute state toggle for direct conversations', () => {
-  const onToggleMute = jest.fn()
-
-  render(
-    <ParticipantDetailsPanel
-      participant={{ id: 'user-2', name: 'Bob Brown' }}
-      canMute
-      onToggleMute={onToggleMute}
-    />
-  )
-
-  fireEvent.click(screen.getByRole('button', { name: 'Mute conversation' }))
-
-  expect(onToggleMute).toHaveBeenCalledTimes(1)
-})
-
-test('exposes archive state toggle for direct conversations', () => {
-  const onToggleArchive = jest.fn()
-
-  render(
-    <ParticipantDetailsPanel
-      participant={{ id: 'user-2', name: 'Bob Brown' }}
-      canArchive
-      onToggleArchive={onToggleArchive}
-    />
-  )
-
-  fireEvent.click(screen.getByRole('button', { name: 'Archive conversation' }))
-
-  expect(onToggleArchive).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole('button', { name: 'Open profile' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Conversation notifications' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Search conversation' })).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Mark unread' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Block participant' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Mute conversation' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Archive conversation' })).not.toBeInTheDocument()
 })
 
 test('shows the retained moderated history policy for group conversations', () => {

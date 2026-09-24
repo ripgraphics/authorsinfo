@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Film, Mic, Paperclip, Send, Smile, Sparkles, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { IconButton } from '@/components/ui/icon-button'
 import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
@@ -307,24 +308,26 @@ export function ChatComposer({
               event.currentTarget.value = ''
             }}
           />
-          <Button type="button" size="icon" aria-label="Attach files" title="Attach files" onClick={() => fileInputRef.current?.click()}>
-            <Paperclip className="h-4 w-4" />
-          </Button>
+          <IconButton
+            icon={Paperclip}
+            tone="muted"
+            className="shrink-0 self-center"
+            label="Attach files"
+            onClick={() => fileInputRef.current?.click()}
+          />
         </>
       ) : null}
       {emojiOptions.length > 0 ? (
         <Popover>
           <PopoverTrigger asChild>
-            <Button
+            <IconButton
+              icon={Smile}
+              tone="muted"
+              className="shrink-0 self-center"
+              label="Open emoji picker"
               type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Open emoji picker"
-              title="Open emoji picker"
               disabled={disabled}
-            >
-              <Smile className="h-4 w-4" />
-            </Button>
+            />
           </PopoverTrigger>
           <PopoverContent className="w-auto p-2" align="start">
             <div className="flex max-w-56 flex-wrap gap-1" role="group" aria-label="Emoji picker">
@@ -349,16 +352,14 @@ export function ChatComposer({
       {gifSearch && onGifSelected ? (
         <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
           <PopoverTrigger asChild>
-            <Button
+            <IconButton
+              icon={Film}
+              tone="muted"
+              className="shrink-0 self-center"
+              label="Open GIF picker"
               type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Open GIF picker"
-              title="Open GIF picker"
               disabled={disabled}
-            >
-              <Film className="h-4 w-4" />
-            </Button>
+            />
           </PopoverTrigger>
           <PopoverContent className="w-80 p-3" align="start">
             <input
@@ -395,16 +396,14 @@ export function ChatComposer({
       {stickerSearch && onStickerSelected ? (
         <Popover open={stickerPickerOpen} onOpenChange={setStickerPickerOpen}>
           <PopoverTrigger asChild>
-            <Button
+            <IconButton
+              icon={Sparkles}
+              tone="muted"
+              className="shrink-0 self-center"
+              label="Open sticker picker"
               type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Open sticker picker"
-              title="Open sticker picker"
               disabled={disabled}
-            >
-              <Sparkles className="h-4 w-4" />
-            </Button>
+            />
           </PopoverTrigger>
           <PopoverContent className="w-80 p-3" align="start">
             <input
@@ -439,20 +438,18 @@ export function ChatComposer({
         </Popover>
       ) : null}
       {onVoiceNoteSelected ? (
-        <Button
+        <IconButton
+          icon={recordingVoice ? Square : Mic}
+          tone="muted"
+          className="shrink-0 self-center"
+          label={recordingVoice ? 'Stop voice recording' : 'Record voice message'}
           type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={recordingVoice ? 'Stop voice recording' : 'Record voice message'}
-          title={recordingVoice ? 'Stop voice recording' : 'Record voice message'}
           disabled={disabled}
           onClick={() => {
             if (recordingVoice) stopVoiceRecording()
             else void startVoiceRecording()
           }}
-        >
-          {recordingVoice ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-        </Button>
+        />
       ) : null}
       {mentionOptions.length > 0 ? (
         <div className="chat-composer__mentions absolute z-10 mb-12 rounded border bg-background p-1 shadow-lg">
@@ -489,16 +486,16 @@ export function ChatComposer({
           textareaClassName
         )}
       />
-      <Button
+      <IconButton
+        icon={Send}
+        size="lg"
+        tone="muted"
         type="submit"
-        size="icon"
+        label={sendButtonLabel}
         disabled={disabled || !draft.trim()}
-        aria-label={sendButtonLabel}
-        title={sendButtonLabel}
-        className={cn('chat-composer__send', sendButtonClassName)}
-      >
-        <Send className="chat-composer__send-icon h-4 w-4" />
-      </Button>
+        className={cn('chat-composer__send shrink-0 self-center', sendButtonClassName)}
+        iconClassName="chat-composer__send-icon"
+      />
       </div>
     </form>
   )

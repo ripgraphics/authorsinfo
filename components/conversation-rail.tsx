@@ -2,7 +2,10 @@
 
 import { Avatar } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
+import { IconButton } from '@/components/ui/icon-button'
 import { MessengerRequestList, type MessengerRequestListItem } from '@/components/messenger-request-list'
+import { MoreHorizontal, Pencil } from 'lucide-react'
+import { useState } from 'react'
 
 export interface ConversationRailItem {
   id: string
@@ -34,9 +37,11 @@ export interface ConversationRailProps {
   onSearchChange?: (value: string) => void
   filter?: 'all' | 'unread' | 'groups' | 'communities'
   onFilterChange?: (filter: 'all' | 'unread' | 'groups' | 'communities') => void
+  onNewMessage?: () => void
   title?: string
   description?: string
   mobileVisible?: boolean
+  isOpen?: boolean
   className?: string
   messageRequests?: MessengerRequestListItem[]
   currentUserId?: string | null
@@ -55,9 +60,11 @@ export function ConversationRail({
   onSearchChange,
   filter = 'all',
   onFilterChange,
+  onNewMessage,
   title = 'Chats',
   description = 'Recent conversations',
   mobileVisible = false,
+  isOpen = true,
   className = '',
   messageRequests = [],
   currentUserId = null,
@@ -65,13 +72,62 @@ export function ConversationRail({
   onDeclineRequest,
   onCancelRequest,
 }: ConversationRailProps) {
+  const [moreOpen, setMoreOpen] = useState(false)
+
   return (
     <aside
-      className={`conversation-rail ${mobileVisible ? 'block' : 'hidden'} w-72 shrink-0 border-r bg-muted/20 md:block ${className}`}
+      className={`conversation-rail ${isOpen && mobileVisible ? 'block md:block' : isOpen ? 'hidden md:block' : 'hidden'} w-[318px] shrink-0 border-r bg-muted/20 ${className}`}
     >
       <div className="conversation-rail__header border-b px-4 py-3">
-        <h2 className="font-semibold">{title}</h2>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold">{title}</h2>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="relative">
+              <IconButton
+                icon={MoreHorizontal}
+                label="More chat options"
+                tone="muted"
+                onClick={() => setMoreOpen((open) => !open)}
+              />
+              {moreOpen ? (
+                <div className="absolute right-0 top-full z-20 mt-2 w-40 rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                  <button
+                    type="button"
+                    className="block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+                    onClick={() => {
+                      onFilterChange?.('all')
+                      setMoreOpen(false)
+                    }}
+                  >
+                    Show all chats
+                  </button>
+                  <button
+                    type="button"
+                    className="block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+                    onClick={() => {
+                      onFilterChange?.('unread')
+                      setMoreOpen(false)
+                    }}
+                  >
+                    Show unread chats
+                  </button>
+                </div>
+              ) : null}
+            </div>
+            {onNewMessage ? (
+              <IconButton
+                icon={Pencil}
+                label="New message"
+                tone="muted"
+                iconClassName="!h-4 !w-4"
+                onClick={onNewMessage}
+              />
+            ) : null}
+          </div>
+        </div>
         {onSearchChange ? (
           <Input
             value={searchValue}

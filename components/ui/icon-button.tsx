@@ -44,7 +44,7 @@ export interface IconButtonProps {
 }
 
 const sizeMap = {
-  sm: { button: 'h-7 w-7', icon: 'h-4 w-4' },
+  sm: { button: 'h-7 w-7', icon: '!h-5 !w-5' },
   md: { button: 'h-9 w-9', icon: 'h-[18px] w-[18px]' },
   lg: { button: 'h-10 w-10', icon: 'h-5 w-5' },
 } as const

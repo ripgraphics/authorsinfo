@@ -72,7 +72,7 @@
     "@sentry/nextjs": "^10.75.2",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "2.117.0",
+    "@supabase/supabase-js": "2.117.1",
     "@tailwindcss/typography": "^0.5.20",
     "@upstash/ratelimit": "^2.1.0",
     "@upstash/redis": "^1.39.0",

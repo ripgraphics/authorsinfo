@@ -103,6 +103,20 @@ test('downloads an attachment only after validating its message', async () => {
   expect(response.headers.get('Content-Type')).toBe('image/png')
 })
 
+test('denies private attachment downloads for non-participants', async () => {
+  conversations.maybeSingle.mockResolvedValue({ data: null, error: null })
+
+  const response = await GET(
+    new NextRequest(
+      `http://localhost/api/messages/direct/${conversationId}/attachments?message_id=${messageId}&attachment_id=${attachmentId}`
+    ),
+    context
+  )
+
+  expect(response.status).toBe(403)
+  expect(mockStorage).not.toHaveBeenCalled()
+})
+
 test('rejects attachment requests without a message id', async () => {
   const response = await GET(
     new NextRequest(`http://localhost/api/messages/direct/${conversationId}/attachments`),
@@ -131,6 +145,23 @@ test('rejects unsupported upload types before storage', async () => {
   const form = new FormData()
   form.append('message_id', messageId)
   form.append('file', new File(['not an image'], 'payload.exe', { type: 'application/x-msdownload' }))
+
+  const response = await POST(
+    new NextRequest(`http://localhost/api/messages/direct/${conversationId}/attachments`, {
+      method: 'POST',
+      body: form,
+    }),
+    context
+  )
+
+  expect(response.status).toBe(400)
+  expect(mockStorage).not.toHaveBeenCalled()
+})
+
+test('rejects oversized uploads before storage', async () => {
+  const form = new FormData()
+  form.append('message_id', messageId)
+  form.append('file', new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'large.png', { type: 'image/png' }))
 
   const response = await POST(
     new NextRequest(`http://localhost/api/messages/direct/${conversationId}/attachments`, {

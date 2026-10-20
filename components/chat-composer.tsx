@@ -271,11 +271,19 @@ export function ChatComposer({
     event.preventDefault()
     const body = draft.trim()
     if (disabled || !body) return
-    const result = await onSend(body)
-    if (result === false) return // send failed — keep the draft
+    // Optimistic UI: clear immediately so user sees instant feedback,
+    // restore only if send actually fails.
+    const previousDraft = draft
     setDraft('')
     updateMentionIds([])
     writeDraft(conversationId, '')
+    onCancelReply?.()
+    const result = await onSend(body)
+    if (result === false) {
+      // Send failed — restore the draft so the user's text is not lost.
+      setDraft(previousDraft)
+      writeDraft(conversationId, previousDraft)
+    }
   }
 
   return (

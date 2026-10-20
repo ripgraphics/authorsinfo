@@ -69,8 +69,14 @@ test('blocks both sides of a direct conversation and restores access after unblo
   const blockedContext = await browser.newContext({ storageState: storageState(blocked.session) })
   try {
     const path = `${baseUrl}/api/messages/direct/${conversation.id}`
-    expect((await blockerContext.request.post(path, { data: { body: 'before block' } })).status()).toBe(201)
+    const sentMessage = await blockerContext.request.post(path, { data: { body: 'before block' } })
+    expect(sentMessage.status()).toBe(201)
+    const sentMessageData = await sentMessage.json() as { id: string }
     expect((await blockedContext.request.get(path)).status()).toBe(200)
+    expect((await blockedContext.request.get(`${path}/read-state`)).status()).toBe(200)
+    expect((await blockedContext.request.post(`${path}/read-state`, {
+      data: { last_read_message_id: sentMessageData.id },
+    })).status()).toBe(200)
 
     const blockResponse = await blockerContext.request.post(`${baseUrl}/api/users/block`, {
       data: { user_id: blocked.id },
@@ -98,5 +104,101 @@ test('blocks both sides of a direct conversation and restores access after unblo
     await admin.from('blocks').delete().or(`and(user_id.eq.${blocker.id},blocked_user_id.eq.${blocked.id}),and(user_id.eq.${blocked.id},blocked_user_id.eq.${blocker.id})`)
     await admin.auth.admin.deleteUser(blocker.id)
     await admin.auth.admin.deleteUser(blocked.id)
+  }
+})
+
+test('reconciles direct realtime delivery after a channel reconnect', async () => {
+  const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const sender = await createUser(admin, 'reconnect-sender')
+  const observer = await createUser(admin, 'reconnect-observer')
+  const lowId = sender.id < observer.id ? sender.id : observer.id
+  const highId = sender.id < observer.id ? observer.id : sender.id
+  const { data: conversation, error: conversationError } = await admin
+    .from('direct_conversations')
+    .insert({ user_low_id: lowId, user_high_id: highId })
+    .select('id')
+    .single()
+  if (conversationError || !conversation) throw conversationError ?? new Error('Conversation fixture failed')
+
+  const senderClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const observerClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  try {
+    await senderClient.auth.setSession(sender.session)
+    await observerClient.auth.setSession(observer.session)
+    await senderClient.realtime.setAuth(sender.session.access_token)
+    await observerClient.realtime.setAuth(observer.session.access_token)
+
+    const receive = (expectedBody: string) => {
+      let readyResolve: (() => void) | null = null
+      let readyReject: ((error: Error) => void) | null = null
+      const ready = new Promise<void>((resolve, reject) => {
+        readyResolve = resolve
+        readyReject = reject
+      })
+      const received = new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error(`Timed out waiting for ${expectedBody}`)), 15000)
+      observerClient
+        .channel(`floating-direct-${conversation.id}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'direct_conversation_messages',
+          filter: `conversation_id=eq.${conversation.id}`,
+        }, (payload) => {
+          if ((payload.new as { body?: string }).body !== expectedBody) return
+          clearTimeout(timeout)
+          resolve()
+        })
+        .subscribe((status, error) => {
+          if (status === 'SUBSCRIBED') readyResolve?.()
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            clearTimeout(timeout)
+            const failure = error ?? new Error(`Reconnect channel ${status}`)
+            readyReject?.(failure)
+            reject(failure)
+          }
+        })
+      })
+      return { ready, received }
+    }
+
+    const firstMessage = 'before reconnect'
+    const firstReceived = receive(firstMessage)
+    await firstReceived.ready
+    const firstSend = await senderClient.from('direct_conversation_messages').insert({
+      conversation_id: conversation.id,
+      sender_id: sender.id,
+      body: firstMessage,
+      mention_user_ids: [],
+    })
+    if (firstSend.error) throw firstSend.error
+    await firstReceived.received
+    await observerClient.removeAllChannels()
+
+    const secondMessage = 'after reconnect'
+    const secondReceived = receive(secondMessage)
+    await secondReceived.ready
+    const secondSend = await senderClient.from('direct_conversation_messages').insert({
+      conversation_id: conversation.id,
+      sender_id: sender.id,
+      body: secondMessage,
+      mention_user_ids: [],
+    })
+    if (secondSend.error) throw secondSend.error
+    await secondReceived.received
+    await observerClient.removeAllChannels()
+  } finally {
+    await senderClient.removeAllChannels()
+    await observerClient.removeAllChannels()
+    await admin.from('direct_conversation_messages').delete().eq('conversation_id', conversation.id)
+    await admin.from('direct_conversations').delete().eq('id', conversation.id)
+    await admin.auth.admin.deleteUser(sender.id)
+    await admin.auth.admin.deleteUser(observer.id)
   }
 })

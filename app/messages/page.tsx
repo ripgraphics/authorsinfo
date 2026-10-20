@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { FloatingChat } from '@/components/floating-chat'
 import { MessengerInvitationList } from '@/components/messenger-invitation-list'
 import { requireUser } from '@/lib/auth/require-auth'
@@ -32,6 +33,16 @@ export default async function MessagesPage({
   searchParams: Promise<{ group?: string }>
 }) {
   const { group } = await searchParams
+
+  const authentication = await requireUser()
+  if (!authentication.ok) {
+    const next = new URLSearchParams()
+    if (group) next.set('group', group)
+    const target = next.toString() ? `/messages?${next.toString()}` : '/messages'
+    const loginParams = new URLSearchParams({ next: target })
+    redirect(`/login?${loginParams.toString()}`)
+  }
+
   const initialConversationId = await resolveGroupChannel(group)
   return (
     <div className="messages-page flex h-[calc(100vh-4rem)] min-h-0 flex-col overflow-hidden">

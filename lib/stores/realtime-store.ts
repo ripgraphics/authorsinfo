@@ -90,6 +90,11 @@ export const useRealtimeStore = create<RealtimeState>()(
             supabase = createClient(supabaseUrl, supabaseAnonKey)
           }
 
+          const session = (await supabase.auth.getSession()).data.session
+          if (session?.access_token) {
+            await supabase.realtime.setAuth(session.access_token)
+          }
+
           set({ isConnected: true, connectionError: null })
           
           // Initial presence broadcast

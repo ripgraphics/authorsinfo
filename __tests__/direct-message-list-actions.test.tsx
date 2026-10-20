@@ -160,6 +160,21 @@ test('exposes a retry action when message history fails', () => {
   expect(onRetry).toHaveBeenCalledTimes(1)
 })
 
+test('does not expose a retry action when message history loads successfully', () => {
+  render(
+    <DirectMessageList
+      messages={[]}
+      currentUserId="user-1"
+      participant={null}
+      typingUserNames={[]}
+    />
+  )
+
+  expect(
+    screen.queryByRole('button', { name: 'Retry loading messages' })
+  ).not.toBeInTheDocument()
+})
+
 test('exposes report callback for messages from the other participant', () => {
   const onReport = jest.fn()
 

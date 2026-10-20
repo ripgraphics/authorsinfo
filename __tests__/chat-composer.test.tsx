@@ -1,6 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { ChatComposer } from '@/components/chat-composer'
 
+beforeEach(() => {
+  window.localStorage.clear()
+})
+
 test('inserts a selected emoji into the draft', () => {
   render(
     <ChatComposer
@@ -91,4 +95,40 @@ test('sends with Enter but preserves a newline with Shift+Enter', async () => {
 
   fireEvent.keyDown(textbox, { key: 'Enter', shiftKey: false })
   await waitFor(() => expect(onSend).toHaveBeenCalledWith('hello'))
+})
+
+test('restores a draft when switching back to its conversation', async () => {
+  const { rerender } = render(
+    <ChatComposer conversationId="conversation-1" onSend={jest.fn()} />
+  )
+  fireEvent.change(screen.getByRole('textbox'), { target: { value: 'unfinished message' } })
+
+  rerender(<ChatComposer conversationId="conversation-2" onSend={jest.fn()} />)
+  expect(screen.getByRole('textbox')).toHaveValue('')
+
+  rerender(<ChatComposer conversationId="conversation-1" onSend={jest.fn()} />)
+  await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('unfinished message'))
+})
+
+test('clears a draft only after a successful send', async () => {
+  const onSend = jest.fn().mockReturnValue(true)
+  render(<ChatComposer conversationId="conversation-1" onSend={onSend} />)
+  const textbox = screen.getByRole('textbox')
+  fireEvent.change(textbox, { target: { value: 'send me' } })
+  fireEvent.keyDown(textbox, { key: 'Enter' })
+
+  await waitFor(() => expect(textbox).toHaveValue(''))
+  expect(window.localStorage.getItem('authorsinfo:chat-draft:conversation-1')).toBeNull()
+})
+
+test('retains a draft when sending fails', async () => {
+  const onSend = jest.fn().mockReturnValue(false)
+  render(<ChatComposer conversationId="conversation-1" onSend={onSend} />)
+  const textbox = screen.getByRole('textbox')
+  fireEvent.change(textbox, { target: { value: 'retry me' } })
+  fireEvent.keyDown(textbox, { key: 'Enter' })
+
+  await waitFor(() => expect(onSend).toHaveBeenCalledWith('retry me'))
+  expect(textbox).toHaveValue('retry me')
+  expect(window.localStorage.getItem('authorsinfo:chat-draft:conversation-1')).toBe('retry me')
 })

@@ -1,6 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { requireUser, type AuthenticatedRoute } from '@/lib/auth/require-auth'
 import { nextErrorResponse } from '@/lib/error-handler'
+import { acceptGroupInvitation, declineGroupInvitation } from '@/app/actions/groups/manage-invitations'
+
+const lifecycleSchema = z.object({
+  action: z.enum(['accept', 'decline']),
+  invitation_id: z.string().uuid(),
+}).strict()
 
 interface InvitationQuery {
   select(columns: string): InvitationQuery
@@ -46,5 +53,32 @@ export async function GET() {
     })
   } catch (error) {
     return nextErrorResponse(error, 'Unable to load pending group invitations', 500, false)
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const origin = request.headers.get('origin')
+    if (origin && origin !== request.nextUrl.origin) {
+      return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
+    }
+
+    const parsed = lifecycleSchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid invitation lifecycle request' }, { status: 400 })
+    }
+
+    const result = parsed.data.action === 'accept'
+      ? await acceptGroupInvitation({ invitationId: parsed.data.invitation_id })
+      : await declineGroupInvitation({ invitationId: parsed.data.invitation_id })
+
+    if (!result.success) {
+      const status = result.error?.includes('permission') ? 403 : 400
+      return NextResponse.json({ error: result.error ?? 'Unable to update invitation' }, { status })
+    }
+
+    return NextResponse.json(result.invitation, { status: 200 })
+  } catch (error) {
+    return nextErrorResponse(error, 'Unable to update group invitation', 500, false)
   }
 }

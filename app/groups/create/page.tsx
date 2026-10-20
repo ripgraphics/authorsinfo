@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabaseClient as supabaseClientUnsafe } from '@/lib/supabase/client'
+import { createGroupWithValidation } from '@/app/actions/groups/create-group-with-validation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -10,8 +10,6 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/components/ui/use-toast'
-
-const supabaseClient = supabaseClientUnsafe as any
 
 interface CreateGroupForm {
   name: string
@@ -55,115 +53,15 @@ export default function CreateGroupPage() {
 
     try {
       setLoading(true)
-
-      // Check authentication
-      const {
-        data: { user },
-        error: authError,
-      } = await supabaseClient.auth.getUser()
-      if (authError || !user) {
-        console.error('Auth error:', authError)
-        router.push('/auth/signin?redirect=/groups/create')
-        return
-      }
-
-      console.log('Creating group with data:', {
+      const result = await createGroupWithValidation({
         name: form.name,
         description: form.description,
         is_private: form.isPrivate,
-        created_by: user.id,
       })
-
-      // Create group
-      console.log('Attempting to create group with data:', {
-        name: form.name,
-        description: form.description,
-        is_private: form.isPrivate,
-        created_by: user.id,
-        cover_image_id: null,
-        member_count: 1,
-      })
-
-      const { data: group, error: groupError } = await supabaseClient
-        .from('groups')
-        .insert({
-          name: form.name,
-          description: form.description,
-          is_private: form.isPrivate,
-          created_by: user.id,
-          cover_image_id: null,
-          member_count: 1,
-        })
-        .select()
-        .single()
-
-      if (groupError) {
-        console.error('Group creation error details:', {
-          message: groupError.message,
-          details: groupError.details,
-          hint: groupError.hint,
-          code: groupError.code,
-          error: groupError,
-        })
-        throw groupError
+      if (!result.success || !result.group) {
+        throw new Error(result.error || 'Failed to create group')
       }
-
-      console.log('Group created:', group)
-
-      // Create default roles
-      console.log('Group object before creating roles:', group)
-      const rolesToInsert = [
-        {
-          group_id: group.id,
-          name: 'Owner',
-          description: 'Group owner with full permissions',
-          permissions: ['manage_group', 'manage_members', 'manage_content'],
-          is_default: false,
-        },
-        {
-          group_id: group.id,
-          name: 'Member',
-          description: 'Regular group member',
-          permissions: ['view_content', 'create_content'],
-          is_default: true,
-        },
-      ]
-      console.log('Attempting to insert roles:', rolesToInsert)
-      const { data: roles, error: rolesError } = await supabaseClient
-        .from('group_roles')
-        .insert(rolesToInsert)
-        .select()
-
-      if (rolesError) {
-        console.error('Role creation error details:', rolesError)
-        throw rolesError
-      }
-
-      console.log('Roles created:', roles)
-
-      // Add creator as owner
-      const ownerRole = roles.find((r: any) => r.name === 'Owner')
-      if (!ownerRole) {
-        console.error('Owner role not found in:', roles)
-        throw new Error('Owner role not found')
-      }
-
-      const { error: memberError } = await supabaseClient
-        .from('group_members')
-        .insert({
-          group_id: group.id,
-          user_id: user.id,
-          role_id: ownerRole.id,
-          joined_at: new Date().toISOString(),
-          status: 'active',
-      })
-
-      if (memberError) {
-        console.error('Member creation error:', memberError)
-        throw memberError
-      }
-
-      console.log('Member added successfully')
+      const group = result.group
 
       let coverUploadFailed = false
       if (form.coverImage) {

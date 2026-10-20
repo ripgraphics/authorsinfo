@@ -13,15 +13,21 @@ type ChatFixture = {
   channelId: string
   eventChannelId: string
   eventId: string
+  owner: FixtureUser
   active: FixtureUser
   observer: FixtureUser
   nonmember: FixtureUser
   suspended: FixtureUser
+  // Track all created IDs for safe teardown
+  createdGroupIds: string[]
+  createdChannelIds: string[]
+  createdEventIds: string[]
+  createdMemberIds: string[]
 }
 
-const baseUrl = 'http://localhost:3034'
+const baseUrl = 'https://authorsinfo.com'
 
-async function createFixtureUser(admin: SupabaseClient, label: string): Promise<FixtureUser> {
+async function createFixtureUser(admin: SupabaseClient, label: string): Promise<FixtureUser & { userId: string }> {
   const email = `chat-e2e-${label}-${Date.now()}@example.test`
   const password = 'ChatE2E-Password-2026!'
   const { data, error } = await admin.auth.admin.createUser({
@@ -34,12 +40,13 @@ async function createFixtureUser(admin: SupabaseClient, label: string): Promise<
       `Unable to create ${label} fixture user through Supabase Auth: ${error?.message || 'missing user'}`
     )
   }
+  const userId = data.user.id
 
   const { error: profileError } = await admin.from('users').upsert({
     id: data.user.id,
     email,
     name: `Chat E2E ${label}`,
-    permalink: `chat-e2e-${label}-${Date.now()}`,
+    permalink: `chat-e2e-${label}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
   })
   if (profileError) throw profileError
 
@@ -68,10 +75,10 @@ function storageState(session: FixtureUser['session']) {
     cookies.push({
       name: sessionJson.length <= chunkSize ? cookieName : `${cookieName}.${index}`,
       value: sessionJson.slice(offset, offset + chunkSize),
-      domain: 'localhost',
+      domain: 'authorsinfo.com',
       path: '/',
       httpOnly: false,
-      secure: false,
+      secure: true,
       sameSite: 'Lax' as const,
       expires: session.expires_at || Math.floor(Date.now() / 1000) + 3600,
     })
@@ -90,12 +97,22 @@ async function createFixture(): Promise<ChatFixture> {
       auth: { persistSession: false, autoRefreshToken: false },
     }
   )
+
+  // Create a fresh group owned by the active user – never reuse existing groups
+  const active = await createFixtureUser(admin, 'active')
   const { data: group, error: groupError } = await admin
     .from('groups')
+    .insert({
+      name: `Chat E2E Group ${Date.now()}`,
+      description: 'Isolated E2E test group',
+      is_private: false,
+      created_by: active.id,
+    })
     .select('id')
-    .limit(1)
     .single()
-  if (groupError || !group) throw groupError ?? new Error('No group exists for chat E2E fixture')
+  if (groupError || !group) throw groupError ?? new Error('Unable to create test group')
+
+  // The trigger should auto-create the General channel; fetch it
   const { data: channel, error: channelError } = await admin
     .from('group_chat_channels')
     .select('id')
@@ -103,9 +120,8 @@ async function createFixture(): Promise<ChatFixture> {
     .is('event_id', null)
     .limit(1)
     .single()
-  if (channelError || !channel) throw channelError ?? new Error('No group chat channel exists')
+  if (channelError || !channel) throw channelError ?? new Error('No group chat channel created')
 
-  const active = await createFixtureUser(admin, 'active')
   const observer = await createFixtureUser(admin, 'observer')
   const nonmember = await createFixtureUser(admin, 'nonmember')
   const suspended = await createFixtureUser(admin, 'suspended')
@@ -162,22 +178,28 @@ async function createFixture(): Promise<ChatFixture> {
     channelId: channel.id,
     eventChannelId: eventChannel.id,
     eventId: event.id,
+    owner: active,
     active,
     observer,
     nonmember,
     suspended,
+    createdGroupIds: [group.id],
+    createdChannelIds: [channel.id, eventChannel.id],
+    createdEventIds: [event.id],
+    createdMemberIds: [active.id, observer.id, suspended.id],
   }
 }
 
 async function cleanupFixture(fixture: ChatFixture) {
-  await fixture.admin.from('group_chat_messages').delete().eq('channel_id', fixture.channelId)
-  await fixture.admin.from('group_chat_channels').delete().eq('id', fixture.eventChannelId)
-  await fixture.admin.from('events').delete().eq('id', fixture.eventId)
+  // Only delete rows we created – never touch shared data
+  await fixture.admin.from('group_chat_messages').delete().in('channel_id', fixture.createdChannelIds)
+  await fixture.admin.from('group_chat_channels').delete().in('id', fixture.createdChannelIds)
+  await fixture.admin.from('events').delete().in('id', fixture.createdEventIds)
   await fixture.admin
     .from('group_members')
     .delete()
     .eq('group_id', fixture.groupId)
-    .in('user_id', [fixture.active.id, fixture.observer.id, fixture.suspended.id])
+    .in('user_id', fixture.createdMemberIds)
   for (const user of [fixture.active, fixture.observer, fixture.nonmember, fixture.suspended]) {
     await fixture.admin.auth.admin.deleteUser(user.id)
   }

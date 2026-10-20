@@ -1,7 +1,7 @@
 # Unified Messaging System Master Plan
 
 **Owner-approved architecture:** 2026-09-17  
-**Status:** Phase 3 in progress; Phases 0-2 partially complete; Phases 4-7 not started  
+**Status:** Phases 0-2 partially complete; Phase 3 in progress; Phases 4 and 6 in progress; Phases 5 and 7 not started
 **Source of truth:** This document is the only active messaging implementation plan.
 
 ## 1. Product Contract
@@ -70,10 +70,10 @@ Desktop web Messenger is the primary interaction reference. The global launcher,
 
 ### Known verification baseline
 
-- The production build passed after the unified inbox route change and conversation-preview changes on 2026-09-17.
-- Editor diagnostics are clean for `floating-chat.tsx` and `conversation-rail.tsx`.
-- Targeted ESLint invocation is currently blocked by the repository's `eslint-config-next/core-web-vitals` module-resolution error; this is tracked separately from source diagnostics.
-- Real two-account direct-message acceptance testing remains required.
+- Full Jest baseline: 71/71 suites and 276/276 tests passed on 2026-10-20 after the Jest environment defaults and stale route-test mocks were corrected. Production `.env.local` values are not loaded into Jest; tests use non-secret fallback values and route mocks.
+- The production build passed during the October composer work. The October 20 follow-up changed only test setup and test expectations/mocks; rerun the build with the next production-code change.
+- The last recorded lint baseline is 0 errors and 33,401 existing warnings; reduce the warning count separately.
+- Two-account direct persistence, direct typing, group realtime, blocking, and reconnect have live acceptance evidence in the change log. Group route/deep-link acceptance and the wider release matrix remain open.
 
 ## 4. Target Architecture
 
@@ -165,7 +165,7 @@ Backward-compatible links may remain temporarily, but they must resolve into the
 | `[x]` Replace invitation placeholder with permission-aware creation | `COMPLETED` | POST invitations route and friend invite controls | None |
 | `[x]` Implement invitation accept/decline/cancel lifecycle | `COMPLETED` | PATCH/DELETE lifecycle route; tests pass | None |
 | `[x]` Add pending invitations and inbox accept/decline controls | `COMPLETED` | Pending route and `MessengerInvitationList` | Add browser acceptance test |
-| `[>]` Complete group conversation creation, roles, avatars, and history policy | `IN PROGRESS` | Transport and membership slices exist; per-member mute/archive settings and authorized role assignment are live; the canonical group inbox and channel settings now expose the immutable live `retained_moderated` history policy; new groups now receive a canonical non-event `General` channel through a live-verified trigger; focused settings/chat coverage passes 20/20; live acceptance remains incomplete | Complete live group acceptance and decide whether additional history policies are approved |
+| `[>]` Complete group conversation creation, roles, avatars, and history policy | `IN PROGRESS` | Transport and membership slices exist; per-member mute/archive settings and authorized role assignment are live; the canonical group inbox and channel settings now expose the immutable live `retained_moderated` history policy; new groups now receive a canonical non-event `General` channel through a live-verified trigger; focused settings/chat coverage passes 20/20. Read-only acceptance on 2026-10-20: Bob Brown's nonmember group deep link resolved to `/messages?group=...` and rendered `This conversation is unavailable`; no group membership or message writes were made. Authorized-member acceptance remains open: the fresh Sam session stalled at auth initialization, and the existing `group-chat-production.spec.ts` teardown deletes all messages from its shared fixture channel, so that helper is unsafe for this run | First provision an isolated E2E-owned group/channel and ensure teardown deletes only rows created by that fixture (never all messages in a shared channel). Then use two authorized accounts to verify invite/accept, `/messages/group/[id]`, history/send/realtime, permissions, and leave/remove behavior; decide whether any additional history policies are approved |
 | `[>]` Keep moderated community channels separate by conversation kind/privacy | `IN PROGRESS` | Kind field exists; full event/entity classification incomplete | Finish route and schema classification |
 | `[>]` Add authorization tests for every kind and membership transition | `IN PROGRESS` | Group chat, member listing, settings, and member-action coverage passes 26/26, including active/nonmember/suspended/event-channel access, forged sender, malformed payloads, cross-origin writes, cross-origin member removal, and database-error handling; full direct/group transition and realtime matrix remains incomplete | Add direct/group membership mutation and realtime authorization cases |
 
@@ -340,3 +340,6 @@ Destructive commands, database resets, blind `--include-all` migration history r
 - **2026-09-23:** Added live two-account direct blocking acceptance and fixed the RLS-hidden participant response path. Both participants now receive sanitized `403 blocked_user` history/send responses while blocked, and the blocker regains history access after the live unblock mutation; focused direct suites pass 15/15.
 - **2026-09-23:** Added live two-account direct typing acceptance. Authenticated sender and observer sockets subscribed to the same `typing-[conversation_id]` channel, and the observer received the sender's typing broadcast; the focused Playwright acceptance passes.
 - **2026-09-23:** Prevented duplicate Messenger unread polling by making the full-page workspace the single poll owner and disabling the poll in the compact launcher instance. This removes the repeated inbox/history/read-state request storm that saturated the development server; focused Messenger/auth tests pass 23/23 and the production build passes with 221 routes. Also corrected the isolated `PanelLeftOpen` icon reference in the user-edited Messenger header so the build can complete.
+- **2026-10-20:** Implemented optimistic composer submission: the draft and reply context clear immediately, and the draft is restored if sending fails. Browser acceptance verified direct send and reply requests, persisted messages across reload, and reply context containing the correct parent message ID. Commit `de62e94` is on `main` and pushed to `origin/main`.
+- **2026-10-20:** Restored the full Jest baseline. Because Next.js does not load `.env.local` for `NODE_ENV=test`, `jest.setup.ts` now supplies non-secret fallback Supabase configuration only when process variables are absent; direct-message route tests mock the block-check/admin dependencies, and the conversation adapter expectation includes `avatarUrl: null`. Full suite passes 71/71 suites and 276/276 tests. These test-harness changes are currently uncommitted.
+- **2026-10-20:** Began group route acceptance using the existing development-only Messenger Parity Test Group. Bob Brown, a nonmember, was redirected from `/messages/group/[id]` to `/messages?group=...` and shown the explicit unavailable state; no writes were performed. Positive member acceptance is blocked by a fresh Sam session stuck at auth initialization. Do not use `tests-e2e/group-chat-production.spec.ts` for this check until its teardown is made fixture-scoped: it currently deletes all messages for an existing shared channel.

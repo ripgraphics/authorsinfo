@@ -5,6 +5,18 @@ import { GET, POST } from '@/app/api/messages/direct/[id]/route'
 import { requireUser } from '@/lib/auth/require-auth'
 
 jest.mock('@/lib/auth/require-auth', () => ({ requireUser: jest.fn() }))
+jest.mock('@/lib/messaging/blocking', () => ({
+  isBlockedByEitherUser: jest.fn().mockResolvedValue(false),
+}))
+jest.mock('@/lib/supabase/server', () => ({
+  supabaseAdmin: {
+    from: jest.fn(() => ({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+    })),
+  },
+}))
 jest.mock('next/server', () => ({
   ...jest.requireActual('next/server'),
   after: (callback: () => unknown) => {

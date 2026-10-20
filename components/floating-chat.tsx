@@ -468,6 +468,9 @@ export function FloatingChat({
   // Reads the latest list via ref so the deps stay stable.
   const unreadRef = useRef<UnreadConversation[]>([])
   unreadRef.current = unreadConversations
+  const activeConversationForHistory = conversations.find(
+    (conversation) => conversation.id === activeConversationId
+  )
   useEffect(() => {
     if (!open || !activeConversationId) return
     manuallyUnreadConversationIdsRef.current.delete(activeConversationId)
@@ -497,9 +500,7 @@ export function FloatingChat({
     setNextMessageCursor(null)
     lastMessageCountRef.current = 0
     setLoadingMessages(true)
-    const activeConversation = conversationsRef.current.find(
-      (conversation) => conversation.id === activeConversationId
-    )
+    const activeConversation = activeConversationForHistory
     const isGroupConversation = activeConversation?.kind === 'messenger_group'
     const groupId = activeConversation?.groupId
     const historyUrl = isGroupConversation && groupId
@@ -668,7 +669,15 @@ export function FloatingChat({
       channelRef.current = null
       void client.removeChannel(channel)
     }
-  }, [activeConversationId, userId, open, messageLoadAttempt, reconnectAttempt])
+  }, [
+    activeConversationId,
+    activeConversationForHistory?.kind,
+    activeConversationForHistory?.groupId,
+    userId,
+    open,
+    messageLoadAttempt,
+    reconnectAttempt,
+  ])
 
   useEffect(() => {
     const activeConversation = conversations.find(

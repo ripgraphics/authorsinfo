@@ -74,37 +74,13 @@ export default function CreateGroupPage() {
         created_by: user.id,
       })
 
-      // Upload cover image if provided
-      let coverImageUrl = null
-      if (form.coverImage) {
-        const fileExt = form.coverImage.name.split('.').pop()
-        const filePath = `group-covers/${user.id}-${Date.now()}.${fileExt}`
-
-        console.log('Uploading cover image:', filePath)
-        const { error: uploadError } = await supabaseClient.storage
-          .from('groups')
-          .upload(filePath, form.coverImage)
-
-        if (uploadError) {
-          console.error('Cover image upload error:', uploadError)
-          throw uploadError
-        }
-
-        const {
-          data: { publicUrl },
-        } = supabaseClient.storage.from('groups').getPublicUrl(filePath)
-
-        coverImageUrl = publicUrl
-        console.log('Cover image uploaded:', coverImageUrl)
-      }
-
       // Create group
       console.log('Attempting to create group with data:', {
         name: form.name,
         description: form.description,
         is_private: form.isPrivate,
         created_by: user.id,
-        cover_image_url: coverImageUrl,
+        cover_image_id: null,
         member_count: 1,
       })
 
@@ -115,7 +91,7 @@ export default function CreateGroupPage() {
           description: form.description,
           is_private: form.isPrivate,
           created_by: user.id,
-          cover_image_url: coverImageUrl,
+          cover_image_id: null,
           member_count: 1,
         })
         .select()
@@ -189,9 +165,27 @@ export default function CreateGroupPage() {
 
       console.log('Member added successfully')
 
+      let coverUploadFailed = false
+      if (form.coverImage) {
+        const imageFormData = new FormData()
+        imageFormData.set('file', form.coverImage)
+        imageFormData.set('entityType', 'group')
+        imageFormData.set('entityId', group.id)
+        imageFormData.set('imageType', 'cover')
+        imageFormData.set('originalType', 'entityHeaderCover')
+
+        const imageResponse = await fetch('/api/upload/entity-image', {
+          method: 'POST',
+          body: imageFormData,
+        })
+        coverUploadFailed = !imageResponse.ok
+      }
+
       toast({
         title: 'Success',
-        description: 'Group created successfully',
+        description: coverUploadFailed
+          ? 'Group created, but the cover image could not be uploaded.'
+          : 'Group created successfully',
       })
 
       router.push(`/groups/${group.id}`)

@@ -5,6 +5,9 @@ import { GET } from '@/app/api/messages/direct/[id]/route'
 import { requireUser } from '@/lib/auth/require-auth'
 
 jest.mock('@/lib/auth/require-auth', () => ({ requireUser: jest.fn() }))
+jest.mock('@/lib/messaging/blocking', () => ({
+  isBlockedByEitherUser: jest.fn().mockResolvedValue(false),
+}))
 jest.mock('@/lib/error-handler', () => ({
   nextErrorResponse: jest.fn(() =>
     NextResponse.json({ error: 'Operation failed' }, { status: 500 })

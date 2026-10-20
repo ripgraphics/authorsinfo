@@ -15,6 +15,7 @@ describe('messaging conversation adapters', () => {
     ).toEqual({
       id: 'direct-1',
       kind: 'direct',
+      avatarUrl: null,
       participantId: 'user-2',
       title: null,
       latestMessagePreview: 'Hello there',

@@ -284,15 +284,8 @@ export async function acceptGroupInvitation(
         role_id: roleId,
         status: 'active',
         joined_at: new Date().toISOString(),
-        invited_by: invitation.inviter_id,
       })
-      .select(
-        `
-        *,
-        user:users(id, name, email),
-        role:group_roles(id, name, description, permissions)
-      `
-      )
+      .select('*')
       .single()
 
     if (memberError) {

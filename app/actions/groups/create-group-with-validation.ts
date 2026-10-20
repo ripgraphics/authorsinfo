@@ -114,19 +114,21 @@ export async function createGroupWithValidation(
 
     // Add creator as owner member
     const ownerRoleId = await getOwnerRoleId(group.id)
-    if (ownerRoleId) {
-      const { error: memberError } = await supabaseAdmin.from('group_members').insert({
-        group_id: group.id,
-        user_id: user.id,
-        role_id: ownerRoleId,
-        status: 'active',
-        joined_at: new Date().toISOString(),
-      })
+    if (!ownerRoleId) {
+      throw new Error('Unable to create the group owner role')
+    }
 
-      if (memberError) {
-        console.error('Error adding creator as member:', memberError)
-        // Don't fail the group creation, but log the error
-      }
+    const { error: memberError } = await supabaseAdmin.from('group_members').insert({
+      group_id: group.id,
+      user_id: user.id,
+      role_id: ownerRoleId,
+      status: 'active',
+      joined_at: new Date().toISOString(),
+    })
+
+    if (memberError) {
+      console.error('Error adding creator as member:', memberError)
+      throw new Error('Unable to add the group creator as an active member')
     }
 
     // Create default group settings
@@ -151,74 +153,59 @@ export async function createGroupWithValidation(
  * Create default roles for a new group
  */
 async function createDefaultGroupRoles(groupId: string): Promise<void> {
-  try {
-    const defaultRoles = [
-      {
-        name: 'Owner',
-        description: 'Full control over the group',
-        permissions: ['*'], // All permissions
-        is_default: false,
-        is_system_role: true,
-        display_order: 0,
-      },
-      {
-        name: 'Admin',
-        description: 'Can manage group settings, members, and content',
-        permissions: [
-          'manage_group',
-          'manage_members',
-          'manage_content',
-          'manage_roles',
-          'invite_members',
-          'remove_members',
-          'create_events',
-          'manage_events',
-          'view_content',
-          'create_content',
-          'delete_content',
-        ],
-        is_default: false,
-        is_system_role: true,
-        display_order: 1,
-      },
-      {
-        name: 'Moderator',
-        description: 'Can moderate content and members',
-        permissions: ['view_content', 'create_content', 'delete_content', 'manage_content'],
-        is_default: false,
-        is_system_role: true,
-        display_order: 2,
-      },
-      {
-        name: 'Member',
-        description: 'Standard group member',
-        permissions: ['view_content', 'create_content'],
-        is_default: true,
-        is_system_role: true,
-        display_order: 3,
-      },
-    ]
+  const defaultRoles = [
+    {
+      name: 'Owner',
+      description: 'Full control over the group',
+      permissions: ['*'],
+      is_default: false,
+    },
+    {
+      name: 'Admin',
+      description: 'Can manage group settings, members, and content',
+      permissions: [
+        'manage_group',
+        'manage_members',
+        'manage_content',
+        'manage_roles',
+        'invite_members',
+        'remove_members',
+        'create_events',
+        'manage_events',
+        'view_content',
+        'create_content',
+        'delete_content',
+      ],
+      is_default: false,
+    },
+    {
+      name: 'Moderator',
+      description: 'Can moderate content and members',
+      permissions: ['view_content', 'create_content', 'delete_content', 'manage_content'],
+      is_default: false,
+    },
+    {
+      name: 'Member',
+      description: 'Standard group member',
+      permissions: ['view_content', 'create_content'],
+      is_default: true,
+    },
+  ]
 
-    const { error } = await supabaseAdmin.from('group_roles').insert(
-      defaultRoles.map((role) => ({
-        ...role,
-        group_id: groupId,
-        permissions: role.permissions,
-      }))
-    )
+  const { error } = await supabaseAdmin.from('group_roles').insert(
+    defaultRoles.map((role) => ({ ...role, group_id: groupId }))
+  )
 
-    if (error) {
-      console.error('Error creating default roles:', error)
-    }
-  } catch (error) {
-    console.error('Unexpected error creating default roles:', error)
+  if (error) {
+    console.error('Error creating default roles:', error)
+    throw new Error('Unable to create default group roles')
   }
 }
 
 /**
  * Get the owner role ID for a group
  */
-async function getOwnerRoleId(groupId: string): Promise<number | null> {
+async function getOwnerRoleId(groupId: string): Promise<string | null> {
   try {
     const { data, error } = await supabaseAdmin
       .from('group_roles')

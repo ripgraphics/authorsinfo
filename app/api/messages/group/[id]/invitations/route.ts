@@ -12,7 +12,7 @@ const invitationSchema = z
   .object({
     invitee_email: z.string().trim().email().max(320).optional(),
     invitee_user_id: identifier.optional(),
-    role_id: z.number().int().positive().nullable().optional(),
+    role_id: identifier.nullable().optional(),
     message: z.string().trim().max(1000).nullable().optional(),
     expires_at: z.string().datetime().nullable().optional(),
   })

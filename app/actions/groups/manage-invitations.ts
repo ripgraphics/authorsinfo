@@ -1,7 +1,6 @@
 'use server'
 
 import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
-import { validateAndFilterPayload } from '@/lib/schema/schema-validators'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { isReciprocallyBlockedForGroupInvite } from '@/lib/messaging/group-invitation-blocking'
 
@@ -9,7 +8,7 @@ export interface CreateInvitationParams {
   groupId: string
   inviteeEmail?: string
   inviteeUserId?: string
-  roleId?: number | null
+  roleId?: string | null
   message?: string | null
   expiresAt?: string | null
 }
@@ -142,16 +141,10 @@ export async function createGroupInvitation(
       status: 'pending',
     }
 
-    // Validate and filter payload
-    const {
-      payload: filteredPayload,
-      removedColumns,
-      warnings,
-    } = await validateAndFilterPayload('group_invitations', payload)
-
     // Insert invitation
-    const { data: invitation, error } = await (supabaseAdmin.from('group_invitations') as any)
-      .insert([filteredPayload])
+    const { data: invitation, error } = await supabaseAdmin
+      .from('group_invitations')
+      .insert([payload])
       .select()
       .single()
 
@@ -160,14 +153,12 @@ export async function createGroupInvitation(
       return {
         success: false,
         error: error.message || 'Failed to create invitation',
-        warnings: warnings.length > 0 ? warnings : undefined,
       }
     }
 
     return {
       success: true,
       invitation,
-      warnings: warnings.length > 0 ? warnings : undefined,
     }
   } catch (error) {
     console.error('Unexpected error creating invitation:', error)

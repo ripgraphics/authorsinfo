@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -78,7 +78,7 @@ export function AdminSidebar() {
         <nav className="flex flex-col gap-0.5 px-2 py-4 h-full overflow-y-auto scrollbar-hide">
           <div className="relative">
             <button
-              className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-white font-medium"
+              className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-primary text-sidebar-primary-foreground font-medium"
               onClick={() => toggleExpand('dashboard')}
             >
               <div className="flex items-center gap-3">
@@ -96,7 +96,7 @@ export function AdminSidebar() {
               <div className="pl-9 mt-1 space-y-1">
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                    pathname === '/admin' ? 'bg-white/10 text-white font-medium' : 'text-gray-400'
+                    pathname === '/admin' ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium' : 'text-gray-400'
                   }`}
                   href="/admin"
                 >
@@ -106,7 +106,7 @@ export function AdminSidebar() {
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                     pathname === '/admin/statistics'
-                      ? 'bg-white/10 text-white font-medium'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                       : 'text-gray-400'
                   }`}
                   href="/admin/statistics"
@@ -117,7 +117,7 @@ export function AdminSidebar() {
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                     pathname === '/admin/reports'
-                      ? 'bg-white/10 text-white font-medium'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                       : 'text-gray-400'
                   }`}
                   href="/admin/reports"
@@ -153,7 +153,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/books'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/books"
@@ -214,7 +214,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/authors'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/authors"
@@ -233,7 +233,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/book-author-connections'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/book-author-connections"
@@ -266,7 +266,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/publishers'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/publishers"
@@ -277,7 +277,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/publishers/add'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/publishers/add"
@@ -288,7 +288,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/book-publisher-connections'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/book-publisher-connections"
@@ -333,7 +333,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/activities'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/activities"
@@ -344,7 +344,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/reset-passwords'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/reset-passwords"
@@ -381,7 +381,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/analytics/cohorts'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/analytics/cohorts"
@@ -392,7 +392,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/analytics/segmentation'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/analytics/segmentation"
@@ -403,7 +403,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/analytics/churn'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/analytics/churn"
@@ -414,7 +414,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/analytics/engagement'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/analytics/engagement"
@@ -451,7 +451,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/format-types'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/format-types"
@@ -462,7 +462,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/binding-types'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/binding-types"
@@ -473,7 +473,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/image-types'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/image-types"
@@ -484,7 +484,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/book-genres'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/book-genres"
@@ -495,7 +495,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/roles'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/roles"
@@ -506,7 +506,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
                       pathname === '/admin/test-runner'
-                        ? 'bg-white/10 text-white font-medium'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                         : 'text-gray-400'
                     }`}
                     href="/admin/test-runner"

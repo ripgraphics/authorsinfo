@@ -17,6 +17,9 @@ type RequestRow = {
   status: 'pending' | 'accepted' | 'declined' | 'cancelled'
   created_at: string
   responded_at: string | null
+  requester_name: string | null
+  requester_email: string | null
+  requester_permlink: string | null
 }
 
 interface RequestQuery {
@@ -45,11 +48,38 @@ export async function GET() {
     if (!authentication.ok) return authentication.response
     const { data, error } = await getClient(authentication.context)
       .from('direct_message_requests')
-      .select('id, conversation_id, requester_id, recipient_id, status, created_at, responded_at')
+      .select(`
+        id,
+        conversation_id,
+        requester_id,
+        recipient_id,
+        status,
+        created_at,
+        responded_at,
+        requester:user_requester_id (
+          id,
+          name,
+          email,
+          permalink
+        )
+      `)
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
     if (error) throw error
-    return NextResponse.json(data ?? [], { headers: { 'Cache-Control': 'private, no-store' } })
+    const requests = (data ?? []) as (RequestRow & { requester: { id: string; name: string | null; email: string | null; permalink: string | null } })[]
+    const result = requests.map((req) => ({
+      id: req.id,
+      conversationId: req.conversation_id,
+      requesterId: req.requester_id,
+      recipientId: req.recipient_id,
+      status: req.status,
+      created_at: req.created_at,
+      responded_at: req.responded_at,
+      requesterName: req.requester?.name ?? null,
+      requesterEmail: req.requester?.email ?? null,
+      requesterPermalink: req.requester?.permalink ?? null,
+    }))
+    return NextResponse.json(result ?? [], { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (error) {
     return NextResponse.json([], { headers: { 'Cache-Control': 'private, no-store' } })
   }

@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Maximize2, MessageCircle, MoreHorizontal, Pencil, Search } from 'lucide-react'
+import Link from 'next/link'
 import { createBrowserClient } from '@supabase/ssr'
 import { GiphyFetch } from '@giphy/js-fetch-api'
 import type { ChatComposerGif } from '@/components/chat-composer'
@@ -82,6 +83,7 @@ export function FloatingChat({
   const [conversations, setConversations] = useState<MessengerConversation[]>([])
   const [friends, setFriends] = useState<Friend[]>([])
   const [messageRequests, setMessageRequests] = useState<MessengerRequestListItem[]>([])
+  const [requesterProfiles, setRequesterProfiles] = useState<Map<string, { name: string | null; permalink: string | null }>>(new Map())
   const [groupMembers, setGroupMembers] = useState<Friend[]>([])
   const [leavingGroup, setLeavingGroup] = useState(false)
   const [invitingMemberId, setInvitingMemberId] = useState<string | null>(null)
@@ -275,7 +277,19 @@ export function FloatingChat({
           .map((row) => row.friend)
           .filter((friend) => Boolean(friend?.id))
       )
-      setMessageRequests((requestData as MessengerRequestListItem[]) ?? [])
+      const requests = (requestData as (MessengerRequestListItem & { requesterName?: string | null; requesterPermalink?: string | null })[]) ?? []
+      setMessageRequests(requests)
+      // Build profile map for requesters
+      const requesterMap = new Map<string, { name: string | null; permalink: string | null }>()
+      requests.forEach((req) => {
+        if (req.requesterId) {
+          requesterMap.set(req.requesterId, {
+            name: req.requesterName ?? null,
+            permalink: req.requesterPermalink ?? null,
+          })
+        }
+      })
+      setRequesterProfiles(requesterMap)
     })
   }, [user])
 
@@ -1554,10 +1568,41 @@ export function FloatingChat({
               {messageRequests.some((request) => request.status === 'pending') ? (
                 <div className="mb-3 rounded-lg border bg-muted/30 p-3" aria-label="New message request">
                   <div className="flex items-center gap-3">
-                    <Avatar name="Message request" alt="Message request" size="xs" />
+                    {(() => {
+                      const pendingRequest = messageRequests.find((request) => request.status === 'pending')
+                      const requesterId = pendingRequest?.requesterId ?? ''
+                      const profile = requesterId ? requesterProfiles.get(requesterId) : null
+                      const profileUrl = profile?.permalink ? `/profile/${profile.permalink}` : `/profile/${requesterId}`
+                      return (
+                        <Link href={profileUrl} passHref legacyBehavior>
+                          <a className="block cursor-pointer">
+                            <Avatar
+                              id={requesterId}
+                              src={`/api/users/${requesterId}/avatar`}
+                              name={profile?.name?.charAt(0) ?? 'U'}
+                              alt={profile?.name ?? 'Message requester'}
+                              size="xs"
+                            />
+                          </a>
+                        </Link>
+                      )
+                    })()}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">New message request</p>
-                      <p className="truncate text-xs text-muted-foreground">Review your pending message request</p>
+                      {(() => {
+                        const pendingRequest = messageRequests.find((request) => request.status === 'pending')
+                        const requesterId = pendingRequest?.requesterId ?? ''
+                        const profile = requesterId ? requesterProfiles.get(requesterId) : null
+                        return (
+                          <>
+                            <p className="truncate text-sm font-semibold">
+                              {profile?.name || 'New message request'}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {profile?.name ? 'Message request' : 'Review your pending message request'}
+                            </p>
+                          </>
+                        )
+                      })()}
                     </div>
                   </div>
                   <div className="mt-2 flex gap-2">

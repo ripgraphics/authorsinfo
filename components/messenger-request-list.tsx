@@ -9,6 +9,9 @@ export interface MessengerRequestListItem {
   requesterId: string
   recipientId: string
   status: 'pending' | 'accepted' | 'declined' | 'cancelled'
+  requesterName?: string | null
+  requesterEmail?: string | null
+  requesterPermalink?: string | null
 }
 
 interface MessengerRequestListProps {

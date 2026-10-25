@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { AdminAuthCheck } from '@/components/admin/auth-check'
 import { cn } from '@/lib/utils'
 import {
   runE2ETest,
@@ -211,7 +212,7 @@ function TestPipeline({ tests, onRun }: { tests: TestCase[]; onRun: (id: string)
   )
 }
 
-export default function TestRunnerPage() {
+function TestRunnerContent() {
   const [tests, setTests] = useState<TestCase[]>([])
   const [summary, setSummary] = useState('Loading tests...')
   const [isPending, startTransition] = useTransition()
@@ -331,5 +332,13 @@ export default function TestRunnerPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function TestRunnerPage() {
+  return (
+    <AdminAuthCheck>
+      <TestRunnerContent />
+    </AdminAuthCheck>
   )
 }

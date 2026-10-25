@@ -3,8 +3,17 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import path from 'node:path'
+import { redirect } from 'next/navigation'
+import { getCurrentUserRole } from '@/lib/rbac'
 
 const execFileAsync = promisify(execFile)
+
+async function requireAdmin() {
+  const role = await getCurrentUserRole()
+  if (role !== 'admin' && role !== 'super_admin') {
+    redirect('/')
+  }
+}
 
 export type TestStatus = 'idle' | 'running' | 'passed' | 'failed' | 'error'
 
@@ -78,6 +87,7 @@ export async function getTestDefinitions(): Promise<TestSuiteResult> {
 }
 
 export async function runE2ETest(testId: string): Promise<TestCase> {
+  await requireAdmin()
   const def = TEST_DEFINITIONS.find((t) => t.id === testId)
   if (!def) {
     return {
@@ -136,6 +146,7 @@ export async function runE2ETest(testId: string): Promise<TestCase> {
 }
 
 export async function runAllE2ETests(): Promise<TestSuiteResult> {
+  await requireAdmin()
   const results: TestCase[] = []
 
   for (const def of TEST_DEFINITIONS) {

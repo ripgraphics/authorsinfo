@@ -26,6 +26,7 @@ import {
   Activity,
   Clock,
   Key,
+  FlaskConical,
 } from 'lucide-react'
 
 export function AdminSidebar() {
@@ -488,6 +489,17 @@ export function AdminSidebar() {
                   >
                     <Database className="h-4 w-4" />
                     Roles
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === '/admin/test-runner'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
+                    }`}
+                    href="/admin/test-runner"
+                  >
+                    <FlaskConical className="h-4 w-4" />
+                    Test Runner
                   </Link>
                 </div>
               )}

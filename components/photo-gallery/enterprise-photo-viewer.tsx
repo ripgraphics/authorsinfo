@@ -1012,18 +1012,18 @@ export function EnterprisePhotoViewer({
             <div className="flex-1 relative flex items-center justify-center min-h-0">
               {/* Navigation Buttons */}
               <Button
-                variant="ghost"
+                variant="default"
                 size="icon"
-                className="absolute left-4 z-10 bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
+                className="absolute left-4 z-10"
                 onClick={() => onIndexChange((currentIndex - 1 + photos.length) % photos.length)}
               >
                 <ChevronLeft className="h-6 w-6" />
               </Button>
 
               <Button
-                variant="ghost"
+                variant="default"
                 size="icon"
-                className="absolute right-4 z-10 bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
+                className="absolute right-4 z-10"
                 onClick={() => onIndexChange((currentIndex + 1) % photos.length)}
               >
                 <ChevronRight className="h-6 w-6" />
@@ -1037,9 +1037,8 @@ export function EnterprisePhotoViewer({
                   </Badge>
                   {photo.tags && photo.tags.length > 0 && (
                     <Button
-                      variant="ghost"
+                      variant="default"
                       size="sm"
-                      className="bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                       onClick={() => setShowTags(!showTags)}
                     >
                       <Tag className="h-4 w-4 mr-2" />
@@ -1050,18 +1049,16 @@ export function EnterprisePhotoViewer({
 
                 <div className="flex items-center gap-2 order-1 sm:order-2">
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="icon"
-                    className="bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                     onClick={() => setZoom(zoom === 1 ? 2 : 1)}
                   >
                     {zoom === 1 ? <ZoomIn className="h-4 w-4" /> : <ZoomOut className="h-4 w-4" />}
                   </Button>
 
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="icon"
-                    className="bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                     onClick={() => setRotation(rotation + 90)}
                   >
                     <RotateCw className="h-4 w-4" />
@@ -1069,9 +1066,8 @@ export function EnterprisePhotoViewer({
 
                   {/* Info Button - Photo Details Modal */}
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="icon"
-                    className="photo-details-info-button bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                     onClick={async () => {
                       // Refresh photo data when opening info modal
                       if (photo && albumId) {
@@ -1090,9 +1086,8 @@ export function EnterprisePhotoViewer({
                   {(isOwner || isAdmin) && (
                     <>
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="icon"
-                        className="bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                         onClick={() => {
                           // Initialize form with current photo data
                           if (photo) {
@@ -1117,9 +1112,8 @@ export function EnterprisePhotoViewer({
                       </Button>
 
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="icon"
-                        className="bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                         onClick={() => setShowDeleteConfirmDialog(true)}
                         aria-label="Delete photo"
                       >
@@ -1189,9 +1183,9 @@ export function EnterprisePhotoViewer({
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row items-center gap-2 z-10">
                 <div className="flex items-center gap-2 order-1">
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="sm"
-                    className={`bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground ${isLiked ? 'text-red-500' : ''}`}
+                    className={`${isLiked ? 'text-red-500' : ''}`}
                     onClick={handleLike}
                   >
                     <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
@@ -1199,9 +1193,8 @@ export function EnterprisePhotoViewer({
                   </Button>
 
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="sm"
-                    className="bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                     onClick={() => setShowComments(!showComments)}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
@@ -1211,9 +1204,8 @@ export function EnterprisePhotoViewer({
 
                 <div className="flex items-center gap-2 order-2">
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="sm"
-                    className="bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                     onClick={() => handleShare('copy')}
                   >
                     <Share2 className="h-4 w-4 mr-2" />
@@ -1221,9 +1213,8 @@ export function EnterprisePhotoViewer({
                   </Button>
 
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="sm"
-                    className="bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground"
                     onClick={handleDownload}
                   >
                     <Download className="h-4 w-4 mr-2" />
@@ -1232,9 +1223,9 @@ export function EnterprisePhotoViewer({
 
                   {isOwner && (
                     <Button
-                      variant="ghost"
+                      variant="default"
                       size="sm"
-                      className={`bg-primary hover:bg-app-theme-blue text-primary-foreground hover:text-primary-foreground ${isTagging ? 'bg-blue-600' : ''}`}
+                      className={`${isTagging ? 'bg-blue-600' : ''}`}
                       onClick={() => setIsTagging(!isTagging)}
                     >
                       <Tag className="h-4 w-4 mr-2" />

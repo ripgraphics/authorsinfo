@@ -44,8 +44,9 @@ function TestCard({
   onRun: (id: string) => void
 }) {
   const isFailed = test.status === 'failed' || test.status === 'error'
+  const isRunning = test.status === 'running'
   return (
-    <Card className={cn('overflow-hidden transition-colors', isFailed && 'border-destructive/50')}>
+    <Card className={cn('overflow-hidden transition-colors', isFailed && 'border-destructive/50', isRunning && 'border-primary/50 ring-1 ring-primary/20')}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-medium text-muted-foreground">{test.category}</h4>
@@ -215,7 +216,6 @@ function TestRunnerContent() {
   const [isPending, startTransition] = useTransition()
   const [initialized, setInitialized] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
-  const [runningTestId, setRunningTestId] = useState<string | null>(null)
 
   useEffect(() => {
     if (initialized) return
@@ -227,28 +227,31 @@ function TestRunnerContent() {
     })
   }, [initialized, startTransition])
 
-  const handleRunSingle = async (testId: string) => {
-    setRunningTestId(testId)
-    try {
-      const result = await runE2ETest(testId)
-      setTests((prev) => prev.map((t) => (t.id === testId ? result : t)))
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
+  const handleRunSingle = (testId: string) => {
+    startTransition(async () => {
+      // Optimistically mark as running so the card shows status immediately
       setTests((prev) =>
-        prev.map((t) =>
-          t.id === testId
-            ? {
-                ...t,
-                status: 'error' as TestStatus,
-                lastRun: new Date().toLocaleTimeString(),
-                error: message.slice(0, 500),
-              }
-            : t
-        )
+        prev.map((t) => (t.id === testId ? { ...t, status: 'running' as TestStatus } : t))
       )
-    } finally {
-      setRunningTestId(null)
-    }
+      try {
+        const result = await runE2ETest(testId)
+        setTests((prev) => prev.map((t) => (t.id === testId ? result : t)))
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        setTests((prev) =>
+          prev.map((t) =>
+            t.id === testId
+              ? {
+                  ...t,
+                  status: 'error' as TestStatus,
+                  lastRun: new Date().toLocaleTimeString(),
+                  error: message.slice(0, 500),
+                }
+              : t
+          )
+        )
+      }
+    })
   }
 
   const handleRunAll = () => {
@@ -304,10 +307,8 @@ function TestRunnerContent() {
               )}
             </div>
           )}
-          <Button onClick={handleRunAll} disabled={runningTestId !== null || isPending}>
+          <Button onClick={handleRunAll} disabled={isPending}>
             {isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : runningTestId ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Play className="w-4 h-4" />

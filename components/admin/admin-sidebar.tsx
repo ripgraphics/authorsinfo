@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Book,
   BookOpen,
@@ -46,6 +46,19 @@ export function AdminSidebar() {
       [section]: !prev[section],
     }))
   }
+
+  useEffect(() => {
+    setExpanded((prev) => ({
+      ...prev,
+      dashboard: pathname === '/admin' || pathname === '/admin/statistics' || pathname === '/admin/reports',
+      books: pathname.startsWith('/admin/books'),
+      authors: pathname.startsWith('/admin/authors'),
+      publishers: pathname.startsWith('/admin/publishers'),
+      settings: pathname === '/admin/format-types' || pathname === '/admin/binding-types' || pathname === '/admin/image-types' || pathname === '/admin/book-genres' || pathname === '/admin/roles' || pathname === '/admin/test-runner',
+      tools: pathname === '/admin/activities' || pathname === '/admin/reset-passwords',
+      analytics: pathname.startsWith('/admin/analytics'),
+    }))
+  }, [pathname])
 
   return (
     <aside className="h-screen bg-sidebar text-sidebar-foreground fixed left-0 top-0 bottom-0 z-40 flex flex-col transition-all duration-300 shadow-lg w-64">

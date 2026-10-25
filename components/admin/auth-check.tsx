@@ -25,7 +25,7 @@ export function AdminAuthCheck({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getUser()
 
         if (authError || !user) {
-          router.push('/auth/login')
+          router.push('/login')
           return
         }
 

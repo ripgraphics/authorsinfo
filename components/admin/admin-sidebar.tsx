@@ -96,7 +96,7 @@ export function AdminSidebar() {
               <div className="pl-9 mt-1 space-y-1">
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
-                    pathname === '/admin' ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    pathname === '/admin' ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   }`}
                   href="/admin"
                 >
@@ -106,7 +106,7 @@ export function AdminSidebar() {
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                     pathname === '/admin/statistics'
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                       : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   }`}
                   href="/admin/statistics"
@@ -117,7 +117,7 @@ export function AdminSidebar() {
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                     pathname === '/admin/reports'
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                       : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   }`}
                   href="/admin/reports"
@@ -153,7 +153,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/books'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/books"
@@ -214,7 +214,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/authors'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/authors"
@@ -233,7 +233,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/book-author-connections'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/book-author-connections"
@@ -266,7 +266,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/publishers'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/publishers"
@@ -277,7 +277,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/publishers/add'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/publishers/add"
@@ -288,7 +288,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/book-publisher-connections'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/book-publisher-connections"
@@ -333,7 +333,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/activities'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/activities"
@@ -344,7 +344,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/reset-passwords'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/reset-passwords"
@@ -381,7 +381,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/analytics/cohorts'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/analytics/cohorts"
@@ -392,7 +392,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/analytics/segmentation'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/analytics/segmentation"
@@ -403,7 +403,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/analytics/churn'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/analytics/churn"
@@ -414,7 +414,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/analytics/engagement'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/analytics/engagement"
@@ -451,7 +451,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/format-types'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/format-types"
@@ -462,7 +462,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/binding-types'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/binding-types"
@@ -473,7 +473,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/image-types'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/image-types"
@@ -484,7 +484,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/book-genres'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/book-genres"
@@ -495,7 +495,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/roles'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/roles"
@@ -506,7 +506,7 @@ export function AdminSidebar() {
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/settings/test-runner'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-app-theme-blue hover:text-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/settings/test-runner"

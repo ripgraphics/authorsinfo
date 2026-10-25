@@ -134,8 +134,11 @@ export async function runE2ETest(testId: string): Promise<TestCase> {
       {
         cwd: PROJECT_ROOT,
         timeout: 180_000,
-        env: { ...process.env, CI: 'true' },
+        // Do NOT force CI=true: playwright.config.ts uses `reuseExistingServer: !process.env.CI`,
+        // so forcing CI makes Playwright try to start its own dev server and fail on the busy port.
+        env: { ...process.env },
         shell: IS_WINDOWS,
+        maxBuffer: 10 * 1024 * 1024,
       }
     )
 

@@ -42,16 +42,16 @@ describe('AdminSidebar theme tokens and section expansion', () => {
     expect(link.className).not.toContain('text-white ')
   })
 
-  it('keeps the active highlight when the active link is hovered', () => {
+  it('changes the active link background on hover so there is visible interaction', () => {
     mockPathname.mockReturnValue('/admin/settings/test-runner')
     render(<AdminSidebar />)
 
     const link = screen.getByRole('link', { name: /test runner/i })
-    // The active branch must re-assert its own colors on hover so that a
-    // generic hover class cannot override it back to a light background.
-    expect(link.className).toContain('hover:bg-sidebar-primary')
-    expect(link.className).toContain('hover:text-sidebar-primary-foreground')
-    expect(link.className).not.toContain('hover:bg-sidebar-accent')
+    // Active links must adopt the app standard primary hover (same as
+    // <Button variant="default">), not hover back to their own color.
+    expect(link.className).toContain('hover:bg-app-theme-blue')
+    expect(link.className).toContain('hover:text-accent-foreground')
+    expect(link.className).not.toContain('hover:bg-sidebar-primary')
   })
 
   it('uses theme tokens for hover on inactive links', () => {

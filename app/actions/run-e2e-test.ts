@@ -3,10 +3,18 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import path from 'node:path'
+import { existsSync } from 'node:fs'
 import { redirect } from 'next/navigation'
 import { getCurrentUserRole } from '@/lib/rbac'
 
 const execFileAsync = promisify(execFile)
+
+// On Windows the Playwright CLI is a .cmd shim, which execFile cannot run
+// directly without a shell. Resolve the real local binary instead.
+const IS_WINDOWS = process.platform === 'win32'
+const PLAYWRIGHT_BIN = IS_WINDOWS
+  ? path.join('node_modules', '.bin', 'playwright.cmd')
+  : path.join('node_modules', '.bin', 'playwright')
 
 async function requireAdmin() {
   const role = await getCurrentUserRole()
@@ -100,11 +108,22 @@ export async function runE2ETest(testId: string): Promise<TestCase> {
   }
 
   const startTime = Date.now()
+
+  if (!existsSync(path.resolve(PROJECT_ROOT, PLAYWRIGHT_BIN))) {
+    return {
+      ...def,
+      status: 'error',
+      duration: null,
+      lastRun: new Date().toLocaleTimeString(),
+      error:
+        'Playwright is not installed in this environment. E2E tests require Playwright plus its browsers, which are not available on serverless production hosting. Run these tests locally with: npm run test:e2e',
+    }
+  }
+
   try {
     const { stdout, stderr } = await execFileAsync(
-      'npx',
+      PLAYWRIGHT_BIN,
       [
-        'playwright',
         'test',
         'tests-e2e/group-chat-production.spec.ts',
         '--project=chromium',
@@ -116,6 +135,7 @@ export async function runE2ETest(testId: string): Promise<TestCase> {
         cwd: PROJECT_ROOT,
         timeout: 180_000,
         env: { ...process.env, CI: 'true' },
+        shell: IS_WINDOWS,
       }
     )
 

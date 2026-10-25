@@ -54,7 +54,7 @@ export function AdminSidebar() {
       books: pathname.startsWith('/admin/books'),
       authors: pathname.startsWith('/admin/authors'),
       publishers: pathname.startsWith('/admin/publishers'),
-      settings: pathname === '/admin/format-types' || pathname === '/admin/binding-types' || pathname === '/admin/image-types' || pathname === '/admin/book-genres' || pathname === '/admin/roles' || pathname === '/admin/test-runner',
+      settings: pathname === '/admin/format-types' || pathname === '/admin/binding-types' || pathname === '/admin/image-types' || pathname === '/admin/book-genres' || pathname === '/admin/roles' || pathname.startsWith('/admin/settings'),
       tools: pathname === '/admin/activities' || pathname === '/admin/reset-passwords',
       analytics: pathname.startsWith('/admin/analytics'),
     }))
@@ -78,7 +78,7 @@ export function AdminSidebar() {
         <nav className="flex flex-col gap-0.5 px-2 py-4 h-full overflow-y-auto scrollbar-hide">
           <div className="relative">
             <button
-              className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-primary text-sidebar-primary-foreground font-medium"
+              className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
               onClick={() => toggleExpand('dashboard')}
             >
               <div className="flex items-center gap-3">
@@ -95,8 +95,8 @@ export function AdminSidebar() {
             {expanded.dashboard && (
               <div className="pl-9 mt-1 space-y-1">
                 <Link
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                    pathname === '/admin' ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium' : 'text-gray-400'
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
+                    pathname === '/admin' ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   }`}
                   href="/admin"
                 >
@@ -104,10 +104,10 @@ export function AdminSidebar() {
                   Overview
                 </Link>
                 <Link
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                     pathname === '/admin/statistics'
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                      : 'text-gray-400'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   }`}
                   href="/admin/statistics"
                 >
@@ -115,10 +115,10 @@ export function AdminSidebar() {
                   Statistics
                 </Link>
                 <Link
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                     pathname === '/admin/reports'
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                      : 'text-gray-400'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   }`}
                   href="/admin/reports"
                 >
@@ -130,11 +130,11 @@ export function AdminSidebar() {
           </div>
 
           <div className="pt-4">
-            <div className="px-3 py-2 text-xs font-semibold text-gray-400">Content Management</div>
+            <div className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/70">Content Management</div>
 
             <div className="relative">
               <button
-                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                 onClick={() => toggleExpand('books')}
               >
                 <div className="flex items-center gap-3">
@@ -151,10 +151,10 @@ export function AdminSidebar() {
               {expanded.books && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/books'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/books"
                   >
@@ -162,28 +162,28 @@ export function AdminSidebar() {
                     Books Management
                   </Link>
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                     href="/admin/books/add"
                   >
                     <Tag className="h-4 w-4" />
                     Add Book
                   </Link>
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                     href="/admin/books/import"
                   >
                     <FileText className="h-4 w-4" />
                     Import Books
                   </Link>
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                     href="/admin/new-books"
                   >
                     <FileText className="h-4 w-4" />
                     New Books
                   </Link>
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                     href="/admin/retrieve-books"
                   >
                     <Library className="h-4 w-4" />
@@ -195,7 +195,7 @@ export function AdminSidebar() {
 
             <div className="relative">
               <button
-                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                 onClick={() => toggleExpand('authors')}
               >
                 <div className="flex items-center gap-3">
@@ -212,10 +212,10 @@ export function AdminSidebar() {
               {expanded.authors && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/authors'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/authors"
                   >
@@ -223,7 +223,7 @@ export function AdminSidebar() {
                     All Authors
                   </Link>
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                     href="/admin/authors/add"
                   >
                     <Tag className="h-4 w-4" />
@@ -231,10 +231,10 @@ export function AdminSidebar() {
                   </Link>
                   {/* Added Book-Author Connections link under Authors section */}
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/book-author-connections'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/book-author-connections"
                   >
@@ -247,7 +247,7 @@ export function AdminSidebar() {
 
             <div className="relative">
               <button
-                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                 onClick={() => toggleExpand('publishers')}
               >
                 <div className="flex items-center gap-3">
@@ -264,10 +264,10 @@ export function AdminSidebar() {
               {expanded.publishers && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/publishers'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/publishers"
                   >
@@ -275,10 +275,10 @@ export function AdminSidebar() {
                     All Publishers
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/publishers/add'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/publishers/add"
                   >
@@ -286,10 +286,10 @@ export function AdminSidebar() {
                     Add Publisher
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/book-publisher-connections'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/book-publisher-connections"
                   >
@@ -301,7 +301,7 @@ export function AdminSidebar() {
             </div>
 
             <Link
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
               href="/admin/regenerate-covers"
             >
               <ImageIcon className="h-5 w-5" />
@@ -310,11 +310,11 @@ export function AdminSidebar() {
           </div>
 
           <div className="pt-4">
-            <div className="px-3 py-2 text-xs font-semibold text-gray-400">Tools</div>
+            <div className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/70">Tools</div>
 
             <div className="relative">
               <button
-                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                 onClick={() => toggleExpand('tools')}
               >
                 <div className="flex items-center gap-3">
@@ -331,10 +331,10 @@ export function AdminSidebar() {
               {expanded.tools && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/activities'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/activities"
                   >
@@ -342,10 +342,10 @@ export function AdminSidebar() {
                     Timeline Generator
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/reset-passwords'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/reset-passwords"
                   >
@@ -358,11 +358,11 @@ export function AdminSidebar() {
           </div>
 
           <div className="pt-4">
-            <div className="px-3 py-2 text-xs font-semibold text-gray-400">Analytics</div>
+            <div className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/70">Analytics</div>
 
             <div className="relative">
               <button
-                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                 onClick={() => toggleExpand('analytics')}
               >
                 <div className="flex items-center gap-3">
@@ -379,10 +379,10 @@ export function AdminSidebar() {
               {expanded.analytics && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/analytics/cohorts'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/analytics/cohorts"
                   >
@@ -390,10 +390,10 @@ export function AdminSidebar() {
                     Cohort Analysis
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/analytics/segmentation'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/analytics/segmentation"
                   >
@@ -401,10 +401,10 @@ export function AdminSidebar() {
                     User Segmentation
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/analytics/churn'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/analytics/churn"
                   >
@@ -412,10 +412,10 @@ export function AdminSidebar() {
                     Churn Prediction
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/analytics/engagement'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/analytics/engagement"
                   >
@@ -428,11 +428,11 @@ export function AdminSidebar() {
           </div>
 
           <div className="pt-4">
-            <div className="px-3 py-2 text-xs font-semibold text-gray-400">System</div>
+            <div className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/70">System</div>
 
             <div className="relative">
               <button
-                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70"
                 onClick={() => toggleExpand('settings')}
               >
                 <div className="flex items-center gap-3">
@@ -449,10 +449,10 @@ export function AdminSidebar() {
               {expanded.settings && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/format-types'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/format-types"
                   >
@@ -460,10 +460,10 @@ export function AdminSidebar() {
                     Format Types
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/binding-types'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/binding-types"
                   >
@@ -471,10 +471,10 @@ export function AdminSidebar() {
                     Binding Types
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/image-types'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/image-types"
                   >
@@ -482,10 +482,10 @@ export function AdminSidebar() {
                     Image Types
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/book-genres'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/book-genres"
                   >
@@ -493,10 +493,10 @@ export function AdminSidebar() {
                     Book Genres
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
                       pathname === '/admin/roles'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
                     href="/admin/roles"
                   >
@@ -504,12 +504,12 @@ export function AdminSidebar() {
                     Roles
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === '/admin/test-runner'
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                        : 'text-gray-400'
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all ${
+                      pathname === '/admin/settings/test-runner'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
-                    href="/admin/test-runner"
+                    href="/admin/settings/test-runner"
                   >
                     <FlaskConical className="h-4 w-4" />
                     Test Runner
@@ -523,7 +523,7 @@ export function AdminSidebar() {
 
       <div className="p-4 border-t border-sidebar-border/40 bg-sidebar">
         <button
-          className="flex items-center justify-between w-full gap-3 rounded-md hover:bg-white/10 p-2 transition-colors"
+          className="flex items-center justify-between w-full gap-3 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground p-2 transition-colors"
           type="button"
         >
           <div className="flex items-center gap-3">
@@ -534,10 +534,10 @@ export function AdminSidebar() {
             </span>
             <div className="text-left">
               <div className="text-sm font-medium">Admin User</div>
-              <div className="text-xs text-gray-400">@admin</div>
+              <div className="text-xs text-sidebar-foreground/70">@admin</div>
             </div>
           </div>
-          <ChevronUp className="h-4 w-4 text-gray-400" />
+          <ChevronUp className="h-4 w-4 text-sidebar-foreground/70" />
         </button>
       </div>
     </aside>

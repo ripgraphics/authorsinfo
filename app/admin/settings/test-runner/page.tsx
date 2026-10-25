@@ -234,17 +234,45 @@ function TestRunnerContent() {
       setTests((prev) =>
         prev.map((t) => (t.id === testId ? { ...t, status: 'running' as TestStatus } : t))
       )
-      const result = await runE2ETest(testId)
-      setTests((prev) => prev.map((t) => (t.id === testId ? result : t)))
+      try {
+        const result = await runE2ETest(testId)
+        setTests((prev) => prev.map((t) => (t.id === testId ? result : t)))
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        setTests((prev) =>
+          prev.map((t) =>
+            t.id === testId
+              ? {
+                  ...t,
+                  status: 'error' as TestStatus,
+                  lastRun: new Date().toLocaleTimeString(),
+                  error: message.slice(0, 500),
+                }
+              : t
+          )
+        )
+      }
     })
   }
 
   const handleRunAll = () => {
     startTransition(async () => {
       setTests((prev) => prev.map((t) => ({ ...t, status: 'running' as TestStatus })))
-      const result = await runAllE2ETests()
-      setTests(result.tests)
-      setSummary(result.summary)
+      try {
+        const result = await runAllE2ETests()
+        setTests(result.tests)
+        setSummary(result.summary)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        setTests((prev) =>
+          prev.map((t) => ({
+            ...t,
+            status: 'error' as TestStatus,
+            lastRun: new Date().toLocaleTimeString(),
+            error: message.slice(0, 500),
+          }))
+        )
+      }
     })
   }
 

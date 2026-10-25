@@ -71,7 +71,7 @@ function TestCard({
                 : 'Not yet run'}
           </span>
           <Button
-            variant="secondary"
+            variant="default"
             size="sm"
             disabled={test.status === 'running'}
             onClick={() => onRun(test.id)}
@@ -116,7 +116,7 @@ function TestTable({ tests, onRun }: { tests: TestCase[]; onRun: (id: string) =>
                 <td className="p-3 text-muted-foreground">{test.duration || '—'}</td>
                 <td className="p-3 text-right">
                   <Button
-                    variant="secondary"
+                    variant="default"
                     size="sm"
                     disabled={test.status === 'running'}
                     onClick={() => onRun(test.id)}
@@ -192,7 +192,7 @@ function TestPipeline({ tests, onRun }: { tests: TestCase[]; onRun: (id: string)
                     {test.duration ? `${test.duration}` : '—'}
                   </span>
                   <Button
-                    variant="secondary"
+                    variant="default"
                     size="sm"
                     disabled={test.status === 'running'}
                     onClick={() => onRun(test.id)}
@@ -305,7 +305,7 @@ function TestRunnerContent() {
               )}
             </div>
           )}
-          <Button onClick={handleRunAll} disabled={isPending} className="gap-2">
+          <Button onClick={handleRunAll} disabled={isPending}>
             {isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (

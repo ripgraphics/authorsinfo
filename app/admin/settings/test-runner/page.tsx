@@ -228,11 +228,11 @@ function TestRunnerContent() {
   }, [initialized, startTransition])
 
   const handleRunSingle = (testId: string) => {
+    // Optimistically mark as running immediately (outside transition) so UI updates instantly
+    setTests((prev) =>
+      prev.map((t) => (t.id === testId ? { ...t, status: 'running' as TestStatus } : t))
+    )
     startTransition(async () => {
-      // Optimistically mark as running so the card shows status immediately
-      setTests((prev) =>
-        prev.map((t) => (t.id === testId ? { ...t, status: 'running' as TestStatus } : t))
-      )
       try {
         const result = await runE2ETest(testId)
         setTests((prev) => prev.map((t) => (t.id === testId ? result : t)))

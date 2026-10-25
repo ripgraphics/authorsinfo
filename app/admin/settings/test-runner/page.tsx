@@ -24,7 +24,7 @@ function StatusBadge({ status }: { status: TestStatus }) {
   const config = {
     idle: { variant: 'outline' as const, label: 'Idle' },
     running: { variant: 'default' as const, label: 'Running' },
-    passed: { variant: 'secondary' as const, label: 'Passed' },
+    passed: { variant: 'success' as const, label: 'Passed' },
     failed: { variant: 'destructive' as const, label: 'Failed' },
     error: { variant: 'destructive' as const, label: 'Error' },
   }

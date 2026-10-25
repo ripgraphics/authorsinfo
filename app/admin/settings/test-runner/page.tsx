@@ -73,7 +73,6 @@ function TestCard({
           <Button
             variant="secondary"
             size="sm"
-            className="text-xs h-7 px-3"
             disabled={test.status === 'running'}
             onClick={() => onRun(test.id)}
           >
@@ -119,7 +118,6 @@ function TestTable({ tests, onRun }: { tests: TestCase[]; onRun: (id: string) =>
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="text-xs h-7 px-3"
                     disabled={test.status === 'running'}
                     onClick={() => onRun(test.id)}
                   >
@@ -196,7 +194,6 @@ function TestPipeline({ tests, onRun }: { tests: TestCase[]; onRun: (id: string)
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="text-xs h-7 px-3"
                     disabled={test.status === 'running'}
                     onClick={() => onRun(test.id)}
                   >

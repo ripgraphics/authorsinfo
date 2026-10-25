@@ -24,7 +24,7 @@ function StatusBadge({ status }: { status: TestStatus }) {
   const config = {
     idle: { variant: 'outline' as const, label: 'Idle' },
     running: { variant: 'default' as const, label: 'Running' },
-    passed: { variant: 'default' as const, label: 'Passed' },
+    passed: { variant: 'secondary' as const, label: 'Passed' },
     failed: { variant: 'destructive' as const, label: 'Failed' },
     error: { variant: 'destructive' as const, label: 'Error' },
   }
@@ -215,6 +215,7 @@ function TestRunnerContent() {
   const [isPending, startTransition] = useTransition()
   const [initialized, setInitialized] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [runningTestId, setRunningTestId] = useState<string | null>(null)
 
   useEffect(() => {
     if (initialized) return
@@ -226,30 +227,28 @@ function TestRunnerContent() {
     })
   }, [initialized, startTransition])
 
-  const handleRunSingle = (testId: string) => {
-    startTransition(async () => {
+  const handleRunSingle = async (testId: string) => {
+    setRunningTestId(testId)
+    try {
+      const result = await runE2ETest(testId)
+      setTests((prev) => prev.map((t) => (t.id === testId ? result : t)))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
       setTests((prev) =>
-        prev.map((t) => (t.id === testId ? { ...t, status: 'running' as TestStatus } : t))
-      )
-      try {
-        const result = await runE2ETest(testId)
-        setTests((prev) => prev.map((t) => (t.id === testId ? result : t)))
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        setTests((prev) =>
-          prev.map((t) =>
-            t.id === testId
-              ? {
-                  ...t,
-                  status: 'error' as TestStatus,
-                  lastRun: new Date().toLocaleTimeString(),
-                  error: message.slice(0, 500),
-                }
-              : t
-          )
+        prev.map((t) =>
+          t.id === testId
+            ? {
+                ...t,
+                status: 'error' as TestStatus,
+                lastRun: new Date().toLocaleTimeString(),
+                error: message.slice(0, 500),
+              }
+            : t
         )
-      }
-    })
+      )
+    } finally {
+      setRunningTestId(null)
+    }
   }
 
   const handleRunAll = () => {
@@ -305,8 +304,10 @@ function TestRunnerContent() {
               )}
             </div>
           )}
-          <Button onClick={handleRunAll} disabled={isPending}>
+          <Button onClick={handleRunAll} disabled={runningTestId !== null || isPending}>
             {isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : runningTestId ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Play className="w-4 h-4" />

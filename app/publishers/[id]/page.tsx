@@ -1,12 +1,13 @@
-import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 import { notFound } from 'next/navigation'
-import { supabaseAdmin } from '@/lib/supabase'
+import { fetchQuery } from 'convex/nextjs'
+import { api } from '@/convex/_generated/api'
 import type { Publisher } from '@/types/database'
 import type { Author } from '@/types/book'
 import { ClientPublisherPage } from './client'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { getFollowers, getFollowersCount } from '@/lib/follows-server'
+import { supabaseAdmin } from '@/lib/supabase'
 
 interface PublisherPageProps {
   params: {
@@ -16,70 +17,50 @@ interface PublisherPageProps {
 
 async function getPublisher(id: string) {
   try {
-    const { data: publisher, error } = await supabaseAdmin
-      .from('publishers')
-      .select(
-        `
-        *,
-        cover_image:cover_image_id(id, url, alt_text),
-        publisher_image:publisher_image_id(id, url, alt_text),
-        country_details:country_id(id, name, code)
-      `
-      )
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      console.error('Error fetching publisher:', error)
-      return null
-    }
-
-    return publisher as Publisher
+    const publisher = await fetchQuery(api.queries.publishers.getPublisher, { id })
+    if (!publisher) return null
+    
+    // Transform Convex publisher to match Supabase Publisher type
+    return {
+      id: publisher.supabaseId ?? publisher._id,
+      name: publisher.name,
+      website: publisher.website ?? undefined,
+      cover_image_id: publisher.coverImageId ?? undefined,
+      publisher_image_id: publisher.publisherImageId ?? undefined,
+      country_id: publisher.countryId ?? undefined,
+      created_at: new Date(publisher.createdAt).toISOString(),
+      updated_at: new Date(publisher.updatedAt).toISOString(),
+      cover_image: publisher.coverImageId ? {
+        id: publisher.coverImageId,
+        url: '', // Resolved via Convex fallback
+        alt_text: publisher.name,
+      } : null,
+      publisher_image: publisher.publisherImageId ? {
+        id: publisher.publisherImageId,
+        url: '', // Resolved via Convex fallback
+        alt_text: publisher.name,
+      } : null,
+      country_details: publisher.countryId ? {
+        id: publisher.countryId,
+        name: 'Unknown',
+        code: 'XX',
+      } : null,
+    } as Publisher
   } catch (error) {
-    console.error('Unexpected error fetching publisher:', error)
+    console.error('Error fetching publisher from Convex:', error)
     return null
   }
 }
 
 async function getPublisherBooks(publisherId: string) {
-  // This query should match the query structure used in the books page
-  const { data: books, error } = await supabaseAdmin
-    .from('books')
-    .select(
-      `
-      id,
-      title,
-      cover_image:cover_image_id(id, url, alt_text)
-    `
-    )
-    .eq('publisher_id', publisherId)
-    .order('title')
-    .limit(12)
-
-  if (error) {
-    console.error('Error fetching publisher books:', error)
-    throw new Error(`Failed to fetch publisher books: ${error.message}`)
+  try {
+    const { getBooksByPublisherIdFromConvex, transformConvexBookToSupabase } = await import('@/lib/convex-server')
+    const books = await getBooksByPublisherIdFromConvex(publisherId, 12)
+    return books.map(transformConvexBookToSupabase) as any[]
+  } catch (error) {
+    console.error('Error fetching publisher books from Convex:', error)
+    return []
   }
-
-  // Process books to include cover image URL - ONLY from Cloudinary (no fallback to original_image_url)
-  const bookRows = (books ?? []) as any[]
-  return bookRows.map((book) => {
-    // Determine the cover image URL - ONLY from Cloudinary
-    // If Cloudinary image is missing, show nothing (so we know it's broken)
-    let coverImageUrl = null
-    if (book.cover_image?.url) {
-      coverImageUrl = book.cover_image.url
-    } else if (book.cover_image_url) {
-      coverImageUrl = book.cover_image_url
-    }
-    // NO fallback to original_image_url - images table is source of truth
-
-    return {
-      id: book.id,
-      title: book.title,
-      cover_image_url: coverImageUrl,
-    }
-  })
 }
 
 async function getPublisherFollowers(publisherId: string) {
@@ -104,12 +85,37 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
     notFound()
   }
 
-  // Get publisher image URL (you can modify this based on your schema)
-  const publisherImageUrl =
-    publisher.publisher_image?.url || publisher.logo_url || '/placeholder.svg?height=200&width=200'
+  // Get publisher images from Convex (fallback when no album exists)
+  let publisherImageUrl = ''
+  let coverImageUrl = ''
+  try {
+    const { getPublisherImagesFromConvex } = await import('@/lib/convex-server')
+    const images = await getPublisherImagesFromConvex(id)
+    
+    // Find logo/image - check alt_text containing 'publisher' or 'cover'
+    const avatarImage = images?.find((img: any) => 
+      img.image_type === 'publisher_logo' || 
+      img.alt_text?.toLowerCase().includes('publisher') ||
+      img.alt_text?.toLowerCase().includes('logo')
+    )
+    const coverImage = images?.find((img: any) => 
+      img.image_type === 'publisher_cover' ||
+      img.alt_text?.toLowerCase().includes('cover for publisher')
+    )
+    
+    if (avatarImage && avatarImage.url) publisherImageUrl = avatarImage.url
+    if (coverImage && coverImage.url) coverImageUrl = coverImage.url
+  } catch (error) {
+    console.error('Error fetching publisher images:', error)
+  }
 
-  // Get cover image URL (you can modify this based on your schema)
-  const coverImageUrl = publisher.cover_image?.url || '/placeholder.svg?height=400&width=1200'
+  // Fallback to Supabase data if Convex didn't find images
+  if (!publisherImageUrl) {
+    publisherImageUrl = publisher.publisher_image?.url || publisher.logo_url || '/placeholder.svg?height=200&width=200'
+  }
+  if (!coverImageUrl) {
+    coverImageUrl = publisher.cover_image?.url || '/placeholder.svg?height=400&width=1200'
+  }
 
   // Get publisher followers
   const { followers, count: followersCount } = await getPublisherFollowers(id)
@@ -124,10 +130,7 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
   }
 
   // Get total book count for this publisher
-  const { count: totalBooksCount } = await supabaseAdmin
-    .from('books')
-    .select('*', { count: 'exact', head: true })
-    .eq('publisher_id', id)
+  const totalBooksCount = await fetchQuery(api.queries.books.getBookCountByPublisherId, { publisherId: id })
 
   // Get publisher authors with error handling
   let authors: Author[] = []

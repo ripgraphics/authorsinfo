@@ -231,6 +231,12 @@ export function EntityHeader({
     entityType === 'user' ? coverImageUrl : undefined
   )
   const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
+  // Sync internal avatar state with incoming prop changes (e.g., from Convex fallback resolution)
+  useEffect(() => {
+    if (profileImageUrl && profileImageUrl !== avatarImage) {
+      setAvatarImage(profileImageUrl)
+    }
+  }, [profileImageUrl])
   const [isProcessing, setIsProcessing] = useState(false)
   const [imageVersion, setImageVersion] = useState(0)
   const [, setEntityImages] = useState<{

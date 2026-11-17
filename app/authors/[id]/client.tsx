@@ -64,7 +64,7 @@ import { EntityTab } from '@/components/ui/entity-tabs'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { EntityHeader, TabConfig } from '@/components/entity-header'
-import { deduplicatedRequest } from '@/lib/request-utils'
+import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
 import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
 import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
 import { EntityMetadata } from '@/types/entity'
@@ -464,8 +464,25 @@ export function ClientAuthorPage({
 
       // FALLBACK: Only use original coverImageUrl if no entity header image was found
       if (!foundEntityHeaderImage) {
-        console.log('⚠️ No entity header image found, falling back to original cover image')
-        setCoverImageUrlState(coverImageUrl)
+        console.log('⚠️ No entity header image found, trying Convex fallback...')
+        try {
+          const convexResponse = await fetch(`/api/convex-images/${params.id}`)
+          if (convexResponse.ok) {
+            const convexData = await convexResponse.json()
+            if (convexData.cover_url) {
+              console.log('✅ Found cover image via Convex fallback:', convexData.cover_url)
+              setCoverImageUrlState(convexData.cover_url)
+            }
+          }
+        } catch (e) {
+          console.error('Convex fallback failed:', e)
+        }
+        // Continue to avatar processing below - don't return here
+      } else {
+        // Only fallback to original if Convex didn't find anything AND there's a valid one
+        if (!coverImageUrlState) {
+          setCoverImageUrlState(coverImageUrl)
+        }
       }
 
       // Process avatar images
@@ -525,11 +542,43 @@ export function ClientAuthorPage({
             console.warn(
               '⚠️ No valid images found in avatar album (all images have null image objects)'
             )
+            // Try Convex fallback for avatar image
+            try {
+              const convexResponse = await fetch(`/api/convex-images/${params.id}`)
+              if (convexResponse.ok) {
+                const convexData = await convexResponse.json()
+                if (convexData.avatar_url) {
+                  console.log('✅ Found avatar image via Convex fallback:', convexData.avatar_url)
+                  setAuthorImageUrlState(convexData.avatar_url)
+                  // Clear the entity-avatar cache so EntityHeader won't overwrite with stale data
+                  clearCache(`entity-avatar-author-${params.id}`)
+                  return
+                }
+              }
+            } catch (e) {
+              console.error('Convex fallback failed:', e)
+            }
             // Fallback to original avatar image
             setAuthorImageUrlState(authorImageUrl)
           }
         } else {
           console.warn('⚠️ Avatar album has no images array or empty images array')
+          // Try Convex fallback for avatar image
+          try {
+            const convexResponse = await fetch(`/api/convex-images/${params.id}`)
+            if (convexResponse.ok) {
+              const convexData = await convexResponse.json()
+              if (convexData.avatar_url) {
+                console.log('✅ Found avatar image via Convex fallback:', convexData.avatar_url)
+                setAuthorImageUrlState(convexData.avatar_url)
+                // Clear the entity-avatar cache so EntityHeader won't overwrite with stale data
+                clearCache(`entity-avatar-author-${params.id}`)
+                return
+              }
+            }
+          } catch (e) {
+            console.error('Convex fallback failed:', e)
+          }
           // Fallback to original avatar image
           setAuthorImageUrlState(authorImageUrl)
         }
@@ -539,7 +588,24 @@ export function ClientAuthorPage({
           error: avatarData.error,
           albumsCount: avatarData.albums?.length || 0,
         })
-        // Fallback to original avatar image if no album images found
+        // Try Convex fallback for avatar image
+        try {
+          const convexResponse = await fetch(`/api/convex-images/${params.id}`)
+          if (convexResponse.ok) {
+            const convexData = await convexResponse.json()
+            if (convexData.avatar_url) {
+              console.log('✅ Found avatar image via Convex fallback:', convexData.avatar_url)
+              setAuthorImageUrlState(convexData.avatar_url)
+              // Clear all relevant caches to prevent EntityHeader from overwriting
+              clearCache(`entity-avatar-author-${params.id}`)
+              clearCache(`entity-header-author-${params.id}`)
+              return
+            }
+          }
+        } catch (e) {
+          console.error('Convex fallback failed:', e)
+        }
+        // Fallback to original avatar image
         setAuthorImageUrlState(authorImageUrl)
       }
     } catch (error) {

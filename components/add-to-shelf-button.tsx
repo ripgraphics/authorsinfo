@@ -275,7 +275,7 @@ export function AddToShelfButton({
         onClick={(e) => {
           e.stopPropagation()
           if (!user) {
-            toast.error('Please log in to add books to your shelf')
+            router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
             return
           }
           setDialogOpen(true)

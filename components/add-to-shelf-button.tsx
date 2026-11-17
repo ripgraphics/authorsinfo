@@ -274,6 +274,10 @@ export function AddToShelfButton({
         className={`gap-2 ${className}`}
         onClick={(e) => {
           e.stopPropagation()
+          if (!user) {
+            toast.error('Please log in to add books to your shelf')
+            return
+          }
           setDialogOpen(true)
         }}
         disabled={isUpdatingStatus}

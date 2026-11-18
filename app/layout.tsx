@@ -11,6 +11,7 @@ import { RealTimeNotifications } from '@/components/real-time-notifications'
 import { UserProvider } from '@/contexts/UserContext'
 import { EngagementProvider } from '@/contexts/engagement-context'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { ConvexAuthProvider } from '@/contexts/ConvexAuthProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -39,17 +40,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange
         >
-          <UserProvider>
-            <EngagementProvider>
-              <TooltipProvider>
-                <div className="root-layout__content-wrapper w-full">
-                  <ClientLayout>{children}</ClientLayout>
-                  <RealTimeNotifications />
-                </div>
-                <Toaster />
-              </TooltipProvider>
-            </EngagementProvider>
-          </UserProvider>
+          <ConvexAuthProvider>
+            <UserProvider>
+              <EngagementProvider>
+                <TooltipProvider>
+                  <div className="root-layout__content-wrapper w-full">
+                    <ClientLayout>{children}</ClientLayout>
+                    <RealTimeNotifications />
+                  </div>
+                  <Toaster />
+                </TooltipProvider>
+              </EngagementProvider>
+            </UserProvider>
+          </ConvexAuthProvider>
         </ThemeProvider>
       </body>
     </html>

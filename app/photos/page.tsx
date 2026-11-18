@@ -12,7 +12,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { supabaseAdmin } from '@/lib/supabase/server'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -32,6 +31,8 @@ import {
   SheetClose,
 } from '@/components/ui/sheet'
 import { Label } from '@/components/ui/label'
+import { fetchQuery } from 'convex/nextjs'
+import { api } from '@/convex/_generated/api'
 
 interface PhotosPageProps {
   searchParams: Promise<{
@@ -42,32 +43,18 @@ interface PhotosPageProps {
   }>
 }
 
-// Function to get unique photo categories
 async function getUniqueCategories() {
   try {
-    // Photos table doesn't exist - use images table instead
-    // Get unique categories from image metadata if available
-    const { data, error } = await supabaseAdmin
-      .from('images')
-      .select('metadata')
-      .not('metadata', 'is', null)
-
-    if (error) {
-      console.error('Error fetching photo categories:', error)
-      return []
-    }
-
-    // Extract unique categories from metadata
+    const photos = await fetchQuery(api.queries.photos.listPhotos, { limit: 1000 })
     const categories = new Set<string>()
-    data.forEach((item) => {
-      if (item.metadata && typeof item.metadata === 'object' && 'category' in item.metadata) {
-        const category = (item.metadata as any).category
+    photos.forEach((photo) => {
+      if (photo.metadata && typeof photo.metadata === 'object' && 'category' in photo.metadata) {
+        const category = (photo.metadata as any).category
         if (category) {
           categories.add(String(category))
         }
       }
     })
-
     return Array.from(categories).sort()
   } catch (error) {
     console.error('Error fetching categories:', error)
@@ -89,66 +76,20 @@ async function PhotosList({
   const pageSize = 24
   const offset = (page - 1) * pageSize
 
-  // Build the query - use images table instead of photos table
-  let query = supabaseAdmin.from('images').select('*')
+  const photos = await fetchQuery(api.queries.photos.listPhotos, {
+    search,
+    authorId: category && category !== 'all' ? category : undefined,
+    sortBy: sort,
+    limit: pageSize,
+    offset,
+  })
 
-  // Apply search filter if provided
-  if (search) {
-    query = query.or(`alt_text.ilike.%${search}%,description.ilike.%${search}%`)
-  }
+  const totalPhotos = await fetchQuery(api.queries.photos.getTotalPhotosCount, {
+    search,
+    authorId: category && category !== 'all' ? category : undefined,
+  })
 
-  // Apply category filter if provided (check metadata.category)
-  if (category && category !== 'all') {
-    // Since category is in metadata JSON, we need to filter differently
-    // For now, we'll skip category filtering or implement JSON filtering
-    // This is a limitation of PostgREST with JSON columns
-  }
-
-  // Apply sorting
-  if (sort === 'title_asc') {
-    query = query.order('alt_text', { ascending: true })
-  } else if (sort === 'title_desc') {
-    query = query.order('alt_text', { ascending: false })
-  } else if (sort === 'created_at_asc') {
-    query = query.order('created_at', { ascending: true })
-  } else if (sort === 'created_at_desc') {
-    query = query.order('created_at', { ascending: false })
-  } else {
-    // Default sorting
-    query = query.order('created_at', { ascending: false })
-  }
-
-  // Apply pagination
-  query = query.range(offset, offset + pageSize - 1)
-
-  // Execute the query
-  const { data: photos, error } = await query
-
-  if (error) {
-    console.error('Error fetching photos:', error)
-    return <div>Error loading photos</div>
-  }
-
-  // Get total count for pagination
-  let countQuery = supabaseAdmin.from('images').select('*', { count: 'exact', head: true })
-
-  if (search) {
-    countQuery = countQuery.or(`alt_text.ilike.%${search}%,description.ilike.%${search}%`)
-  }
-
-  // Category filtering skipped for now (would require JSON filtering)
-
-  const { count, error: countError } = await countQuery
-
-  if (countError) {
-    console.error('Error counting photos:', countError)
-    return <div>Error loading photos</div>
-  }
-
-  const totalPhotos = count || 0
   const totalPages = Math.ceil(totalPhotos / pageSize)
-
-  // Get unique categories for the filter
   const categoriesList = await getUniqueCategories()
 
   return (
@@ -156,7 +97,7 @@ async function PhotosList({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {photos.length > 0 ? (
           photos.map((photo) => (
-            <Link href={`/photos/${photo.id}`} key={photo.id} className="block">
+            <Link href={`/photos/${photo._id}`} key={photo._id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                 <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
                   {photo.url ? (
@@ -165,6 +106,7 @@ async function PhotosList({
                       alt={photo.alt_text || 'Photo'}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                     />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
@@ -207,9 +149,7 @@ async function PhotosList({
             {page > 1 && (
               <PaginationItem>
                 <PaginationPrevious
-                  href={`/photos?page=${page - 1}${search ? `&search=${search}` : ''}${
-                    category ? `&category=${category}` : ''
-                  }${sort ? `&sort=${sort}` : ''}`}
+                  href={`/photos?page=${page - 1}${search ? '&search=' + search : ''}${category ? '&category=' + category : ''}${sort ? '&sort=' + sort : ''}`}
                 />
               </PaginationItem>
             )}
@@ -223,9 +163,7 @@ async function PhotosList({
               return (
                 <PaginationItem key={pageNumber}>
                   <PaginationLink
-                    href={`/photos?page=${pageNumber}${search ? `&search=${search}` : ''}${
-                      category ? `&category=${category}` : ''
-                    }${sort ? `&sort=${sort}` : ''}`}
+                    href={`/photos?page=${pageNumber}${search ? '&search=' + search : ''}${category ? '&category=' + category : ''}${sort ? '&sort=' + sort : ''}`}
                     isActive={pageNumber === page}
                   >
                     {pageNumber}
@@ -237,9 +175,7 @@ async function PhotosList({
             {page < totalPages && (
               <PaginationItem>
                 <PaginationNext
-                  href={`/photos?page=${page + 1}${search ? `&search=${search}` : ''}${
-                    category ? `&category=${category}` : ''
-                  }${sort ? `&sort=${sort}` : ''}`}
+                  href={`/photos?page=${page + 1}${search ? '&search=' + search : ''}${category ? '&category=' + category : ''}${sort ? '&sort=' + sort : ''}`}
                 />
               </PaginationItem>
             )}
@@ -251,7 +187,6 @@ async function PhotosList({
 }
 
 export default async function PhotosPage({ searchParams }: PhotosPageProps) {
-  // Get all required data first
   const [categoriesList, params] = await Promise.all([getUniqueCategories(), searchParams])
 
   const page = params?.page ? parseInt(params.page) : 1

@@ -1,0 +1,13 @@
+﻿node.exe : ▌ Showing logs of deployment:
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\cshan\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (▌ Showing logs of deployment::Str 
+   ing) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+▌ [Production] authors-info:authorsinfo:production (prod) (dashboard: 
+https://dashboard.convex.dev/t/authors-info/authorsinfo/sleek-gerbil-105)
+▌ └─ https://sleek-gerbil-105.convex.cloud
+Watching logs for production deployment sleek-gerbil-105...
+Retrying request (attempt 3/6)...

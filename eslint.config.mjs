@@ -6,6 +6,7 @@ const typescriptParser = require('@typescript-eslint/parser')
 const typescriptPlugin = require('@typescript-eslint/eslint-plugin')
 const prettierPlugin = require('eslint-plugin-prettier')
 const descriptiveClassnamePlugin = require('./eslint-plugin-descriptive-classname/index.js')
+const reactHooksPlugin = require('eslint-plugin-react-hooks')
 
 export default [
   ...nextConfig,
@@ -17,6 +18,7 @@ export default [
       '@typescript-eslint': typescriptPlugin,
       prettier: prettierPlugin,
       'descriptive-classname': descriptiveClassnamePlugin,
+      'react-hooks': reactHooksPlugin,
     },
     rules: {
       'prettier/prettier': 'warn',
@@ -44,12 +46,9 @@ export default [
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/static-components': 'off',
       'react-hooks/use-memo': 'off',
-      '@next/next/no-img-element': 'warn',
-      '@next/next/no-html-link-for-pages': 'warn',
+      
       'prefer-const': 'warn',
-      'import/no-anonymous-default-export': 'warn',
-      'jsx-a11y/alt-text': 'warn',
-      'jsx-a11y/role-supports-aria-props': 'warn',
+      
       'descriptive-classname/require-semantic-classname': 'warn',
     },
   },

@@ -1,6 +1,6 @@
-import { supabaseAdmin } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getDiscussionById } from '@/app/actions/data'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,14 +11,9 @@ interface DiscussionPageProps {
 export default async function DiscussionPage({ params }: DiscussionPageProps) {
   const { id } = await params
 
-  // Fetch discussion data
-  const { data: discussion, error } = await supabaseAdmin
-    .from('discussions')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const discussion = await getDiscussionById(id)
 
-  if (error || !discussion) {
+  if (!discussion) {
     notFound()
   }
 

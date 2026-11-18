@@ -1,0 +1,1 @@
+export default query({ handler: async (ctx) => { const user = await ctx.db.query("users").filter(q => q.or(q.eq("supabaseId", "2474659f-003e-4faa-8c53-9969c33f20b2"), q.eq("_id", "2474659f-003e-4faa-8c53-9969c33f20b2"))).take(1); return user; } })

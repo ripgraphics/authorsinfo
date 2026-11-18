@@ -1,7 +1,8 @@
-import { supabaseAdmin } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
+import { fetchQuery } from 'convex/nextjs'
+import { api } from '@/convex/_generated/api'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,14 +13,10 @@ interface PhotoPageProps {
 export default async function PhotoPage({ params }: PhotoPageProps) {
   const { id } = await params
 
-  // Fetch photo data
-  const { data: photo, error } = await supabaseAdmin
-    .from('photos')
-    .select('*')
-    .eq('id', id)
-    .single()
+  // Fetch photo data from Convex
+  const photo = await fetchQuery(api.queries.photos.getPhoto, { id })
 
-  if (error || !photo) {
+  if (!photo) {
     notFound()
   }
 
@@ -27,20 +24,25 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
     <div className="container mx-auto py-8 max-w-4xl">
       <Card>
         <CardHeader>
-          <CardTitle>Photo</CardTitle>
+            <CardTitle>{photo.alt_text || photo.caption || 'Photo'}</CardTitle>
         </CardHeader>
         <CardContent>
           {photo.url && (
             <div className="relative w-full aspect-square mb-4">
               <Image
                 src={photo.url}
-                alt={photo.alt_text || photo.description || 'Photo'}
+                  alt={photo.alt_text || photo.caption || 'Photo'}
                 fill
                 className="object-contain rounded-lg"
               />
             </div>
           )}
-          {photo.description && <p className="text-muted-foreground">{photo.description}</p>}
+            {photo.caption && <p className="text-muted-foreground">{photo.caption}</p>}
+          {photo.created_at && (
+            <p className="text-xs text-muted-foreground mt-2">
+              {new Date(photo.created_at).toLocaleDateString()}
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

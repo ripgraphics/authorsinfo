@@ -1,6 +1,7 @@
 // Re-export types from other files
 export type { Author, Book, Review, BookWithAuthor, BookWithDetails } from './book'
 export type { Publisher } from '../lib/publishers'
+export type { Discussion } from './supabase'
 
 // Database type - manually extracted from SQL backup schema
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]

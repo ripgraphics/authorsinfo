@@ -1,0 +1,1 @@
+export default query({ handler: async (ctx) => { const follows = await ctx.db.query("follows").filter(q => q.and(q.eq(q.field("followerId"), "fdcbe6e9-108d-4939-b10f-77b422731a18"), q.eq(q.field("followingId"), "2474659f-003e-4faa-8c53-9969c33f20b2"))).take(1); return follows; } })

@@ -1,7 +1,9 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { Search, Filter } from 'lucide-react'
-import EntityAvatar from '@/components/entity-avatar'
+import { Card } from '@/components/ui/card'
+import { Building, Search, Filter } from 'lucide-react'
 import {
   Pagination,
   PaginationContent,
@@ -10,7 +12,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { db } from '@/lib/db'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -19,244 +20,138 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-  SheetClose,
-} from '@/components/ui/sheet'
-import { Label } from '@/components/ui/label'
-import { InteractiveControls } from './components/InteractiveControls'
-import { PublishersListWrapper } from './components/PublishersListWrapper'
-
-interface Publisher {
-  id: number
-  name: string
-  country_id: number | null
-  country_details?: {
-    id: number
-    name: string
-    code: string
-  }
-  founded_year?: number
-  logo_url?: string
-  publisher_image?: {
-    url: string
-  }
-}
-
-interface Country {
-  id: number
-  name: string
-  code: string
-}
-
-interface QueryResponse<T> {
-  data: T[]
-  count: number | null
-}
+import { getListPublishers, getTotalPublishersCount } from '@/app/actions/data'
+import type { Publisher } from '@/types/database'
 
 interface PublishersPageProps {
   searchParams: Promise<{
     page?: string
     search?: string
-    location?: string
     sort?: string
   }>
-}
-
-// Function to detect the location field in the publishers table
-async function detectLocationField() {
-  try {
-    // Get a sample publisher to examine its structure
-    const publishers = await db.query<Publisher>(
-      'publishers',
-      {},
-      {
-        ttl: 3600, // Cache for 1 hour
-        cacheKey: 'sample_publisher',
-        limit: 1,
-        select:
-          '*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)',
-      }
-    )
-
-    if (!Array.isArray(publishers) || publishers.length === 0) {
-      console.error('No sample publisher found')
-      return null
-    }
-
-    // Check if country_id exists in the publisher object
-    if ('country_id' in publishers[0] && publishers[0].country_id !== null) {
-      console.log('Detected location field: country_id')
-      return 'country_id'
-    }
-
-    console.log('No location field found in publishers table')
-    return null
-  } catch (error) {
-    console.error('Error detecting location field:', error)
-    return null
-  }
-}
-
-async function getUniqueLocations() {
-  try {
-    // Detect the location field
-    const locationField = await detectLocationField()
-
-    if (!locationField) {
-      console.log('No location field found in publishers table')
-      return []
-    }
-
-    // Use the detected field to fetch unique locations with country details
-    const publishers = await db.query<Publisher>(
-      'publishers',
-      { [locationField]: { not: 'is', value: null } },
-      {
-        ttl: 3600, // Cache for 1 hour
-        cacheKey: `unique_locations_${locationField}`,
-        orderBy: { [locationField]: 'asc' },
-        select:
-          '*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)',
-      }
-    )
-
-    if (!Array.isArray(publishers)) {
-      return []
-    }
-
-    // Extract unique locations with country details
-    const uniqueLocations = Array.from(
-      new Set(
-        publishers
-          .map((item) => item.country_details)
-          .filter((country): country is Country => country !== null)
-          .map((country) => country.id.toString())
-      )
-    )
-
-    return uniqueLocations
-  } catch (error) {
-    console.error('Error fetching locations:', error)
-    return []
-  }
 }
 
 async function PublishersList({
   page,
   search,
-  location,
   sort,
 }: {
   page: number
   search?: string
-  location?: string
   sort?: string
 }) {
-  const pageSize = 24
+  const pageSize = 20
+  const offset = (page - 1) * pageSize
 
-  // Build the query - apply location filter server-side if provided
-  const query = {
-    ...(location && location !== 'all' && { country_id: location }),
+  const queryParams: any = {
+    limit: pageSize,
+    offset,
+    sortBy: 'name',
   }
 
-  // Fetch all publishers (or large subset) for client-side filtering
-  const publishers = await db.query<Publisher>('publishers', query, {
-    ttl: 300, // Cache for 5 minutes
-    cacheKey: `publishers_all:${JSON.stringify({ location })}`,
-    limit: 1000, // Fetch up to 1000 publishers for client-side filtering
-    select:
-      '*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)',
-  })
+  if (search) queryParams.search = search
 
-  if (!Array.isArray(publishers)) {
-    return {
-      publishers: [],
-      totalCount: 0,
-      pageSize: 24,
-    }
-  }
+  const [publishers, total] = await Promise.all([
+    getListPublishers(queryParams),
+    getTotalPublishersCount({ search }),
+  ])
 
-  // Get total count for initial pagination calculation
-  const countResponse = await db.query<Publisher>('publishers', query, {
-    ttl: 300, // Cache for 5 minutes
-    cacheKey: `publishers_count:${JSON.stringify({ location })}`,
-    count: true,
-  })
-
-  const totalCount = ('count' in countResponse && countResponse.count) || 0
-
-  // Return publishers data to be passed to client component for instant filtering
-  return {
-    publishers,
-    totalCount,
-    pageSize: 24,
-  }
-}
-
-async function PublishersListContent({
-  page,
-  search,
-  location,
-  sort,
-}: {
-  page: number
-  search?: string
-  location?: string
-  sort?: string
-}) {
-  const { publishers, totalCount, pageSize } = await PublishersList({
-    page,
-    search,
-    location,
-    sort,
-  })
-
-  return (
-    <PublishersListWrapper
-      initialPublishers={publishers}
-      initialTotalCount={totalCount}
-      page={page}
-      pageSize={pageSize}
-      location={location}
-      sort={sort}
-      initialSearch={search}
-    />
-  )
+  return { publishers: publishers as Publisher[], total, pageSize }
 }
 
 export default async function PublishersPage({ searchParams }: PublishersPageProps) {
-  // Get all required data first
-  const [locationsList, params] = await Promise.all([getUniqueLocations(), searchParams])
+  const params = await searchParams
+  const page = Number(params.page) || 1
+  const search = params.search || ''
+  const sort = params.sort || 'name_asc'
 
-  const page = params?.page ? parseInt(params.page) : 1
-  const search = params?.search
-  const location = params?.location
-  const sort = params?.sort
+  const { publishers, total, pageSize } = await PublishersList({ page, search, sort })
+  const totalPages = Math.ceil(total / pageSize)
 
   return (
     <div className="space-y-6">
       <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Publishers</h1>
-        <p className="text-muted-foreground mt-2">
-          Browse and discover publishers from our collection.
-        </p>
+        <p className="text-muted-foreground mt-2">Browse and discover publishers from our collection.</p>
       </div>
-      <InteractiveControls
-        locations={locationsList}
-        search={search}
-        location={location}
-        sort={sort}
-      />
-      <Suspense fallback={<div>Loading...</div>}>
-        <PublishersListContent page={page} search={search} location={location} sort={sort} />
-      </Suspense>
+
+      {/* Search */}
+      <div className="flex gap-4 items-center">
+        <div className="flex-1 max-w-[400px]">
+          <form action="/publishers" method="get" className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              name="search"
+              placeholder="Search publishers..."
+              defaultValue={search}
+              className="pl-9"
+            />
+          </form>
+        </div>
+      </div>
+
+      {/* Results Count */}
+      <p className="text-sm text-muted-foreground">
+        Showing {publishers.length} of {total} publishers
+      </p>
+
+      {/* Publishers Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        {publishers.length > 0 ? (
+          publishers.map((publisher: Publisher) => (
+            <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block group">
+              <Card className="overflow-hidden h-full transition-all hover:shadow-lg">
+                <div className="relative w-full aspect-square bg-muted">
+                  {publisher.cover_image?.url ? (
+                    <Image
+                      src={publisher.cover_image.url}
+                      alt={publisher.name}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Building className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 text-center">
+                  <h3 className="font-medium text-sm line-clamp-2">{publisher.name}</h3>
+                </div>
+              </Card>
+            </Link>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">No publishers found.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            {page > 1 && (
+              <PaginationItem>
+                <PaginationPrevious href={`/publishers?page=${page - 1}${search ? `&search=${search}` : ''}`} />
+              </PaginationItem>
+            )}
+            <PaginationItem>
+              <span className="px-4 py-2 text-sm">
+                Page {page} of {totalPages}
+              </span>
+            </PaginationItem>
+            {page < totalPages && (
+              <PaginationItem>
+                <PaginationNext href={`/publishers?page=${page + 1}${search ? `&search=${search}` : ''}`} />
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   )
 }

@@ -1,0 +1,10 @@
+﻿node.exe : Tip: You can try out Convex without creating an account by clearing 
+the CONVEX_DEPLOYMENT environment variable (often in .env.local).
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\cshan\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Tip: You can tr...in .env.local). 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Welcome to developing with Convex, let's get you logged in.

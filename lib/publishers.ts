@@ -3,17 +3,17 @@ import { Database } from '@/types/database'
 
 export type Publisher = Database['public']['Tables']['publishers']['Row'] & {
   cover_image?: {
-    id: number
+    id: string | number
     url: string
     alt_text: string
   }
   publisher_image?: {
-    id: number
+    id: string | number
     url: string
     alt_text: string
   }
   country_details?: {
-    id: number
+    id: string | number
     name: string
     code: string
   }

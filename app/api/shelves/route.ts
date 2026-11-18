@@ -103,9 +103,11 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync();
-    // Get current user (may be null for anonymous viewers)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    const isAuthenticated = !authError && !!user;
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -120,9 +122,9 @@ export async function GET(request: NextRequest) {
     if (targetUserId) {
       // Viewing someone else's profile
       userId = targetUserId;
-      isViewingOwnProfile = isAuthenticated && targetUserId === user.id;
-    } else if (isAuthenticated) {
-      // Fetching own shelves (authenticated)
+      isViewingOwnProfile = targetUserId === user.id;
+    } else {
+      // Fetching own shelves
       const { data: userData } = await (supabase.from('users') as any)
         .select('id')
         .eq('id', user.id)
@@ -133,13 +135,10 @@ export async function GET(request: NextRequest) {
       }
 
       userId = (userData as any).id;
-    } else {
-      // Anonymous user without userId param
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Only create default shelves if viewing own profile (authenticated)
-    if (isViewingOwnProfile && isAuthenticated) {
+    // Only create default shelves if viewing own profile
+    if (isViewingOwnProfile) {
       // Define default shelves
       const defaultShelves = [
         { name: 'Want to Read', status: 'not_started', display_order: 0 },

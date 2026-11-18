@@ -6,9 +6,8 @@ import { Plus, Camera, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { getBookCoverAltText, getBookGalleryAltText } from '@/utils/bookUtils'
-import { supabase } from '@/lib/supabase/client'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
-import { trackQueryPerformance } from '@/lib/performance-monitor'
+import { getBookImagesFromConvex } from '@/lib/convex-server'
 
 interface BookImage {
   id: string
@@ -183,178 +182,33 @@ export function BookCoverCarouselEnhanced({
           return
         }
 
-        console.log('📥 Fetching from database:', cacheKey)
+        console.log('📥 Fetching images from Convex for book:', bookId)
 
-        // Fetch front cover image using books.cover_image_id foreign key relationship
-        const frontCoverData = await executeWithRetry(async () => {
-          return trackQueryPerformance('fetchBookFrontCover', async () => {
-            const { data: bookData, error } = await supabase
-              .from('books')
-              .select(
-                'cover_image_id, cover_image:images!books_cover_image_id_fkey(id, url, alt_text, thumbnail_url, large_url, medium_url, caption, created_at)'
-              )
-              .eq('id', bookId)
-              .single()
-
-            if (error) {
-              throw new Error(`Failed to fetch front cover: ${error.message}`)
-            }
-
-            // Return the cover_image from the foreign key relationship
-            // Check if cover_image exists and is not deleted
-            const typedBookData = bookData as any
-            if (typedBookData?.cover_image) {
-              // Check if image is deleted (though foreign key join should handle this)
-              const coverImage = typedBookData.cover_image
-              if (coverImage.id && coverImage.url) {
-                return coverImage
-              }
-            }
-            return null
-          })
-        }, 'Fetch front cover')
-
-        // Fetch back cover and gallery images from the dedicated "Book Images" album
-        // This ensures we ONLY get images uploaded via the book uploader, not timeline posts
-        const albumImagesData = await executeWithRetry(async () => {
-          return trackQueryPerformance('fetchBookAlbumImages', async () => {
-            // Use the get_book_images database function which queries from "Book Images - {title}" album only
-            // Omit p_image_type to get all types (front, back, gallery)
-            const { data, error } = await (supabase.rpc as any)('get_book_images', {
-              p_book_id: bookId,
-            })
-
-            if (error) {
-              // Fallback: If RPC fails, try querying through album_images directly
-              console.warn('⚠️ get_book_images RPC failed, using fallback query:', error.message)
-
-              // Find the book's dedicated album (name starts with "Book Images - ")
-              const { data: albumData, error: albumError } = await supabase
-                .from('photo_albums')
-                .select('id')
-                .eq('entity_id', bookId)
-                .eq('entity_type', 'book')
-                .ilike('name', 'Book Images - %')
-                .limit(1)
-                .maybeSingle()
-
-              const album = albumData as { id: string } | null
-
-              if (albumError || !album) {
-                console.log('📭 No Book Images album found for book:', bookId)
-                return []
-              }
-
-              // Get images from that specific album only
-              const { data: albumImages, error: imagesError } = await (
-                supabase.from('album_images') as any
-              )
-                .select(
-                  `
-                  id,
-                  image_id,
-                  image_type,
-                  display_order,
-                  is_cover,
-                  is_featured,
-                  created_at,
-                  images:image_id (
-                    id,
-                    url,
-                    alt_text,
-                    thumbnail_url,
-                    large_url,
-                    medium_url,
-                    caption,
-                    created_at
-                  )
-                `
-                )
-                .eq('album_id', album.id)
-                .order('display_order', { ascending: true })
-
-              if (imagesError) {
-                throw new Error(`Failed to fetch album images: ${imagesError.message}`)
-              }
-
-              // Transform to match RPC output format
-              return (albumImages || [])
-                .map((ai: any) => ({
-                  id: ai.id,
-                  album_id: album.id,
-                  image_id: ai.image_id,
-                  image_url: ai.images?.url,
-                  thumbnail_url: ai.images?.thumbnail_url,
-                  large_url: ai.images?.large_url,
-                  medium_url: ai.images?.medium_url,
-                  alt_text: ai.images?.alt_text,
-                  caption: ai.images?.caption,
-                  image_type: ai.image_type,
-                  display_order: ai.display_order,
-                  is_cover: ai.is_cover,
-                  is_featured: ai.is_featured,
-                  created_at: ai.created_at,
-                }))
-                .filter((img: any) => img.image_url) // Filter out any with missing image data
-            }
-
-            return data || []
-          })
-        }, 'Fetch book album images')
-
-        // Extract back cover and gallery from album data
-        const backCoverData =
-          albumImagesData.find((img: any) => img.image_type === 'book_cover_back') || null
-        const galleryData = albumImagesData.filter((img: any) => img.image_type === 'book_gallery')
+        // Fetch all images for this book from Convex
+        const images = await getBookImagesFromConvex(bookId)
 
         // Transform images to BookImage format
-        const transformedImages: BookImage[] = []
+        const transformedImages: BookImage[] = images.map((img, index) => {
+          const imageType = img.image_type === 'book_cover_back' ? 'book_cover_back'
+            : img.image_type === 'book_gallery' ? 'book_gallery'
+            : 'book_cover_front'
 
-        // Front cover (always first) - from books.cover_image_id
-        if (frontCoverData) {
-          const transformed = transformImageToBookImage(frontCoverData, 'book_cover_front', 0)
-          if (transformed) transformedImages.push(transformed)
-        }
-
-        // Back cover (second) - from Book Images album
-        if (backCoverData) {
-          // Album data uses image_url instead of url
-          const normalizedBackCover = {
-            id: backCoverData.image_id || backCoverData.id,
-            url: backCoverData.image_url || backCoverData.url,
-            alt_text: backCoverData.alt_text,
-            thumbnail_url: backCoverData.thumbnail_url,
-            large_url: backCoverData.large_url,
-            medium_url: backCoverData.medium_url,
-            caption: backCoverData.caption,
-            created_at: backCoverData.created_at,
+          return {
+            id: img.id,
+            image_id: img.id,
+            image_url: img.url,
+            thumbnail_url: img.thumbnail_url || null,
+            large_url: img.large_url || null,
+            medium_url: img.medium_url || null,
+            alt_text: img.alt_text || null,
+            caption: img.caption || null,
+            image_type: imageType,
+            display_order: index,
+            is_cover: imageType === 'book_cover_front',
+            is_featured: img.is_featured || false,
+            created_at: img.created_at,
           }
-          const transformed = transformImageToBookImage(normalizedBackCover, 'book_cover_back', 1)
-          if (transformed) transformedImages.push(transformed)
-        }
-
-        // Gallery images (follow) - from Book Images album
-        if (galleryData && Array.isArray(galleryData)) {
-          galleryData.forEach((galleryImg: any, index: number) => {
-            // Album data uses image_url instead of url
-            const normalizedGallery = {
-              id: galleryImg.image_id || galleryImg.id,
-              url: galleryImg.image_url || galleryImg.url,
-              alt_text: galleryImg.alt_text,
-              thumbnail_url: galleryImg.thumbnail_url,
-              large_url: galleryImg.large_url,
-              medium_url: galleryImg.medium_url,
-              caption: galleryImg.caption,
-              created_at: galleryImg.created_at,
-            }
-            const transformed = transformImageToBookImage(
-              normalizedGallery,
-              'book_gallery',
-              index + 2
-            )
-            if (transformed) transformedImages.push(transformed)
-          })
-        }
+        })
 
         // Cache the results
         cacheRef.current.set(cacheKey, { data: transformedImages, timestamp: Date.now() })
@@ -419,7 +273,7 @@ export function BookCoverCarouselEnhanced({
         setLoading(false)
       }
     },
-    [bookId, currentImageId, validateInputs, executeWithRetry, transformImageToBookImage]
+    [bookId, currentImageId]
   )
 
   // Main effect to fetch images

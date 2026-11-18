@@ -65,7 +65,7 @@ export const getImagesByEntity = query({
     // Apply limit
     const limit = args.limit ?? 50
     return results.slice(0, limit).map(img => ({
-      id: img.id,
+          id: img._id,
       url: img.url,
       thumbnail_url: img.thumbnail_url,
       large_url: img.large_url,
@@ -103,7 +103,7 @@ export const getFeaturedImageByEntity = query({
 
     const img = results[0]
     return {
-      id: img.id,
+          id: img._id,
       url: img.url,
       thumbnail_url: img.thumbnail_url,
       large_url: img.large_url,
@@ -125,13 +125,13 @@ export const getImageById = query({
   handler: async (ctx, args) => {
     const results = await ctx.db
       .query('images')
-      .filter(q => q.eq(q.field('id'), args.imageId))
+      .filter(q => q.eq(q.field('_id'), args.imageId))
       .collect()
 
     if (results.length === 0) return null
     const img = results[0]
     return {
-      id: img.id,
+      id: img._id,
       url: img.url,
       thumbnail_url: img.thumbnail_url,
       large_url: img.large_url,
@@ -168,7 +168,7 @@ export const getAuthorImages = query({
     // Map to expected format
     return results
       .map(img => ({
-        id: img.id,
+              id: img._id,
         url: img.url,
         thumbnail_url: img.thumbnail_url,
         large_url: img.large_url,
@@ -212,7 +212,7 @@ export const getPublisherImages = query({
     // Map to expected format
     return results
       .map(img => ({
-        id: img.id,
+              id: img._id,
         url: img.url,
         thumbnail_url: img.thumbnail_url,
         large_url: img.large_url,

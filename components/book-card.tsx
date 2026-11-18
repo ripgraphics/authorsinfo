@@ -128,8 +128,8 @@ export function BookCard({
           bookTitle={title}
           bookPages={pages ?? readingProgress?.total_pages ?? null}
           size="icon"
-          variant="default"
-          className="h-8 w-8 rounded-full shadow-md hover:bg-secondary"
+          variant="secondary"
+          className="h-8 w-8 rounded-full shadow-md"
         />
       </div>
     </div>

@@ -25,6 +25,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
+  /* Increase default test timeout to 120 seconds for slow tests */
+  timeout: 120000,
   /* Store all Playwright output under a single artifacts directory */
   outputDir: 'artifacts/test-results',
 

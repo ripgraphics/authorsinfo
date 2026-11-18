@@ -85,7 +85,7 @@
     "date-fns": "^4.4.0",
     "dayjs": "^1.11.23",
     "embla-carousel-react": "8.6.0",
-    "emoji-picker-react": "^4.22.2",
+    "emoji-picker-react": "^4.22.3",
     "eslint-plugin-descriptive-classname": "file:./eslint-plugin-descriptive-classname",
     "framer-motion": "^13.4.1",
     "input-otp": "1.5.0",
